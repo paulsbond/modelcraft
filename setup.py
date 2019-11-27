@@ -7,4 +7,5 @@ setuptools.setup(
   author="Paul Bond",
   author_email="paul.bond@york.ac.uk",
   url="https://github.com/paulsbond/buccaneer_pipeline2",
+  install_requires=["gemmi"],
 )
