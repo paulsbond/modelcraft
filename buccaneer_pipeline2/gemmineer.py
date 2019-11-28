@@ -1,12 +1,12 @@
 import gemmi
 
-def distance(atom1, atom2):
+def _distance(atom1, atom2):
   x2 = (atom1.pos[0] - atom2.pos[0]) ** 2
   y2 = (atom1.pos[1] - atom2.pos[1]) ** 2
   z2 = (atom1.pos[2] - atom2.pos[2]) ** 2
   return (x2 + y2 + z2) ** 0.5
 
-def is_protein(residue):
+def _is_protein(residue):
   if residue.name not in (
     "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU",
     "LYS", "MET", "MSE", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "UNK", "VAL",
