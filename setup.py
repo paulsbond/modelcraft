@@ -1,11 +1,12 @@
 import setuptools
 
 setuptools.setup(
-  name="buccaneer_pipeline2",
-  version="0.1.1",
-  description="Buccaneer model building pipeline",
+  name="autocoord",
+  version="0.0.0",
+  description="Automated model building pipeline",
+  url="https://github.com/paulsbond/autocoord",
   author="Paul Bond",
   author_email="paul.bond@york.ac.uk",
-  url="https://github.com/paulsbond/buccaneer_pipeline2",
+  license="LGPL-2.1",
   install_requires=["gemmi"],
 )
