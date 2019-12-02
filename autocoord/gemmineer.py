@@ -24,15 +24,15 @@ def model_stats(xyzin):
   structure = gemmi.read_structure(xyzin)
   for chain in structure[0]:
     for i, residue in enumerate(chain):
-      if is_protein(residue):
+      if _is_protein(residue):
         stats["residues_built"] += 1
         current_fragment += 1
         if residue.name != "UNK":
           stats["residues_sequenced"] += 1
         if i + 1 < len(chain):
           next_residue = chain[i + 1]
-          if (is_protein(next_residue) and
-              distance(residue["C"], next_residue["N"]) < 1.7):
+          if (_is_protein(next_residue) and
+              _distance(residue["C"], next_residue["N"]) < 1.7):
             continue
         stats["fragments_built"] += 1
         if current_fragment > stats["longest_fragment"]:
