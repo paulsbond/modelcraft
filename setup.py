@@ -8,7 +8,7 @@ setuptools.setup(
   version="0.0.0",
   author="Paul Bond",
   author_email="paul.bond@york.ac.uk",
-  description="Automated model building pipeline",
+  description="Automated model building pipeline for X-ray crysallography and Cryo-EM",
   long_description=long_description,
   long_description_content_type="text/markdown",
   url="https://github.com/paulsbond/autocoord",
