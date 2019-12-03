@@ -4,14 +4,14 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setuptools.setup(
-    name="autocoord",
+    name="modelcraft",
     version="0.0.1",
     author="Paul Bond",
     author_email="paul.bond@york.ac.uk",
     description="Automated model building pipeline for X-ray crystallography and cryo-EM",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/paulsbond/autocoord",
+    url="https://github.com/paulsbond/modelcraft",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

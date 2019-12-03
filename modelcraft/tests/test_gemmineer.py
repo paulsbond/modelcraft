@@ -1,4 +1,4 @@
-import autocoord.gemmineer as gemmineer
+import modelcraft.gemmineer as gemmineer
 
 
 def test_number_of_known():
