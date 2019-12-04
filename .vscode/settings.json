@@ -1,6 +1,9 @@
 {
+  "editor.rulers": [120],
   "editor.tabSize": 4,
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
-  "python.pythonPath": "/usr/bin/python3"
+  "python.linting.flake8Args": [
+    "--max-line-length=120"
+  ]
 }
