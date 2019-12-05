@@ -1,1 +1,5 @@
-docs/*
+include bin/**
+include docs/**
+include modelcraft/**
+include LICENSE
+include README.md
