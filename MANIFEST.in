@@ -1,5 +1,5 @@
-include bin/**
-include docs/**
-include modelcraft/**
+graft bin
+graft docs
+graft modelcraft
 include LICENSE
 include README.md
