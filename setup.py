@@ -14,6 +14,7 @@ setuptools.setup(
     url="https://github.com/paulsbond/modelcraft",
     scripts=['bin/modelcraft'],
     packages=setuptools.find_packages(),
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
