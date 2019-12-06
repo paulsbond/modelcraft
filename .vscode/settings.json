@@ -1,9 +1,6 @@
 {
-  "editor.rulers": [120],
+  "editor.rulers": [127],
   "editor.tabSize": 4,
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
-  "python.linting.flake8Args": [
-    "--max-line-length=120"
-  ]
 }
