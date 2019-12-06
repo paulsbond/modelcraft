@@ -33,9 +33,9 @@ unbiased = None
 xyzin = None
 
 
-def parse():
-    print("\n %s" % " ".join(sys.argv[1:]).replace(" --", "\n --"))
-    args = argument_parser().parse_args()
+def parse(arguments):
+    print("\n %s" % " ".join(arguments).replace(" --", "\n --"))
+    args = argument_parser().parse_args(arguments)
     find_mtz_columns(args)
     derive_other_args(args)
     check(args)

@@ -1,8 +1,11 @@
 from modelcraft.pipeline import Pipeline
+import sys
 
 
-def main():
-    Pipeline()
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+    Pipeline(args)
 
 
 if __name__ == "__main__":
