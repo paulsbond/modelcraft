@@ -10,7 +10,6 @@ import shutil
 class Pipeline:
     def __init__(self, arguments):
         print("# ModelCraft")
-        print("\nAn automated model building pipeline for X-ray crystallography and cryo-EM")
         print("\nPlease cite [paper to be published]")
         args.parse(arguments)
         self.min_rwork = 1
