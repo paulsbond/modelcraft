@@ -39,8 +39,7 @@ def model_stats(xyzin):
                     stats["residues_sequenced"] += 1
                 if i + 1 < len(chain):
                     next_residue = chain[i + 1]
-                    if (is_protein(next_residue) and
-                            distance(residue["C"], next_residue["N"]) < 1.7):
+                    if is_protein(next_residue) and distance(residue["C"], next_residue["N"]) < 1.7:
                         continue
                 stats["fragments_built"] += 1
                 if current_fragment > stats["longest_fragment"]:
