@@ -1,4 +1,5 @@
 {
+  "editor.renderWhitespace": "boundary",
   "editor.rulers": [127],
   "editor.tabSize": 4,
   "python.linting.enabled": true,
