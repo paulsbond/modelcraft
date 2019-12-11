@@ -3,46 +3,8 @@ import gemmi
 import modelcraft.gemmineer as gemmineer
 import sys
 
-# Placeholders for linting and to avoid duplicate declarations
-add_waters = None
-auto_stop = None
-buccaneer = None
-colin_fo = None
-colin_fom = None
-colin_fp = None
-colin_free = None
-colin_hl = None
-colin_hla = None
-colin_hlb = None
-colin_hlc = None
-colin_hld = None
-colin_phi = None
-colin_phifom = None
-colin_sigfp = None
-cycles = None
-free_r_flag = None
-keep_intermediate_files = None
-known_structure = []
-mr_mode = None
-mr_model = None
-mtzin = None
-semet = None
-seqin = None
-twinned = None
-unbiased = None
-xyzin = None
 
-
-def parse(arguments):
-    print("\n %s" % " ".join(arguments).replace(" --", "\n --"))
-    args = argument_parser().parse_args(arguments)
-    find_mtz_columns(args)
-    derive_other_args(args)
-    check(args)
-    globals().update(vars(args))
-
-
-def argument_parser():
+def _argument_parser():
     parser = argparse.ArgumentParser(
         description="ModelCraft: An automated model building pipeline for X-ray crystallography and cryo-EM",
         add_help=False,
@@ -55,8 +17,6 @@ def argument_parser():
     optional = parser.add_argument_group("Optional arguments")
     optional.add_argument("--add-waters", action="store_true",
                           help="Add water molecules once R-work drops below 0.4")
-    optional.add_argument("--buccaneer", metavar="FILE", default="cbuccaneer",
-                          help="Path to an alternative buccaneer binary")
     optional.add_argument("--colin-fo", metavar="COLS",
                           help=("Column labels for the observed amplitudes\n"
                                 "(e.g. FP,SIGFP)"))
@@ -109,66 +69,82 @@ def argument_parser():
     optional.add_argument("--xyzin", metavar="FILE",
                           help="Input starting coordinates")
 
+    developer = parser.add_argument_group("Developer arguments")
+    developer.add_argument("--buccaneer", metavar="FILE", default="cbuccaneer",
+                           help="Path to an alternative buccaneer binary")
+
     return parser
 
 
-def find_mtz_columns(args):
+def _find_amplitudes(args, mtz):
+    options = list(gemmineer.fo_columns(mtz))
+    if len(options) == 1:
+        print("Using --colin-fo %s" % options[0])
+        args.colin_fo = options[0]
+    else:
+        if len(options) == 0:
+            print("No amplitides found - check input reflection data")
+        else:
+            print("Multiple amplitudes found - choose one of the following:")
+            for option in options:
+                print("--colin-fo %s" % option)
+        sys.exit()
+
+
+def _find_freer(args, mtz):
+    options = list(gemmineer.free_columns(mtz))
+    if len(options) == 1:
+        print("Using --colin-free %s" % options[0])
+        args.colin_free = options[0]
+    else:
+        if len(options) == 0:
+            print("No free-R flag found - check input reflection data.")
+        else:
+            print("Multiple free-R flags found - choose one of the following:")
+            for option in options:
+                print("--colin-free %s" % option)
+        sys.exit()
+
+
+def _find_phases(args, mtz):
+    hl_options = list(gemmineer.hl_columns(mtz))
+    phifom_options = list(gemmineer.phifom_columns(mtz))
+    if len(hl_options) + len(phifom_options) == 1:
+        if len(hl_options) == 1:
+            print("Using --colin-hl %s" % hl_options[0])
+            args.colin_hl = hl_options[0]
+        else:
+            print("Using --colin-phifom %s" % phifom_options[0])
+            args.colin_phifom = phifom_options[0]
+    else:
+        if len(hl_options) + len(phifom_options) == 0:
+            print("No phases found - check input reflection data.")
+        else:
+            print("Multiple phases found - choose one of the following:")
+            for hl_option in hl_options:
+                print("--colin-hl %s" % hl_option)
+            for phifom_option in phifom_options:
+                print("--colin-phifom %s" % phifom_option)
+        sys.exit()
+
+
+def _find_mtz_columns(args):
     mtz = gemmi.read_mtz_file(args.mtzin)
 
     if args.colin_fo is None:
         print("\nInput amplitudes not provided")
-        options = list(gemmineer.fo_columns(mtz))
-        if len(options) == 1:
-            print("Using --colin-fo %s" % options[0])
-            args.colin_fo = options[0]
-        else:
-            if len(options) == 0:
-                print("No amplitides found - check input reflection data")
-            else:
-                print("Multiple amplitudes found - choose one of the following:")
-                for option in options:
-                    print("--colin-fo %s" % option)
-            sys.exit()
+        _find_amplitudes(args, mtz)
 
     if args.colin_free is None:
         print("\nInput free-R flag not provided")
-        options = list(gemmineer.free_columns(mtz))
-        if len(options) == 1:
-            print("Using --colin-free %s" % options[0])
-            args.colin_free = options[0]
-        else:
-            if len(options) == 0:
-                print("No free-R flag found - check input reflection data.")
-            else:
-                print("Multiple free-R flags found - choose one of the following:")
-                for option in options:
-                    print("--colin-free %s" % option)
-            sys.exit()
+        _find_freer(args, mtz)
 
     if args.colin_hl is None and args.colin_phifom is None and args.mr_model is None:
         print("\nInput phases not provided")
-        hl_options = list(gemmineer.hl_columns(mtz))
-        phifom_options = list(gemmineer.phifom_columns(mtz))
-        if len(hl_options) + len(phifom_options) == 1:
-            if len(hl_options) == 1:
-                print("Using --colin-hl %s" % hl_options[0])
-                args.colin_hl = hl_options[0]
-            else:
-                print("Using --colin-phifom %s" % phifom_options[0])
-                args.colin_phifom = phifom_options[0]
-        else:
-            if len(hl_options) + len(phifom_options) == 0:
-                print("No phases found - check input reflection data.")
-            else:
-                print("Multiple phases found - choose one of the following:")
-                for hl_option in hl_options:
-                    print("--colin-hl %s" % hl_option)
-                for phifom_option in phifom_options:
-                    print("--colin-phifom %s" % phifom_option)
-            sys.exit()
+        _find_phases(args, mtz)
 
 
-def derive_other_args(args):
+def _derive_other_args(args):
     fo = args.colin_fo.split(",")
     args.colin_fp = fo[0]
     args.colin_sigfp = fo[1]
@@ -186,7 +162,7 @@ def derive_other_args(args):
         args.colin_fom = phifom[1]
 
 
-def check(args):
+def _check(args):
     if args.cycles < 1:
         print("The maximum number of cycles must be greater than 0")
         sys.exit()
@@ -196,3 +172,13 @@ def check(args):
         print("--colin-hl %s" % args.colin_hl)
         print("--colin-phifom %s" % args.colin_phifom)
         sys.exit()
+
+
+def parse(argument_list):
+    print("\n %s" % " ".join(argument_list).replace(" --", "\n --"))
+    parser = _argument_parser()
+    args = parser.parse_args(argument_list)
+    _find_mtz_columns(args)
+    _derive_other_args(args)
+    _check(args)
+    return args
