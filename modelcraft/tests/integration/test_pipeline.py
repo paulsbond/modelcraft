@@ -9,11 +9,11 @@ def test_1kv9():
     tmp_dir = "tmp%s" % uuid.uuid4()
     os.mkdir(tmp_dir)
     os.chdir(tmp_dir)
-    args = [
+    argument_list = [
         "--mtzin", data_path("1kv9_data.mtz"),
         "--seqin", data_path("1kv9_sequence.fasta"),
         "--cycles", "2"
     ]
-    main(args)
+    main(argument_list)
     os.chdir("..")
     shutil.rmtree(tmp_dir)

@@ -1,78 +1,23 @@
-import abc
-import distutils.spawn
-import itertools
-import json
+from modelcraft.pipeline import Pipeline
+import modelcraft.arguments as arguments
 import modelcraft.gemmineer as gemmineer
-import os
 import shutil
-import subprocess
-import sys
-import time
 
 
-def add_cycle(cycle):
-    report["cycles"].append(cycle)
-    write()
-
-def write():
-    report["real_time"]["total"] = round(time.time() - start_time)
-    with open("report.json", "w") as report_file:
-        json.dump(report, report_file, indent=2)
-
-
-def execute(executable, arguments=[], stdin=[]):
-    if distutils.spawn.find_executable(executable) is None:
-        sys.exit("Executable '%s' not found." % executable)
-    with open("stdout.txt", "a") as stdout, open("stderr.txt", "a") as stderr:
-        p = subprocess.Popen(
-            args=[executable] + arguments,
-            stdin=subprocess.PIPE if len(stdin) > 0 else None,
-            stdout=stdout,
-            stderr=stderr,
-            encoding="utf8")
-        if len(stdin) > 0:
-            for line in stdin:
-                p.stdin.write(line + "\n")
-            p.stdin.close()
-        p.wait()
-
-
-class Pipeline(abc.ABC):
-    def __init__(self, directory=None):
-        self.directory = os.path.abspath(os.curdir if directory is None else directory)
-        os.makedirs(self.directory, exist_ok=True)
-        os.chdir(self.directory)
-        self.start_time = time.time()
-        self.cycles = []
-        self.jobs = []
-        self.real_time_taken = {"total": 0}
-
-    class Job(abc.ABC):
-        def __init__(self, cycle, name):
-            self.dir
-            self.cycle = cycle
-            self.number = next(self._numbers)
-            self.name = name
-            self.directory = "job_%d" % (self.number)
-            print("%3d %s" % (self.number, name))
-            os.mkdir(self.directory)
-            self.start_time = time.time()
-            _initiated_jobs.append(self)
-
-        def path(self, filename):
-            return os.path.join(self.directory, filename)
-
-        def finish(self):
-            self.real_time = round(time.time() - self.start_time)
-            report.add_job(self)
-            name = self.name.lower().replace(" ", "_")
-            if name not in report["real_time"]:
-                report["real_time"][name] = 0
-            self.report["real_time"][name] += job.real_time
-            write()
-
-    self.write_report()
-
+class ModelCraft(Pipeline):
+    def __init__(self, argument_list):
+        print("# ModelCraft")
+        print("\nPlease cite [paper to be published]")
+        self.min_rwork = 1
+        self.min_rfree = 1
+        self.min_fragments_built = 999
+        self.max_longest_fragment = 0
+        self.max_residues_built = 0
+        self.max_residues_sequenced = 0
+        self.cycles_without_improvement = 0
+        self.initiated_jobs = []
+        self.args = arguments.parse(argument_list)
+        self.run(self.args)
 
     def run(self, args):
         for self.cycle in range(1, args.cycles + 1):

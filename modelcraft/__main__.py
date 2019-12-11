@@ -3,12 +3,12 @@ import os
 import sys
 
 
-def main(args=None):
+def main(argument_list=None):
     if "CCP4" not in os.environ:
         sys.exit("CCP4 environment not set")
-    if args is None:
-        args = sys.argv[1:]
-    Pipeline(args)
+    if argument_list is None:
+        argument_list = sys.argv[1:]
+    Pipeline(argument_list)
 
 
 if __name__ == "__main__":
