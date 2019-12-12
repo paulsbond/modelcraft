@@ -1,65 +1,68 @@
+from modelcraft.utils import run
+from modelcraft.job import Job
+import xml.etree.ElementTree as ET
 
 
 class Buccaneer(Job):
-    def __init__(self, cycle, mtzin, pdbin=None, cycles=2):
-        super().__init__(cycle, "Buccaneer")
+    def __init__(self, args, directory, hklin, xyzin=None, cycles=2):
+        super().__init__(directory)
         self.xmlout = self.path("xmlout.xml")
-        self.xyzout = self.path("xyzout.pdb")
-        self.run(mtzin, pdbin, cycles)
-        self.finish()
+        stdin = self._get_stdin(args, hklin, xyzin, cycles)
+        run(args.buccaneer, ["-stdin"], stdin)
+        self._set_results()
 
-    def run(self, mtzin, pdbin, cycles):
+    def _get_stdin(self, args, hklin, xyzin, cycles):
         stdin = []
-        stdin.append("seqin " + args.seqin)
-        stdin.append("colin-fo " + args.colin_fo)
-        stdin.append("colin-free " + args.colin_free)
-        if mtzin == args.mtzin:
-            stdin.append("mtzin " + mtzin)
-            if args.colin_hl is not None:
-                stdin.append("colin-hl " + args.colin_hl)
-            if args.colin_phifom is not None:
-                stdin.append("colin-phifom " + args.colin_phifom)
-        else:
-            execute("cmtzjoin", [
-                "-mtzout", self.path("hklin.mtz"),
-                "-mtzin", args.mtzin, "-colin", args.colin_fo, "-colout", args.colin_fo,
-                "-mtzin", args.mtzin, "-colin", args.colin_free, "-colout", args.colin_free,
-                "-mtzin", mtzin, "-colin", "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB",
-                                 "-colout", "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB",
-                "-mtzin", mtzin, "-colin", "FWT,PHWT", "-colout", "FWT,PHWT",
-            ])
-            stdin.append("mtzin " + self.path("hklin.mtz"))
-            stdin.append("colin-hl HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB")
-            stdin.append("colin-fc FWT,PHWT")
-        if pdbin is not None:
-            stdin.append("pdbin " + pdbin)
+        stdin.append("seqin %s" % args.seqin)
+        stdin.append("colin-fo %s" % hklin.fsigf)
+        stdin.append("colin-free %s" % args.colin_free)
+        stdin.append("mtzin %s" % hklin.path)
+        for keyword in self._colin_keywords(hklin):
+            stdin.append(keyword)
+        if xyzin is not None:
+            stdin.append("pdbin %s" % xyzin)
             for structure in args.known_structure:
-                stdin.append("known-structure " + structure)
-        if args.mr_mode > 1:
-            stdin.append("pdbin-mr " + args.mr_model)
-            if args.mr_mode == 3:
-                stdin.append("mr-model")
-            if args.mr_mode in (4, 6):
-                stdin.append("mr-model-filter")
-            if args.mr_mode in (5, 6):
-                stdin.append("mr-model-seed")
-        stdin.append("pdbout " + self.xyzout)
-        stdin.append("xmlout " + self.xmlout)
+                stdin.append("known-structure %s" % structure)
+        for keyword in self._mr_keywords(args):
+            stdin.append(keyword)
+        if args.semet:
+            stdin.append("build-semet")
+        stdin.append("pdbout %s" % self.xyzout)
+        stdin.append("xmlout %s" % self.xmlout)
         stdin.append("anisotropy-correction")
         stdin.append("fast")
+        stdin.append("correlation-mode")
         stdin.append("cycles %d" % cycles)
         stdin.append("resolution 2.0")
         stdin.append("model-filter")
         stdin.append("model-filter-sigma 1.0")
-        if args.semet:
-            stdin.append("build-semet")
-        execute(args.buccaneer, ["-stdin"], stdin)
-        results = ET.parse(self.path("xmlout.xml")).getroot().find("Final")
-        self.completeness_by_residues = float(results.find("CompletenessByResiduesBuilt").text)
-        self.completeness_by_chains = float(results.find("CompletenessByChainsBuilt").text)
-        self.chains_built = int(results.find("ChainsBuilt").text)
-        self.fragments_built = int(results.find("FragmentsBuilt").text)
-        self.residues_unique = int(results.find("ResiduesUnique").text)
-        self.residues_built = int(results.find("ResiduesBuilt").text)
-        self.residues_sequenced = int(results.find("ResiduesSequenced").text)
-        self.longest_fragment = int(results.find("ResiduesLongestFragment").text)
+        return stdin
+
+    def _colin_keywords(self, hklin):
+        if hklin.abcd is not None:
+            yield "colin-hl %s" % hklin.abcd
+        if hklin.phifom is not None:
+            yield "colin-phifom %s" % hklin.phifom
+        if hklin.fphi is not None:
+            yield "colin-fc %s" % hklin.fphi
+
+    def _mr_keywords(self, args):
+        if args.mr_mode > 1:
+            yield "pdbin-mr %s" % args.mr_model
+            if args.mr_mode == 3:
+                yield "mr-model"
+            if args.mr_mode in (4, 6):
+                yield "mr-model-filter"
+            if args.mr_mode in (5, 6):
+                yield "mr-model-seed"
+
+    def _set_results(self):
+        xml = ET.parse(self.xmlout).getroot().find("Final")
+        self.completeness_by_residues = float(xml.find("CompletenessByResiduesBuilt").text)
+        self.completeness_by_chains = float(xml.find("CompletenessByChainsBuilt").text)
+        self.chains_built = int(xml.find("ChainsBuilt").text)
+        self.fragments_built = int(xml.find("FragmentsBuilt").text)
+        self.residues_unique = int(xml.find("ResiduesUnique").text)
+        self.residues_built = int(xml.find("ResiduesBuilt").text)
+        self.residues_sequenced = int(xml.find("ResiduesSequenced").text)
+        self.longest_fragment = int(xml.find("ResiduesLongestFragment").text)
