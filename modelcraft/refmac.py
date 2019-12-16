@@ -1,19 +1,28 @@
-class Refmac(Job):
-    def __init__(self, cycle, xyzin, use_phases):
-        super().__init__(cycle, "REFMAC")
-        self.hklout = self.path("hklout.mtz")
-        self.xyzout = self.path("xyzout.pdb")
-        self.run(xyzin, use_phases)
-        self.finish()
+from modelcraft.utils import run
+from modelcraft.job import Job
+import xml.etree.ElementTree as ET
 
-    def run(self, xyzin, use_phases):
-        arguments = [
-            "HKLIN", args.mtzin,
+
+class Refmac(Job):
+    def __init__(self, args, directory, xyzin, use_phases=False):
+        super().__init__(directory)
+        self.hklout = self.path("hklout.mtz")
+        self.xmlout = self.path("xmlout.xml")
+        arguments = self._get_arguments(args, xyzin)
+        stdin = self._get_stdin(args, use_phases)
+        run("refmac5", arguments, stdin, self.stdout, self.stderr)
+        self._set_results()
+
+    def _get_arguments(self, args, xyzin):
+        return [
+            "HKLIN", args.hklin.path,
             "XYZIN", xyzin,
             "HKLOUT", self.hklout,
             "XYZOUT", self.xyzout,
-            "XMLOUT", self.path("xmlout.xml"),
+            "XMLOUT", self.xmlout,
         ]
+
+    def _get_stdin(self, args, use_phases):
         stdin = []
         labin = "FP=" + args.colin_fp
         labin += " SIGFP=" + args.colin_sigfp
@@ -37,10 +46,12 @@ class Refmac(Job):
         stdin.append("PNAME buccaneer")
         stdin.append("DNAME buccaneer")
         stdin.append("END")
-        execute("refmac5", arguments, stdin)
-        root = ET.parse(self.path("xmlout.xml")).getroot()
-        rworks = list(root.iter("r_factor"))
-        rfrees = list(root.iter("r_free"))
+        return stdin
+
+    def _set_results(self):
+        xml = ET.parse(self.xmlout).getroot()
+        rworks = list(xml.iter("r_factor"))
+        rfrees = list(xml.iter("r_free"))
         self.initial_rwork = float(rworks[0].text)
         self.initial_rfree = float(rfrees[0].text)
         self.final_rwork = float(rworks[-1].text)
