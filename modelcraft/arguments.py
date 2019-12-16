@@ -1,6 +1,8 @@
+from modelcraft.hklfile import HklFile
 import argparse
 import gemmi
 import modelcraft.gemmineer as gemmineer
+import os
 import sys
 
 
@@ -11,18 +13,18 @@ def _argument_parser():
         formatter_class=argparse.RawTextHelpFormatter)
 
     required = parser.add_argument_group("Required arguments")
-    required.add_argument("--mtzin", metavar="FILE", required=True, help="Input reflection data in MTZ format")
+    required.add_argument("--hklin", metavar="FILE", required=True, help="Input reflection data in MTZ format")
     required.add_argument("--seqin", metavar="FILE", required=True, help="Input protein sequence")
 
     optional = parser.add_argument_group("Optional arguments")
     optional.add_argument("--add-waters", action="store_true",
                           help="Add water molecules once R-work drops below 0.4")
-    optional.add_argument("--colin-fo", metavar="COLS",
-                          help=("Column labels for the observed amplitudes\n"
-                                "(e.g. FP,SIGFP)"))
     optional.add_argument("--colin-free", metavar="COL",
                           help=("Column label for the free-R flag\n"
                                 "(e.g. FreeR_flag)"))
+    optional.add_argument("--colin-fsigf", metavar="COLS",
+                          help=("Column labels for the observed amplitudes\n"
+                                "(e.g. FP,SIGFP)"))
     optional.add_argument("--colin-hl", metavar="COLS",
                           help=("Column labels for input phases as Hendrickson-Lattman coefficients\n"
                                 "(e.g. HLA,HLB,HLC,HLD)"))
@@ -76,18 +78,29 @@ def _argument_parser():
     return parser
 
 
+def _check_paths(args):
+    for arg in "hklin", "seqin", "xyzin", "mr_model":
+        path = getattr(args, arg)
+        if path is None:
+            continue
+        setattr(args, arg, os.path.abspath(path))
+        if not os.path.exists(path):
+            print("File not found: %s" % path)
+            sys.exit()
+
+
 def _find_amplitudes(args, mtz):
     options = list(gemmineer.fo_columns(mtz))
     if len(options) == 1:
-        print("Using --colin-fo %s" % options[0])
-        args.colin_fo = options[0]
+        print("Using --colin-fsigf %s" % options[0])
+        args.colin_fsigf = options[0]
     else:
         if len(options) == 0:
             print("No amplitides found - check input reflection data")
         else:
             print("Multiple amplitudes found - choose one of the following:")
             for option in options:
-                print("--colin-fo %s" % option)
+                print("--colin-fsigf %s" % option)
         sys.exit()
 
 
@@ -129,9 +142,9 @@ def _find_phases(args, mtz):
 
 
 def _find_mtz_columns(args):
-    mtz = gemmi.read_mtz_file(args.mtzin)
+    mtz = gemmi.read_mtz_file(args.hklin)
 
-    if args.colin_fo is None:
+    if args.colin_fsigf is None:
         print("\nInput amplitudes not provided")
         _find_amplitudes(args, mtz)
 
@@ -145,7 +158,9 @@ def _find_mtz_columns(args):
 
 
 def _derive_other_args(args):
-    fo = args.colin_fo.split(",")
+    args.hklin = HklFile(args.hklin, args.colin_fsigf, args.colin_hl, args.colin_phifom)
+
+    fo = args.colin_fsigf.split(",")
     args.colin_fp = fo[0]
     args.colin_sigfp = fo[1]
 
@@ -178,6 +193,7 @@ def parse(argument_list):
     print("\n %s" % " ".join(argument_list).replace(" --", "\n --"))
     parser = _argument_parser()
     args = parser.parse_args(argument_list)
+    _check_paths(args)
     _find_mtz_columns(args)
     _derive_other_args(args)
     _check(args)

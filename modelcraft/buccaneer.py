@@ -8,7 +8,7 @@ class Buccaneer(Job):
         super().__init__(directory)
         self.xmlout = self.path("xmlout.xml")
         stdin = self._get_stdin(args, hklin, xyzin, cycles)
-        run(args.buccaneer, ["-stdin"], stdin)
+        run(args.buccaneer, ["-stdin"], stdin, self.stdout, self.stderr)
         self._set_results()
 
     def _get_stdin(self, args, hklin, xyzin, cycles):
@@ -17,22 +17,20 @@ class Buccaneer(Job):
         stdin.append("colin-fo %s" % hklin.fsigf)
         stdin.append("colin-free %s" % args.colin_free)
         stdin.append("mtzin %s" % hklin.path)
-        for keyword in self._colin_keywords(hklin):
-            stdin.append(keyword)
+        stdin.extend(self._colin_keywords(hklin))
         if xyzin is not None:
             stdin.append("pdbin %s" % xyzin)
             for structure in args.known_structure:
                 stdin.append("known-structure %s" % structure)
-        for keyword in self._mr_keywords(args):
-            stdin.append(keyword)
-        if args.semet:
-            stdin.append("build-semet")
+        stdin.extend(self._mr_keywords(args))
         stdin.append("pdbout %s" % self.xyzout)
         stdin.append("xmlout %s" % self.xmlout)
-        stdin.append("anisotropy-correction")
+        stdin.append("cycles %d" % cycles)
+        if args.semet:
+            stdin.append("build-semet")
         stdin.append("fast")
         stdin.append("correlation-mode")
-        stdin.append("cycles %d" % cycles)
+        stdin.append("anisotropy-correction")
         stdin.append("resolution 2.0")
         stdin.append("model-filter")
         stdin.append("model-filter-sigma 1.0")
