@@ -13,7 +13,6 @@ def test_1kv9():
     argument_list = [
         "--hklin", data_path("1kv9_data.mtz"),
         "--seqin", data_path("1kv9_sequence.fasta"),
-        "--cycles", "2"
     ]
     args = parse(argument_list)
     buccaneer = Buccaneer(args, "buccaneer", args.hklin, cycles=1)
