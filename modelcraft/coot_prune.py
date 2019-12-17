@@ -369,7 +369,7 @@ class Model:
           if atom.is_main_chain:
             zscore = 0 if main_mad == 0 else 0.6745 * (value - main_median) / main_mad
           else:
-            zscore = 0 if main_mad == 0 else 0.6745 * (value - side_median) / side_mad
+            zscore = 0 if side_mad == 0 else 0.6745 * (value - side_median) / side_mad
           setattr(atom, zscore_attr, zscore)
     set_zscore("density_norm", "density_zscore")
     set_zscore("diff_norm", "diff_zscore")
@@ -749,13 +749,11 @@ def prune(imol, imap, imap_diff,
 
   model = Model(imol, imap, imap_diff)
 
-  main_median = median([r.main_chain_correctness for r in model.residues])
-  side_median = median([r.side_chain_correctness for r in model.residues if r.truncatable])
-  if chain_threshold == "auto": chain_threshold = main_median * 0.2
-  if residue_threshold == "auto": residue_threshold = main_median * 0.5
-  if sidechain_threshold == "auto": sidechain_threshold = side_median * 0.5
+  if len(model.chains) < 1: return
 
   if chains:
+    main_median = median([r.main_chain_correctness for r in model.residues])
+    if chain_threshold == "auto": chain_threshold = main_median * 0.2
     print("ML_CORRECTNESS: Deleting chains (up to %d residues long) with scores < %.3f" % (max_chain_length, chain_threshold))
     print("ML_CORRECTNESS: Up to %.0f%% of residues will be deleted" % (max_chain_fraction * 100))
     max_deleted = len(model.residues) * max_chain_fraction
@@ -774,7 +772,11 @@ def prune(imol, imap, imap_diff,
   else:
     remaining = [r for r in model.residues]
 
+  if len(remaining) < 1: return
+
   if residues:
+    main_median = median([r.main_chain_correctness for r in remaining])
+    if residue_threshold == "auto": residue_threshold = main_median * 0.5
     print("ML_CORRECTNESS: Deleting residues with scores < %.3f" % residue_threshold)
     print("ML_CORRECTNESS: Up to %.0f%% of residues will be deleted" % (max_residue_fraction * 100))
     max_deleted = len(remaining) * max_residue_fraction
@@ -796,12 +798,16 @@ def prune(imol, imap, imap_diff,
     print("ML_CORRECTNESS: Deleted %.0f%% of residues" % (float(deleted) / len(remaining) * 100))
     remaining = [r for r in remaining if not r.delete]
 
+  remaining = [r for r in remaining if r.truncatable]
+  if len(remaining) < 1: return
+
   if sidechains:
+    side_median = median([r.side_chain_correctness for r in model.residues if r.truncatable])
+    if sidechain_threshold == "auto": sidechain_threshold = side_median * 0.5
     print("ML_CORRECTNESS: Deleting sidechains with scores < %.3f" % sidechain_threshold)
-    print("ML_CORRECTNESS: Up to %.0f%% of residues will be deleted" % (max_sidechain_fraction * 100))
+    print("ML_CORRECTNESS: Up to %.0f%% of sidechains will be deleted" % (max_sidechain_fraction * 100))
     max_deleted = len(remaining) * max_sidechain_fraction
     deleted = 0
-    remaining = [r for r in remaining if r.truncatable]
     remaining.sort(key=lambda r: r.side_chain_correctness)
     for residue in remaining:
       if residue.side_chain_correctness < sidechain_threshold and deleted + 1 < max_deleted:
