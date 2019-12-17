@@ -1,4 +1,3 @@
-from modelcraft.utils import run
 from modelcraft.job import Job
 import xml.etree.ElementTree as ET
 
@@ -10,7 +9,7 @@ class Refmac(Job):
         self.xmlout = self.path("xmlout.xml")
         arguments = self._get_arguments(args, xyzin)
         stdin = self._get_stdin(args, use_phases)
-        run("refmac5", arguments, stdin, self.stdout, self.stderr)
+        self.run("refmac5", arguments, stdin)
         self._set_results()
 
     def _get_arguments(self, args, xyzin):

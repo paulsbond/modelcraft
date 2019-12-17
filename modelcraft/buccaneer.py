@@ -1,4 +1,3 @@
-from modelcraft.utils import run
 from modelcraft.job import Job
 import xml.etree.ElementTree as ET
 
@@ -8,7 +7,7 @@ class Buccaneer(Job):
         super().__init__(directory)
         self.xmlout = self.path("xmlout.xml")
         stdin = self._get_stdin(args, hklin, xyzin, cycles)
-        run(args.buccaneer, ["-stdin"], stdin, self.stdout, self.stderr)
+        self.run(args.buccaneer, ["-stdin"], stdin)
         self._set_results()
 
     def _get_stdin(self, args, hklin, xyzin, cycles):
