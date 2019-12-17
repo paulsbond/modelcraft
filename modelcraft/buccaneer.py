@@ -6,6 +6,7 @@ class Buccaneer(Job):
     def __init__(self, args, directory, hklin, xyzin=None, cycles=2):
         super().__init__(directory)
         self.xmlout = self.path("xmlout.xml")
+        self.xyzout = self.path("xyzout.pdb")
         stdin = self._get_stdin(args, hklin, xyzin, cycles)
         self.run(args.buccaneer, ["-stdin"], stdin)
         self._set_results()

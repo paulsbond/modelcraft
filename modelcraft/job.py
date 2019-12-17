@@ -10,7 +10,6 @@ class Job:
         self.directory = os.path.abspath(directory)
         self.stdout = self.path("stdout.txt")
         self.stderr = self.path("stderr.txt")
-        self.xyzout = self.path("xyzout.pdb")
 
     def path(self, *paths):
         return os.path.join(self.directory, *paths)

@@ -12,6 +12,7 @@ class Refmac(Job):
             abcd="HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB",
             fphi="FWT,PHWT")
         self.xmlout = self.path("xmlout.xml")
+        self.xyzout = self.path("xyzout.pdb")
         arguments = self._get_arguments(args, xyzin)
         stdin = self._get_stdin(args, use_phases)
         self.run("refmac5", arguments, stdin)

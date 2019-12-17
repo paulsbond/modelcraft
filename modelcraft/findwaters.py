@@ -4,6 +4,7 @@ from modelcraft.job import Job
 class FindWaters(Job):
     def __init__(self, directory, xyzin, hklin, dummy=False):
         super().__init__(directory)
+        self.xyzout = self.path("xyzout.pdb")
         arguments = [
             "--pdbin", xyzin,
             "--hklin", hklin.path,
