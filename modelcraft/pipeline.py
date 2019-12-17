@@ -1,89 +1,58 @@
-import abc
-import distutils.spawn
-import itertools
-import json
-import modelcraft.gemmineer as gemmineer
-import os
+from modelcraft.arguments import parse
+from modelcraft.buccaneer import Buccaneer
+from modelcraft.findwaters import FindWaters
+from modelcraft.gemmineer import model_stats
+from modelcraft.prune import Prune
+from modelcraft.refmac import Refmac
 import shutil
-import subprocess
-import sys
-import time
 
 
-def add_cycle(cycle):
-    report["cycles"].append(cycle)
-    write()
+class Pipeline():
+    def __init__(self, argument_list):
+        print("# ModelCraft")
+        print("\nPlease cite [paper to be published]")
+        self._args = parse(argument_list)
+        self._init_variables
+        self._run()
 
-
-def write():
-    report["real_time"]["total"] = round(time.time() - start_time)
-    with open("report.json", "w") as report_file:
-        json.dump(report, report_file, indent=2)
-
-
-class Pipeline(abc.ABC):
-    def __init__(self, directory=None):
-        self.directory = os.path.abspath(os.curdir if directory is None else directory)
-        os.makedirs(self.directory, exist_ok=True)
-        os.chdir(self.directory)
-        self.start_time = time.time()
-        self.cycles = []
+    def _init_variables(self):
+        self.min_rwork = 1
+        self.min_rfree = 1
+        self.min_fragments_built = 999
+        self.max_longest_fragment = 0
+        self.max_residues_built = 0
+        self.max_residues_sequenced = 0
+        self.cycles_without_improvement = 0
         self.jobs = []
-        self.real_time_taken = {"total": 0}
 
-    class Job(abc.ABC):
-        def __init__(self, cycle, name):
-            self.dir
-            self.cycle = cycle
-            self.number = next(self._numbers)
-            self.name = name
-            self.directory = "job_%d" % (self.number)
-            print("%3d %s" % (self.number, name))
-            os.mkdir(self.directory)
-            self.start_time = time.time()
-            _initiated_jobs.append(self)
-
-        def path(self, filename):
-            return os.path.join(self.directory, filename)
-
-        def finish(self):
-            self.real_time = round(time.time() - self.start_time)
-            report.add_job(self)
-            name = self.name.lower().replace(" ", "_")
-            if name not in report["real_time"]:
-                report["real_time"][name] = 0
-            self.report["real_time"][name] += job.real_time
-            write()
-
-    self.write_report()
-
-
-    def run(self, args):
+    def _run(self):
+        args = self._args
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
             mlhl = args.unbiased and self.min_rwork > 0.35
             if self.cycle == 1:
                 missingPhases = args.colin_hl is None and args.colin_phifom is None
                 if missingPhases and args.mr_model is not None:
-                    refmac = jobs.Refmac(self.cycle, args.mr_model, mlhl)
-                    buccaneer = jobs.Buccaneer(self.cycle, refmac.hklout, args.xyzin, cycles=3)
+                    refmac = Refmac(self.cycle, args.mr_model, mlhl)
+                    refmac = Refmac(args, "refmac")
+                    buccaneer = Buccaneer(self.cycle, refmac.hklout, args.xyzin, cycles=3)
                 else:
-                    buccaneer = jobs.Buccaneer(self.cycle, args.mtzin, args.xyzin, cycles=3)
+                    buccaneer = Buccaneer(self.cycle, args.hklin, args.xyzin, cycles=3)
             else:
-                coot = jobs.Prune(self.cycle, refmac.xyzout, refmac.hklout)
-                refmac = jobs.Refmac(self.cycle, coot.xyzout, mlhl)
-                buccaneer = jobs.Buccaneer(self.cycle, refmac.hklout, refmac.xyzout)
-            refmac = jobs.Refmac(self.cycle, buccaneer.xyzout, mlhl)
-            coot = jobs.Prune(self.cycle, refmac.xyzout, refmac.hklout, chains_only=True)
+                coot = Prune(self.cycle, refmac.xyzout, refmac.hklout)
+                refmac = Refmac(self.cycle, coot.xyzout, mlhl)
+                buccaneer = Buccaneer(self.cycle, refmac.hklout, refmac.xyzout)
+            refmac = Refmac(self.cycle, buccaneer.xyzout, mlhl)
+            coot = Prune(self.cycle, refmac.xyzout, refmac.hklout, chains_only=True)
             if args.add_waters and self.min_rwork < 0.4:
-                coot = jobs.FindWaters(self.cycle, coot.xyzout, refmac.hklout)
-            refmac = jobs.Refmac(self.cycle, coot.xyzout, mlhl)
+                coot = FindWaters(self.cycle, coot.xyzout, refmac.hklout)
+            refmac = Refmac(self.cycle, coot.xyzout, mlhl)
             self.process_cycle_output(refmac)
             if self.cycle > 1:
-                jobs.remove_job_directories(self.cycle - 1)
+                self.remove_job_directories(self.cycle - 1)
             if args.auto_stop and self.cycles_without_improvement == 4:
                 break
-        jobs.remove_job_directories(self.cycle)
+        self.remove_job_directories(self.cycle)
 
     def improved(self, cycle):
         required_improvement = 0.02
@@ -110,7 +79,7 @@ class Pipeline(abc.ABC):
             "rwork": refmac.final_rwork,
             "rfree": refmac.final_rfree,
         }
-        cycle.update(gemmineer.model_stats(refmac.xyzout))
+        cycle.update(model_stats(refmac.xyzout))
         print("\nResidues built: %d" % cycle["residues_built"])
         print("Residues sequenced: %d" % cycle["residues_sequenced"])
         print("R-work: %.3f" % cycle["rwork"])
@@ -138,11 +107,9 @@ class Pipeline(abc.ABC):
         if cycle["longest_fragment"] > self.max_longest_fragment:
             self.max_longest_fragment = cycle["longest_fragment"]
 
-        report.add_cycle(cycle)
-
     def remove_job_directories(self, cycle):
-        if self.args.keep_intermediate_files:
+        if self._args.keep_intermediate_files:
             return
-        for job in self.initiated_jobs:
+        for job in self.jobs:
             if job.cycle == cycle:
                 shutil.rmtree(job.directory)
