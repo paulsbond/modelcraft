@@ -35,6 +35,7 @@ def model_stats(xyzin):
         "residues_sequenced": 0,
         "fragments_built": 0,
         "longest_fragment": 0,
+        "waters": 0,
     }
     current_fragment = 0
     structure = gemmi.read_structure(xyzin)
@@ -53,6 +54,8 @@ def model_stats(xyzin):
                 if current_fragment > stats["longest_fragment"]:
                     stats["longest_fragment"] = current_fragment
                 current_fragment = 0
+            if residue.name == "HOH":
+                stats["waters"] += 1
     return stats
 
 

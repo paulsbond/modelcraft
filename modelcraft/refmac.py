@@ -1,3 +1,4 @@
+from modelcraft.hklfile import HklFile
 from modelcraft.job import Job
 import xml.etree.ElementTree as ET
 
@@ -5,7 +6,11 @@ import xml.etree.ElementTree as ET
 class Refmac(Job):
     def __init__(self, args, directory, xyzin, use_phases=False):
         super().__init__(directory)
-        self.hklout = self.path("hklout.mtz")
+        self.hklout = HklFile(
+            path=self.path("hklout.mtz"),
+            fsigf=args.hklin.fsigf,
+            abcd="HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB",
+            fphi="FWT,PHWT")
         self.xmlout = self.path("xmlout.xml")
         arguments = self._get_arguments(args, xyzin)
         stdin = self._get_stdin(args, use_phases)
@@ -16,7 +21,7 @@ class Refmac(Job):
         return [
             "HKLIN", args.hklin.path,
             "XYZIN", xyzin,
-            "HKLOUT", self.hklout,
+            "HKLOUT", self.hklout.path,
             "XYZOUT", self.xyzout,
             "XMLOUT", self.xmlout,
         ]

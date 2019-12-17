@@ -1,16 +1,14 @@
-class FindWaters(Job):
-    def __init__(self, cycle, xyzin, hklin, dummy=False):
-        super().__init__(cycle, "Finding waters")
-        self.xyzout = self.path("xyzout.pdb")
-        self.run(xyzin, hklin, dummy)
-        self.finish()
+from modelcraft.job import Job
 
-    def run(self, xyzin, hklin, dummy):
+
+class FindWaters(Job):
+    def __init__(self, directory, xyzin, hklin, dummy=False):
+        super().__init__(directory)
         arguments = [
             "--pdbin", xyzin,
-            "--hklin", hklin,
-            "--f", "FWT",
-            "--phi", "PHWT",
+            "--hklin", hklin.path,
+            "--f", hklin.fphi.split(",")[0],
+            "--phi", hklin.fphi.split(",")[0],
             "--pdbout", self.path("waters.pdb"),
         ]
         if dummy:
@@ -19,9 +17,11 @@ class FindWaters(Job):
         # --min-dist X
         # --max-dist X
         # --flood-atom-radius 1.4 (adjusts contact distance)
-        execute("findwaters", arguments)
-        execute("pdb_merge", [
+        self.run("findwaters", arguments)
+        arguments = [
             "xyzin1", xyzin,
             "xyzin2", self.path("waters.pdb"),
             "xyzout", self.xyzout,
-        ], ["NOMERGE", "END"])
+        ]
+        stdin = ["NOMERGE", "END"]
+        self.run("pdb_merge", arguments, stdin)
