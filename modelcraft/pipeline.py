@@ -12,10 +12,10 @@ class Pipeline():
         print("# ModelCraft")
         print("\nPlease cite [paper to be published]")
         self._args = parse(argument_list)
-        self._init_variables
+        self._initialise()
         self._run()
 
-    def _init_variables(self):
+    def _initialise(self):
         self.min_rwork = 1
         self.min_rfree = 1
         self.min_fragments_built = 999
@@ -23,36 +23,63 @@ class Pipeline():
         self.max_residues_built = 0
         self.max_residues_sequenced = 0
         self.cycles_without_improvement = 0
-        self.jobs = []
+        self.jobs = {}
 
     def _run(self):
         args = self._args
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
-            mlhl = args.unbiased and self.min_rwork > 0.35
+            self.jobs[self.cycle] = []
             if self.cycle == 1:
-                missingPhases = args.colin_hl is None and args.colin_phifom is None
-                if missingPhases and args.mr_model is not None:
-                    refmac = Refmac(self.cycle, args.mr_model, mlhl)
-                    refmac = Refmac(args, "refmac")
-                    buccaneer = Buccaneer(self.cycle, refmac.hklout, args.xyzin, cycles=3)
+                if args.colin_hl is None and args.colin_phifom is None and args.mr_model is not None:
+                    refmac = self._refmac(args.mr_model)
+                    buccaneer = self._buccaneer(refmac.hklout, args.xyzin)
                 else:
-                    buccaneer = Buccaneer(self.cycle, args.hklin, args.xyzin, cycles=3)
+                    buccaneer = self._buccaneer(args.hklin, args.xyzin)
             else:
-                coot = Prune(self.cycle, refmac.xyzout, refmac.hklout)
-                refmac = Refmac(self.cycle, coot.xyzout, mlhl)
-                buccaneer = Buccaneer(self.cycle, refmac.hklout, refmac.xyzout)
-            refmac = Refmac(self.cycle, buccaneer.xyzout, mlhl)
-            coot = Prune(self.cycle, refmac.xyzout, refmac.hklout, chains_only=True)
+                coot = self._prune(refmac.xyzout, refmac.hklout)
+                refmac = self._refmac(coot.xyzout)
+                buccaneer = self._buccaneer(refmac.hklout, refmac.xyzout)
+            refmac = self._refmac(buccaneer.xyzout)
+            coot = self._prune(refmac.xyzout, refmac.hklout, chains_only=True)
             if args.add_waters and self.min_rwork < 0.4:
-                coot = FindWaters(self.cycle, coot.xyzout, refmac.hklout)
-            refmac = Refmac(self.cycle, coot.xyzout, mlhl)
+                coot = self._findwaters(coot.xyzout, refmac.hklout)
+            refmac = self._refmac(coot.xyzout)
             self.process_cycle_output(refmac)
             if self.cycle > 1:
                 self.remove_job_directories(self.cycle - 1)
             if args.auto_stop and self.cycles_without_improvement == 4:
                 break
         self.remove_job_directories(self.cycle)
+
+    def _job_directory(self, name):
+        return "%02d.%02d_%s" % (self.cycle, len(self.jobs[self.cycle]) + 1, name)
+
+    def _buccaneer(self, hklin, xyzin):
+        directory = self._job_directory("buccaneer")
+        cycles = 3 if self.cycle == 1 else 2
+        job = Buccaneer(self._args, directory, hklin, xyzin, cycles)
+        self.jobs[self.cycle].append(job)
+        return job
+
+    def _refmac(self, xyzin):
+        directory = self._job_directory("refmac")
+        use_phases = self._args.unbiased and self.min_rwork > 0.35
+        job = Refmac(self._args, directory, xyzin, use_phases)
+        self.jobs[self.cycle].append(job)
+        return job
+
+    def _prune(self, xyzin, hklin, chains_only=False):
+        directory = self._job_directory("prune_chains" if chains_only else "prune")
+        job = Prune(directory, xyzin, hklin, chains_only)
+        self.jobs[self.cycle].append(job)
+        return job
+
+    def _findwaters(self, xyzin, hklin):
+        directory = self._job_directory("findwaters")
+        job = FindWaters(directory, xyzin, hklin)
+        self.jobs[self.cycle].append(job)
+        return job
 
     def improved(self, cycle):
         required_improvement = 0.02
@@ -110,6 +137,5 @@ class Pipeline():
     def remove_job_directories(self, cycle):
         if self._args.keep_intermediate_files:
             return
-        for job in self.jobs:
-            if job.cycle == cycle:
-                shutil.rmtree(job.directory)
+        for job in self.jobs[cycle]:
+            shutil.rmtree(job.directory)
