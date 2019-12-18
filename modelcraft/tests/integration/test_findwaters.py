@@ -1,6 +1,6 @@
 from modelcraft.arguments import parse
+from modelcraft.coordinates import CoordinateFile
 from modelcraft.findwaters import FindWaters
-from modelcraft.gemmineer import model_stats
 from modelcraft.refmac import Refmac
 from modelcraft.tests import data_path
 import os
@@ -17,12 +17,12 @@ def test_waters():
         "--seqin", data_path("1kv9_sequence.fasta"),
     ]
     args = parse(argument_list)
-    refmac = Refmac(args, "refmac", data_path("1kv9_model.pdb"))
+    xyzin = CoordinateFile(data_path("1kv9_model.pdb"))
+    refmac = Refmac(args, "refmac", xyzin)
     findwaters = FindWaters("findwaters", refmac.xyzout, refmac.hklout)
     assert os.path.exists(findwaters.stdout)
     assert os.path.exists(findwaters.stderr)
-    assert os.path.exists(findwaters.xyzout)
-    stats = model_stats(findwaters.xyzout)
-    assert stats["waters"] > 1
+    assert os.path.exists(findwaters.xyzout.path)
+    assert findwaters.xyzout.waters > 1
     os.chdir("..")
     shutil.rmtree(tmp_dir)

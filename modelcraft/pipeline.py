@@ -1,7 +1,6 @@
 from modelcraft.arguments import parse
 from modelcraft.buccaneer import Buccaneer
 from modelcraft.findwaters import FindWaters
-from modelcraft.gemmineer import model_stats
 from modelcraft.prune import Prune
 from modelcraft.refmac import Refmac
 import shutil
@@ -81,58 +80,47 @@ class Pipeline():
         self.jobs[self.cycle].append(job)
         return job
 
-    def improved(self, cycle):
+    def improved(self, refmac):
         required_improvement = 0.02
-        improvement = (self.min_rwork - cycle["rwork"]) / self.min_rwork
+        improvement = (self.min_rwork - refmac.final_rwork) / self.min_rwork
         if improvement > required_improvement:
             return True
-        improvement = (cycle["residues_built"] - self.max_residues_built) / float(self.max_residues_built)
+        improvement = (refmac.residues - self.max_residues_built) / float(self.max_residues_built)
         if improvement > required_improvement:
             return True
-        improvement = (cycle["residues_sequenced"] - self.max_residues_sequenced) / float(self.max_residues_sequenced)
+        improvement = (refmac.sequenced_residues - self.max_residues_sequenced) / float(self.max_residues_sequenced)
         if improvement > required_improvement:
             return True
-        improvement = (self.min_fragments_built - cycle["fragments_built"]) / float(self.min_fragments_built)
+        improvement = (self.min_fragments_built - refmac.fragments) / float(self.min_fragments_built)
         if improvement > required_improvement:
             return True
-        improvement = (cycle["longest_fragment"] - self.max_longest_fragment) / float(self.max_longest_fragment)
+        improvement = (refmac.longest_fragment - self.max_longest_fragment) / float(self.max_longest_fragment)
         if improvement > required_improvement:
             return True
         return False
 
     def process_cycle_output(self, refmac):
-        cycle = {
-            "cycle": self.cycle,
-            "rwork": refmac.final_rwork,
-            "rfree": refmac.final_rfree,
-        }
-        cycle.update(model_stats(refmac.xyzout))
-        print("\nResidues built: %d" % cycle["residues_built"])
-        print("Residues sequenced: %d" % cycle["residues_sequenced"])
-        print("R-work: %.3f" % cycle["rwork"])
-        print("R-free: %.3f" % cycle["rfree"])
+        print("\nResidues built: %d" % refmac.xyzout.residues)
+        print("Residues sequenced: %d" % refmac.xyzout.sequenced_residues)
+        print("R-work: %.3f" % refmac.final_rwork)
+        print("R-free: %.3f" % refmac.final_rfree)
 
-        if self.improved(cycle):
+        if self.improved(refmac):
             self.cycles_without_improvement = 0
         else:
             self.cycles_without_improvement += 1
             print("\nNo significant improvement for %d cycle(s)" % self.cycles_without_improvement)
 
-        if cycle["rwork"] < self.min_rwork:
-            self.min_rwork = cycle["rwork"]
-        if cycle["rfree"] < self.min_rfree:
-            self.min_rfree = cycle["rfree"]
-            print("Copying files to output as R-free improved")
-            shutil.copyfile(str(refmac.xyzout), "xyzout.pdb")
+        if refmac.final_rfree < self.min_rfree:
+            self.min_rfree = refmac.final_rfree
+            print("Copying files to output because R-free has improved")
+            shutil.copyfile(str(refmac.xyzout.path), "xyzout.pdb")
             shutil.copyfile(str(refmac.hklout.path), "hklout.mtz")
-        if cycle["residues_built"] > self.max_residues_built:
-            self.max_residues_built = cycle["residues_built"]
-        if cycle["residues_sequenced"] > self.max_residues_sequenced:
-            self.max_residues_sequenced = cycle["residues_sequenced"]
-        if cycle["fragments_built"] < self.min_fragments_built:
-            self.min_fragments_built = cycle["fragments_built"]
-        if cycle["longest_fragment"] > self.max_longest_fragment:
-            self.max_longest_fragment = cycle["longest_fragment"]
+        self.min_rwork = min(self.min_rwork, refmac.final_rwork)
+        self.max_residues_built = max(self.max_residues_built, refmac.xyzout.residues)
+        self.max_residues_sequenced = max(self.max_residues_sequenced, refmac.xyzout.sequenced_residues)
+        self.min_fragments_built = min(self.min_fragments_built, refmac.xyzout.fragments)
+        self.max_longest_fragment = max(self.max_longest_fragment, refmac.xyzout.longest_fragment)
 
     def remove_job_directories(self, cycle):
         if self._args.keep_intermediate_files:

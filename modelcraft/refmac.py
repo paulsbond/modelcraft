@@ -1,4 +1,5 @@
-from modelcraft.hklfile import HklFile
+from modelcraft.coordinates import CoordinateFile
+from modelcraft.reflections import ReflectionFile
 from modelcraft.job import Job
 import xml.etree.ElementTree as ET
 
@@ -6,24 +7,24 @@ import xml.etree.ElementTree as ET
 class Refmac(Job):
     def __init__(self, args, directory, xyzin, use_phases=False):
         super().__init__(directory)
-        self.hklout = HklFile(
+        self.hklout = ReflectionFile(
             path=self.path("hklout.mtz"),
             fsigf=args.hklin.fsigf,
             abcd="HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB",
             fphi="FWT,PHWT")
         self.xmlout = self.path("xmlout.xml")
-        self.xyzout = self.path("xyzout.pdb")
         arguments = self._get_arguments(args, xyzin)
         stdin = self._get_stdin(args, use_phases)
         self.run("refmac5", arguments, stdin)
+        self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
         self._set_results()
 
     def _get_arguments(self, args, xyzin):
         return [
             "HKLIN", args.hklin.path,
-            "XYZIN", xyzin,
+            "XYZIN", xyzin.path,
             "HKLOUT", self.hklout.path,
-            "XYZOUT", self.xyzout,
+            "XYZOUT", self.path("xyzout.pdb"),
             "XMLOUT", self.xmlout,
         ]
 

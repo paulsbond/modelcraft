@@ -1,7 +1,7 @@
-from modelcraft.hklfile import HklFile
+from modelcraft.coordinates import CoordinateFile
+from modelcraft.reflections import ReflectionFile, fo_columns, free_columns, hl_columns, phifom_columns
 import argparse
 import gemmi
-import modelcraft.gemmineer as gemmineer
 import os
 import sys
 
@@ -90,7 +90,7 @@ def _check_paths(args):
 
 
 def _find_amplitudes(args, mtz):
-    options = list(gemmineer.fo_columns(mtz))
+    options = list(fo_columns(mtz))
     if len(options) == 1:
         print("Using --colin-fsigf %s" % options[0])
         args.colin_fsigf = options[0]
@@ -105,7 +105,7 @@ def _find_amplitudes(args, mtz):
 
 
 def _find_freer(args, mtz):
-    options = list(gemmineer.free_columns(mtz))
+    options = list(free_columns(mtz))
     if len(options) == 1:
         print("Using --colin-free %s" % options[0])
         args.colin_free = options[0]
@@ -120,8 +120,8 @@ def _find_freer(args, mtz):
 
 
 def _find_phases(args, mtz):
-    hl_options = list(gemmineer.hl_columns(mtz))
-    phifom_options = list(gemmineer.phifom_columns(mtz))
+    hl_options = list(hl_columns(mtz))
+    phifom_options = list(phifom_columns(mtz))
     if len(hl_options) + len(phifom_options) == 1:
         if len(hl_options) == 1:
             print("Using --colin-hl %s" % hl_options[0])
@@ -158,7 +158,11 @@ def _find_mtz_columns(args):
 
 
 def _derive_other_args(args):
-    args.hklin = HklFile(args.hklin, args.colin_fsigf, args.colin_hl, args.colin_phifom)
+    args.hklin = ReflectionFile(args.hklin, args.colin_fsigf, args.colin_hl, args.colin_phifom)
+    if args.xyzin is not None:
+        args.xyzin = CoordinateFile(args.xyzin)
+    if args.mr_model is not None:
+        args.mr_model = CoordinateFile(args.mr_model)
 
     fo = args.colin_fsigf.split(",")
     args.colin_fp = fo[0]

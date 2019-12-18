@@ -1,4 +1,5 @@
 from modelcraft.arguments import parse
+from modelcraft.coordinates import CoordinateFile
 from modelcraft.refmac import Refmac
 from modelcraft.tests import data_path
 import os
@@ -15,13 +16,13 @@ def test_1kv9():
         "--seqin", data_path("1kv9_sequence.fasta"),
     ]
     args = parse(argument_list)
-    xyzin = data_path("1kv9_model.pdb")
+    xyzin = CoordinateFile(data_path("1kv9_model.pdb"))
     refmac = Refmac(args, "refmac", xyzin)
     assert os.path.exists(refmac.stdout)
     assert os.path.exists(refmac.stderr)
     assert os.path.exists(refmac.hklout.path)
     assert os.path.exists(refmac.xmlout)
-    assert os.path.exists(refmac.xyzout)
+    assert os.path.exists(refmac.xyzout.path)
     assert refmac.final_rfree < 1
     assert refmac.final_rwork < refmac.initial_rwork
     os.chdir("..")

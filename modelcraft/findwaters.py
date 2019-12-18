@@ -1,12 +1,12 @@
+from modelcraft.coordinates import CoordinateFile
 from modelcraft.job import Job
 
 
 class FindWaters(Job):
     def __init__(self, directory, xyzin, hklin, dummy=False):
         super().__init__(directory)
-        self.xyzout = self.path("xyzout.pdb")
         arguments = [
-            "--pdbin", xyzin,
+            "--pdbin", xyzin.path,
             "--hklin", hklin.path,
             "--f", hklin.fphi.split(",")[0],
             "--phi", hklin.fphi.split(",")[0],
@@ -20,9 +20,10 @@ class FindWaters(Job):
         # --flood-atom-radius 1.4 (adjusts contact distance)
         self.run("findwaters", arguments)
         arguments = [
-            "xyzin1", xyzin,
+            "xyzin1", xyzin.path,
             "xyzin2", self.path("waters.pdb"),
-            "xyzout", self.xyzout,
+            "xyzout", self.path("xyzout.pdb"),
         ]
         stdin = ["NOMERGE", "END"]
         self.run("pdb_merge", arguments, stdin)
+        self.xyzout = CoordinateFile(self.path("xyzout.pdb"))

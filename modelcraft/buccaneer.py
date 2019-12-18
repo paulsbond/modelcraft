@@ -1,3 +1,4 @@
+from modelcraft.coordinates import CoordinateFile
 from modelcraft.job import Job
 import xml.etree.ElementTree as ET
 
@@ -6,9 +7,9 @@ class Buccaneer(Job):
     def __init__(self, args, directory, hklin, xyzin=None, cycles=2):
         super().__init__(directory)
         self.xmlout = self.path("xmlout.xml")
-        self.xyzout = self.path("xyzout.pdb")
         stdin = self._get_stdin(args, hklin, xyzin, cycles)
         self.run(args.buccaneer, ["-stdin"], stdin)
+        self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
         self._set_results()
 
     def _get_stdin(self, args, hklin, xyzin, cycles):
@@ -19,11 +20,11 @@ class Buccaneer(Job):
         stdin.append("mtzin %s" % hklin.path)
         stdin.extend(self._colin_keywords(hklin))
         if xyzin is not None:
-            stdin.append("pdbin %s" % xyzin)
+            stdin.append("pdbin %s" % xyzin.path)
             for structure in args.known_structure:
                 stdin.append("known-structure %s" % structure)
         stdin.extend(self._mr_keywords(args))
-        stdin.append("pdbout %s" % self.xyzout)
+        stdin.append("pdbout %s" % self.path("xyzout.pdb"))
         stdin.append("xmlout %s" % self.xmlout)
         stdin.append("cycles %d" % cycles)
         if args.semet:
@@ -46,7 +47,7 @@ class Buccaneer(Job):
 
     def _mr_keywords(self, args):
         if args.mr_mode > 1:
-            yield "pdbin-mr %s" % args.mr_model
+            yield "pdbin-mr %s" % args.mr_model.path
             if args.mr_mode == 3:
                 yield "mr-model"
             if args.mr_mode in (4, 6):
