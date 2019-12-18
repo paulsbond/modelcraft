@@ -19,7 +19,7 @@ def test_1kv9():
     refmac = Refmac(args, "refmac", xyzin)
     assert os.path.exists(refmac.stdout)
     assert os.path.exists(refmac.stderr)
-    assert os.path.exists(refmac.hklout)
+    assert os.path.exists(refmac.hklout.path)
     assert os.path.exists(refmac.xmlout)
     assert os.path.exists(refmac.xyzout)
     assert refmac.final_rfree < 1

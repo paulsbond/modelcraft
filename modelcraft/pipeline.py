@@ -124,7 +124,7 @@ class Pipeline():
             self.min_rfree = cycle["rfree"]
             print("Copying files to output as R-free improved")
             shutil.copyfile(str(refmac.xyzout), "xyzout.pdb")
-            shutil.copyfile(str(refmac.hklout), "hklout.mtz")
+            shutil.copyfile(str(refmac.hklout.path), "hklout.mtz")
         if cycle["residues_built"] > self.max_residues_built:
             self.max_residues_built = cycle["residues_built"]
         if cycle["residues_sequenced"] > self.max_residues_sequenced:
