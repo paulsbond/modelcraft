@@ -20,6 +20,6 @@ def test_1kv9():
     assert os.path.exists(buccaneer.stderr)
     assert os.path.exists(buccaneer.xmlout)
     assert os.path.exists(buccaneer.xyzout.path)
-    assert buccaneer.residues_built > 0
+    assert buccaneer.xyzout.residues > 0
     os.chdir("..")
     shutil.rmtree(tmp_dir)

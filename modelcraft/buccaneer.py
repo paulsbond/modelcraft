@@ -1,6 +1,5 @@
 from modelcraft.coordinates import CoordinateFile
 from modelcraft.job import Job
-import xml.etree.ElementTree as ET
 
 
 class Buccaneer(Job):
@@ -10,7 +9,6 @@ class Buccaneer(Job):
         stdin = self._get_stdin(args, hklin, xyzin, cycles)
         self.run(args.buccaneer, ["-stdin"], stdin)
         self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
-        self._set_results()
 
     def _get_stdin(self, args, hklin, xyzin, cycles):
         stdin = []
@@ -54,14 +52,3 @@ class Buccaneer(Job):
                 yield "mr-model-filter"
             if args.mr_mode in (5, 6):
                 yield "mr-model-seed"
-
-    def _set_results(self):
-        xml = ET.parse(self.xmlout).getroot().find("Final")
-        self.completeness_by_residues = float(xml.find("CompletenessByResiduesBuilt").text)
-        self.completeness_by_chains = float(xml.find("CompletenessByChainsBuilt").text)
-        self.chains_built = int(xml.find("ChainsBuilt").text)
-        self.fragments_built = int(xml.find("FragmentsBuilt").text)
-        self.residues_unique = int(xml.find("ResiduesUnique").text)
-        self.residues_built = int(xml.find("ResiduesBuilt").text)
-        self.residues_sequenced = int(xml.find("ResiduesSequenced").text)
-        self.longest_fragment = int(xml.find("ResiduesLongestFragment").text)
