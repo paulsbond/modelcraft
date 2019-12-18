@@ -7,7 +7,7 @@ import shutil
 class Prune(Job):
     def __init__(self, directory, xyzin, hklin, chains_only=False):
         super().__init__(directory)
-        path = os.path.join(os.path.dirname(__file__), "coot_prune.py")
+        path = os.path.join(os.path.dirname(__file__), "coot", "prune.py")
         with open(path) as coot_prune:
             script = coot_prune.read()
         if chains_only:
