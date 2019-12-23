@@ -1,1 +1,1 @@
-gemmi
+gemmi>=0.3.2
