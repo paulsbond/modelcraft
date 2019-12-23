@@ -133,8 +133,8 @@ class Pipeline():
         if refmac.final_rfree < self.min_rfree:
             self.min_rfree = refmac.final_rfree
             print("Copying files to output because R-free has improved")
-            shutil.copyfile(str(refmac.xyzout.path), "xyzout.pdb")
-            shutil.copyfile(str(refmac.hklout.path), "hklout.mtz")
+            shutil.copyfile(str(refmac.xyzout.path), "modelcraft.pdb")
+            shutil.copyfile(str(refmac.hklout.path), "modelcraft.mtz")
             self.add_final_stats(refmac)
         self.min_rwork = min(self.min_rwork, refmac.final_rwork)
         self.max_residues_built = max(self.max_residues_built, refmac.xyzout.residues)
@@ -159,7 +159,7 @@ class Pipeline():
         }
 
     def write_report(self):
-        with open("report.json", "w") as f:
+        with open("modelcraft.json", "w") as f:
             json.dump(self.report, f, indent=4)
 
     def remove_job_directories(self, cycle):
