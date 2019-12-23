@@ -18,7 +18,6 @@ def test_1kv9():
     buccaneer = Buccaneer(args, "buccaneer", args.hklin, cycles=1)
     assert os.path.exists(buccaneer.stdout)
     assert os.path.exists(buccaneer.stderr)
-    assert os.path.exists(buccaneer.xmlout)
     assert os.path.exists(buccaneer.xyzout.path)
     assert buccaneer.xyzout.residues > 0
     os.chdir("..")
