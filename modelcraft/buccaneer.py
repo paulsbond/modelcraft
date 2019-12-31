@@ -48,5 +48,6 @@ class Buccaneer(Job):
                 yield "mr-model"
             if args.mr_mode in (4, 6):
                 yield "mr-model-filter"
+                yield "mr-model-filter-sigma 2.0"
             if args.mr_mode in (5, 6):
                 yield "mr-model-seed"
