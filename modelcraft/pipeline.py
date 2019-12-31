@@ -5,6 +5,7 @@ from modelcraft.prune import Prune
 from modelcraft.refmac import Refmac
 import json
 import shutil
+import sys
 
 
 class Pipeline():
@@ -42,7 +43,7 @@ class Pipeline():
             self.remove_job_directories(self.cycle - 1)
             if args.auto_stop and self.cycles_without_improvement == 4:
                 break
-        self.remove_job_directories(self.cycle)
+        self.finish()
 
     def run_cycle(self):
         if self.cycle > 1:  # And resolution < 2.3 A?
@@ -54,6 +55,12 @@ class Pipeline():
         if self.args.add_waters and self.min_rwork < 0.4:
             self.findwaters()
         return self.refmac()
+
+    def finish(self):
+        for cycle in range(self.cycle + 1):
+            self.remove_job_directories(cycle)
+        print("\n--- Normal termination ---")
+        sys.exit()
 
     def job_directory(self, name):
         directory = "%02d.%02d_%s" % (self.cycle, len(self.jobs[self.cycle]) + 1, name)
