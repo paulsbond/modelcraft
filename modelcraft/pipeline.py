@@ -23,9 +23,9 @@ class Pipeline():
         self.min_rwork = 1
         self.min_rfree = 1
         self.min_fragments_built = 999
-        self.max_longest_fragment = 0
-        self.max_residues_built = 0
-        self.max_residues_sequenced = 0
+        self.max_longest_fragment = 1
+        self.max_residues_built = 1
+        self.max_residues_sequenced = 1
         self.cycles_without_improvement = 0
         self.report = {"cycles": {}}
 
