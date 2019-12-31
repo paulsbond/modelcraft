@@ -173,4 +173,4 @@ class Pipeline():
         if self.args.keep_intermediate_files:
             return
         for job in self.jobs[cycle]:
-            shutil.rmtree(job.directory)
+            shutil.rmtree(job.directory, ignore_errors=True)
