@@ -79,6 +79,9 @@ class Pipeline():
         cycles = 3 if self.cycle == 1 else 2
         job = Buccaneer(self.args, directory, self.current_hkl, self.current_xyz, cycles)
         self.jobs[self.cycle].append(job)
+        if job.xyzout.residues == 0:
+            print("Stopping the pipeline because buccaneer did not build any residues")
+            self.finish()
         self.current_xyz = job.xyzout
         return job
 
