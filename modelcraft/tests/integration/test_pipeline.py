@@ -1,6 +1,7 @@
-from modelcraft.tests import data_path
 from modelcraft.__main__ import main
+from modelcraft.tests import data_path
 import os
+import pytest
 import shutil
 import uuid
 
@@ -14,6 +15,7 @@ def test_1kv9():
         "--seqin", data_path("1kv9_sequence.fasta"),
         "--cycles", "2"
     ]
-    main(argument_list)
+    with pytest.raises(SystemExit):
+        main(argument_list)
     os.chdir("..")
     shutil.rmtree(tmp_dir)
