@@ -47,7 +47,7 @@ def _argument_parser():
                                 "The format is /[chain]/[residue]/[atom]:[radius]\n"
                                 "e.g. /A/*/*/:2.0         avoid building within 2A of the A chain\n"
                                 "e.g. /*/*/ZN    /:3.0    avoid building within 3A of ZN atoms\n"))
-    optional.add_argument("--mr-mode", metavar="CHOICE", type=int, choices=range(1, 7), default=1,
+    optional.add_argument("--mr-mode", metavar="CHOICE", type=int, choices=range(1, 7), default=2,
                           help=("Determine how the molecular replacement model is used:\n"
                                 "1 - Phasing\n"
                                 "2 - Phasing, placing/naming chains\n"
@@ -55,7 +55,7 @@ def _argument_parser():
                                 "4 - Phasing, placing/naming chains, copy every filtered residue\n"
                                 "5 - Phasing, placing/naming chains, copy every 3rd residue\n"
                                 "6 - Phasing, placing/naming chains, copy every 3rd filtered residue\n"
-                                "(default: 1)"))
+                                "(default: 2)"))
     optional.add_argument("--mr-model", metavar="FILE",
                           help=("Input placed molecular replacement model\n"
                                 "If input phases are not specified this will be refined"))
