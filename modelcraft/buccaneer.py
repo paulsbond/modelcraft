@@ -1,21 +1,33 @@
 from modelcraft.coordinates import CoordinateFile
+from modelcraft.reflections import ReflectionFile
 from modelcraft.job import Job
 
 
 class Buccaneer(Job):
     def __init__(self, args, directory, hklin, xyzin=None, cycles=2):
         super().__init__(directory)
+        hklin = self.create_hklin(args, hklin)
         stdin = self._get_stdin(args, hklin, xyzin, cycles)
         self.run(args.buccaneer, ["-stdin"], stdin)
         self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
 
+    def create_hklin(self, args, hklin):
+        args = [
+            "-mtzout", self.path("hklin.mtz"),
+            "-mtzin", args.hklin.path, "-colin", args.colin_fsigf, "-colout", "FP,SIGFP",
+            "-mtzin", args.hklin.path, "-colin", args.colin_free, "-colout", "FREE",
+            "-mtzin", hklin.path, "-colin", hklin.abcd, "-colout", "HLA,HLB,HLC,HLD",
+        ]
+        self.run("cmtzjoin", args)
+        return ReflectionFile(self.path("hklin.mtz"), "FP,SIGFP", "FREE", "HLA,HLB,HLC,HLD")
+
     def _get_stdin(self, args, hklin, xyzin, cycles):
         stdin = []
-        stdin.append("seqin %s" % args.seqin)
-        stdin.append("colin-fo %s" % hklin.fsigf)
-        stdin.append("colin-free %s" % args.colin_free)
         stdin.append("mtzin %s" % hklin.path)
+        stdin.append("colin-fo %s" % hklin.fsigf)
+        stdin.append("colin-free %s" % hklin.free)
         stdin.extend(self._colin_keywords(hklin))
+        stdin.append("seqin %s" % args.seqin)
         if xyzin is not None:
             stdin.append("pdbin %s" % xyzin.path)
             for structure in args.known_structure:
@@ -42,7 +54,7 @@ class Buccaneer(Job):
             yield "colin-fc %s" % hklin.fphi
 
     def _mr_keywords(self, args):
-        if args.mr_mode > 1:
+        if args.mr_model is not None and args.mr_mode > 1:
             yield "pdbin-mr %s" % args.mr_model.path
             if args.mr_mode == 3:
                 yield "mr-model"

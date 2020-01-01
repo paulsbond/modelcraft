@@ -2,9 +2,10 @@ import os
 
 
 class ReflectionFile():
-    def __init__(self, path, fsigf=None, abcd=None, phifom=None, fphi=None):
+    def __init__(self, path, fsigf=None, free=None, abcd=None, phifom=None, fphi=None):
         self.path = os.path.abspath(path)
         self.fsigf = fsigf
+        self.free = free
         self.abcd = abcd
         self.phifom = phifom
         self.fphi = fphi
