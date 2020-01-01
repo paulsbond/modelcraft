@@ -18,7 +18,7 @@ def test_waters():
     ]
     args = parse(argument_list)
     xyzin = CoordinateFile(data_path("1kv9_model.pdb"))
-    refmac = Refmac(args, "refmac", xyzin)
+    refmac = Refmac(args, "refmac", xyzin, cycles=1)
     prune = Prune("prune", refmac.xyzout, refmac.hklout)
     assert os.path.exists(prune.stdout)
     assert os.path.exists(prune.stderr)
