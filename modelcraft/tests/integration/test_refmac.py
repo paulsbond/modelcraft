@@ -17,7 +17,7 @@ def test_1kv9():
     ]
     args = parse(argument_list)
     xyzin = CoordinateFile(data_path("1kv9_model.pdb"))
-    refmac = Refmac(args, "refmac", xyzin)
+    refmac = Refmac(args, "refmac", xyzin, cycles=1)
     assert os.path.exists(refmac.stdout)
     assert os.path.exists(refmac.stderr)
     assert os.path.exists(refmac.hklout.path)
