@@ -4,22 +4,26 @@ from modelcraft.job import Job
 
 
 class Buccaneer(Job):
-    def __init__(self, args, directory, hklin, xyzin=None, cycles=2):
+    def __init__(self, args, directory, hklin, xyzin=None, cycles=2, use_fphi=False):
         super().__init__(directory)
-        hklin = self.create_hklin(args, hklin)
+        hklin = self.create_hklin(args, hklin, use_fphi)
         stdin = self._get_stdin(args, hklin, xyzin, cycles)
         self.run(args.buccaneer, ["-stdin"], stdin)
         self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
 
-    def create_hklin(self, args, hklin):
+    def create_hklin(self, args, hklin, use_fphi):
+        new_hklin = ReflectionFile(self.path("hklin.mtz"), "FP,SIGFP", "FREE", "HLA,HLB,HLC,HLD")
         args = [
             "-mtzout", self.path("hklin.mtz"),
             "-mtzin", args.hklin.path, "-colin", args.colin_fsigf, "-colout", "FP,SIGFP",
             "-mtzin", args.hklin.path, "-colin", args.colin_free, "-colout", "FREE",
             "-mtzin", hklin.path, "-colin", hklin.abcd, "-colout", "HLA,HLB,HLC,HLD",
         ]
+        if use_fphi:
+            args.extend(["-mtzin", hklin.path, "-colin", hklin.fphi, "-colout", "FWT,PHWT"])
+            new_hklin.fphi = "FWT,PHWT"
         self.run("cmtzjoin", args)
-        return ReflectionFile(self.path("hklin.mtz"), "FP,SIGFP", "FREE", "HLA,HLB,HLC,HLD")
+        return new_hklin
 
     def _get_stdin(self, args, hklin, xyzin, cycles):
         stdin = []
