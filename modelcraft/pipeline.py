@@ -88,7 +88,7 @@ class Pipeline():
     def refmac(self, cycles):
         directory = self.job_directory("refmac")
         use_phases = self.args.unbiased and self.min_rwork > 0.35
-        job = Refmac(self.args, directory, self.current_xyz, use_phases, cycles)
+        job = Refmac(self.args, directory, self.current_xyz, cycles, use_phases)
         self.jobs[self.cycle].append(job)
         self.current_hkl = job.hklout
         self.current_xyz = job.xyzout
