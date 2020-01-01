@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 
 class Refmac(Job):
-    def __init__(self, args, directory, xyzin, use_phases=False):
+    def __init__(self, args, directory, xyzin, cycles, use_phases=False):
         super().__init__(directory)
         self.hklout = ReflectionFile(
             path=self.path("hklout.mtz"),
@@ -14,7 +14,7 @@ class Refmac(Job):
             fphi="FWT,PHWT")
         self.xmlout = self.path("xmlout.xml")
         arguments = self._get_arguments(args, xyzin)
-        stdin = self._get_stdin(args, use_phases)
+        stdin = self._get_stdin(args, cycles, use_phases)
         self.run("refmac5", arguments, stdin)
         self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
         self._set_results()
@@ -28,7 +28,7 @@ class Refmac(Job):
             "XMLOUT", self.xmlout,
         ]
 
-    def _get_stdin(self, args, use_phases):
+    def _get_stdin(self, args, cycles, use_phases):
         stdin = []
         labin = "FP=" + args.colin_fp
         labin += " SIGFP=" + args.colin_sigfp
@@ -43,7 +43,7 @@ class Refmac(Job):
                 labin += " PHIB=" + args.colin_phi
                 labin += " FOM=" + args.colin_fom
         stdin.append("LABIN " + labin)
-        stdin.append("NCYCLES 5")
+        stdin.append("NCYCLES %d" % cycles)
         stdin.append("MAKE HYDR NO")
         if args.twinned:
             stdin.append("TWIN")

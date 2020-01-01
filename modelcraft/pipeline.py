@@ -48,13 +48,13 @@ class Pipeline():
     def run_cycle(self):
         if self.cycle > 1:  # And resolution < 2.3 A?
             self.prune()
-            self.refmac()
+            self.refmac(cycles=5)
         self.buccaneer()
-        self.refmac()
+        self.refmac(cycles=10)
         self.prune(chains_only=True)
         if self.args.add_waters and self.min_rwork < 0.4:
             self.findwaters()
-        return self.refmac()
+        return self.refmac(cycles=5)
 
     def finish(self):
         for cycle in range(self.cycle + 1):
@@ -69,7 +69,7 @@ class Pipeline():
 
     def get_phases_from_mr_model(self):
         directory = self.job_directory("mr_refinement")
-        job = Refmac(self.args, directory, self.args.mr_model)
+        job = Refmac(self.args, directory, self.args.mr_model, cycles=10)
         self.jobs[self.cycle].append(job)
         self.current_hkl = job.hklout
         return job
@@ -85,10 +85,10 @@ class Pipeline():
         self.current_xyz = job.xyzout
         return job
 
-    def refmac(self):
+    def refmac(self, cycles):
         directory = self.job_directory("refmac")
         use_phases = self.args.unbiased and self.min_rwork > 0.35
-        job = Refmac(self.args, directory, self.current_xyz, use_phases)
+        job = Refmac(self.args, directory, self.current_xyz, use_phases, cycles)
         self.jobs[self.cycle].append(job)
         self.current_hkl = job.hklout
         self.current_xyz = job.xyzout
