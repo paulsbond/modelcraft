@@ -49,8 +49,8 @@ class Refmac(Job):
             stdin.append("TWIN")
         stdin.append("MAKE NEWLIGAND NOEXIT")
         stdin.append("PHOUT")
-        stdin.append("PNAME buccaneer")
-        stdin.append("DNAME buccaneer")
+        stdin.append("PNAME modelcraft")
+        stdin.append("DNAME modelcraft")
         stdin.append("END")
         return stdin
 
