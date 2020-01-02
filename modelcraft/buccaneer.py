@@ -28,8 +28,6 @@ class Buccaneer(Job):
     def _get_stdin(self, args, hklin, xyzin, cycles):
         stdin = []
         stdin.append("mtzin %s" % hklin.path)
-        stdin.append("colin-fo %s" % hklin.fsigf)
-        stdin.append("colin-free %s" % hklin.free)
         stdin.extend(self._colin_keywords(hklin))
         stdin.append("seqin %s" % args.seqin)
         if xyzin is not None:
@@ -50,6 +48,8 @@ class Buccaneer(Job):
         return stdin
 
     def _colin_keywords(self, hklin):
+        yield "colin-fo %s" % hklin.fsigf
+        yield "colin-free %s" % hklin.free
         if hklin.abcd is not None:
             yield "colin-hl %s" % hklin.abcd
         if hklin.phifom is not None:
