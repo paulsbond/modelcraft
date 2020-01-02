@@ -17,6 +17,7 @@ class Pipeline():
         self.run()
 
     def initialise(self):
+        self.resolution = self.args.hklin.resolution()
         self.cycle = 0
         self.jobs = {0: []}
         self.current_hkl = self.args.hklin
@@ -46,7 +47,7 @@ class Pipeline():
         self.finish()
 
     def run_cycle(self):
-        if self.cycle > 1:  # And resolution < 2.3 A?
+        if self.cycle > 1 and self.resolution < 2.3:
             self.prune()
             self.refmac(cycles=5)
         self.buccaneer()

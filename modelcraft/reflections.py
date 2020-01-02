@@ -1,4 +1,5 @@
 import os
+import gemmi
 
 
 class ReflectionFile():
@@ -9,6 +10,10 @@ class ReflectionFile():
         self.abcd = abcd
         self.phifom = phifom
         self.fphi = fphi
+
+    def resolution(self):
+        mtz = gemmi.read_mtz_file(self.path)
+        return round(mtz.resolution_high(), 2)
 
 
 def fo_columns(mtz):
