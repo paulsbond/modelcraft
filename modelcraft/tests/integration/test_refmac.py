@@ -23,7 +23,7 @@ def test_1kv9():
     assert os.path.exists(refmac.hklout.path)
     assert os.path.exists(refmac.xmlout)
     assert os.path.exists(refmac.xyzout.path)
-    assert refmac.final_rfree < 1
+    assert refmac.final_rfree < 100
     assert refmac.final_rwork < refmac.initial_rwork
     os.chdir("..")
     shutil.rmtree(tmp_dir)

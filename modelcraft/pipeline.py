@@ -21,8 +21,8 @@ class Pipeline():
         self.jobs = {0: []}
         self.current_hkl = self.args.hklin
         self.current_xyz = self.args.xyzin
-        self.min_rwork = 1
-        self.min_rfree = 1
+        self.min_rwork = 100
+        self.min_rfree = 100
         self.min_fragments_built = 999
         self.max_longest_fragment = 1
         self.max_residues_built = 1
@@ -52,7 +52,7 @@ class Pipeline():
         self.buccaneer()
         self.refmac(cycles=10)
         self.prune(chains_only=True)
-        if self.args.add_waters and self.min_rwork < 0.4:
+        if self.args.add_waters and self.min_rwork < 40:
             self.findwaters()
         return self.refmac(cycles=5)
 
@@ -88,7 +88,7 @@ class Pipeline():
 
     def refmac(self, cycles):
         directory = self.job_directory("refmac")
-        use_phases = self.args.unbiased and self.min_rwork > 0.35
+        use_phases = self.args.unbiased and self.min_rwork > 35
         job = Refmac(self.args, directory, self.current_xyz, cycles, use_phases)
         self.jobs[self.cycle].append(job)
         self.current_hkl = job.hklout
