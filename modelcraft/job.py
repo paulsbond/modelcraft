@@ -2,10 +2,15 @@ import distutils.spawn
 import os
 import subprocess
 import sys
+import time
 
 
 class Job:
     def __init__(self, directory):
+        self.start_time = time.time()
+        self.cycle = int(directory[:2])
+        self.number = int(directory[3:5])
+        self.name = directory[6:]
         os.makedirs(directory, exist_ok=True)
         self.directory = os.path.abspath(directory)
         self.stdout = self.path("stdout.txt")

@@ -6,6 +6,7 @@ from modelcraft.refmac import Refmac
 import json
 import shutil
 import sys
+import time
 
 
 class Pipeline():
@@ -29,7 +30,11 @@ class Pipeline():
         self.max_residues_built = 1
         self.max_residues_sequenced = 1
         self.cycles_without_improvement = 0
-        self.report = {"cycles": {}}
+        self.start_time = time.time()
+        self.report = {
+            "real_time": {"total": 0},
+            "cycles": {},
+        }
 
     def run(self):
         args = self.args
@@ -60,6 +65,7 @@ class Pipeline():
     def finish(self):
         for cycle in range(self.cycle + 1):
             self.remove_job_directories(cycle)
+        self.write_report()
         print("\n--- Normal termination ---")
         sys.exit()
 
@@ -68,10 +74,19 @@ class Pipeline():
         print(directory)
         return directory
 
+    def add_job(self, job):
+        self.jobs[self.cycle].append(job)
+        job.finish_time = time.time()
+        job.real_time = round(job.finish_time - job.start_time)
+        if job.name not in self.report["real_time"]:
+            self.report["real_time"][job.name] = 0
+        self.report["real_time"][job.name] += job.real_time
+        self.write_report()
+
     def get_phases_from_mr_model(self):
         directory = self.job_directory("mr_refinement")
         job = Refmac(self.args, directory, self.args.mr_model, cycles=10)
-        self.jobs[self.cycle].append(job)
+        self.add_job(job)
         self.current_hkl = job.hklout
         return job
 
@@ -80,9 +95,15 @@ class Pipeline():
         cycles = 3 if self.cycle == 1 else 2
         use_fphi = self.cycle > 1
         job = Buccaneer(self.args, directory, self.current_hkl, self.current_xyz, cycles, use_fphi)
-        self.jobs[self.cycle].append(job)
+        self.add_job(job)
         if not job.xyzout.exists or job.xyzout.residues == 0:
             print("Stopping the pipeline because buccaneer did not build any residues")
+            self.report["cycles"][self.cycle] = {
+                "residues": 0,
+                "residues_sequenced": 0,
+                "r_work": None,
+                "r_free": None,
+            }
             self.finish()
         self.current_xyz = job.xyzout
         return job
@@ -91,7 +112,7 @@ class Pipeline():
         directory = self.job_directory("refmac")
         use_phases = self.args.unbiased and self.min_rwork > 35
         job = Refmac(self.args, directory, self.current_xyz, cycles, use_phases)
-        self.jobs[self.cycle].append(job)
+        self.add_job(job)
         self.current_hkl = job.hklout
         self.current_xyz = job.xyzout
         return job
@@ -99,14 +120,14 @@ class Pipeline():
     def prune(self, chains_only=False):
         directory = self.job_directory("prune_chains" if chains_only else "prune")
         job = Prune(directory, self.current_xyz, self.current_hkl, chains_only)
-        self.jobs[self.cycle].append(job)
+        self.add_job(job)
         self.current_xyz = job.xyzout
         return job
 
     def findwaters(self):
         directory = self.job_directory("findwaters")
         job = FindWaters(directory, self.current_xyz, self.current_hkl)
-        self.jobs[self.cycle].append(job)
+        self.add_job(job)
         self.current_xyz = job.xyzout
         return job
 
@@ -171,6 +192,7 @@ class Pipeline():
         }
 
     def write_report(self):
+        self.report["real_time"]["total"] = round(time.time() - self.start_time)
         with open("modelcraft.json", "w") as f:
             json.dump(self.report, f, indent=4)
 
