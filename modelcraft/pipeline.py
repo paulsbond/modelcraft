@@ -1,6 +1,7 @@
 from modelcraft.arguments import parse
 from modelcraft.buccaneer import Buccaneer
 from modelcraft.findwaters import FindWaters
+from modelcraft.parrot import Parrot
 from modelcraft.prune import Prune
 from modelcraft.refmac import Refmac
 import json
@@ -55,6 +56,7 @@ class Pipeline():
         if self.cycle > 1 and self.resolution < 2.3:
             self.prune()
             self.refmac(cycles=5)
+        self.parrot()
         self.buccaneer()
         self.refmac(cycles=10)
         self.prune(chains_only=True)
@@ -87,14 +89,14 @@ class Pipeline():
         directory = self.job_directory("mr_refinement")
         job = Refmac(self.args, directory, self.args.mr_model, cycles=10)
         self.add_job(job)
+        job.hklout.fphi = None
         self.current_hkl = job.hklout
         return job
 
     def buccaneer(self):
         directory = self.job_directory("buccaneer")
         cycles = 3 if self.cycle == 1 else 2
-        use_fphi = self.cycle > 1
-        job = Buccaneer(self.args, directory, self.current_hkl, self.current_xyz, cycles, use_fphi)
+        job = Buccaneer(self.args, directory, self.current_hkl, self.current_xyz, cycles)
         self.add_job(job)
         if not job.xyzout.exists or job.xyzout.residues == 0:
             print("Stopping the pipeline because buccaneer did not build any residues")
@@ -115,6 +117,13 @@ class Pipeline():
         self.add_job(job)
         self.current_hkl = job.hklout
         self.current_xyz = job.xyzout
+        return job
+
+    def parrot(self):
+        directory = self.job_directory("parrot")
+        job = Parrot(self.args, directory, self.current_hkl, self.current_xyz)
+        self.add_job(job)
+        self.current_hkl = job.hklout
         return job
 
     def prune(self, chains_only=False):
