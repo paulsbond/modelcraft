@@ -15,7 +15,7 @@ def test_1kv9():
         "--seqin", data_path("1kv9_sequence.fasta"),
     ]
     args = parse(argument_list)
-    buccaneer = Buccaneer(args, "buccaneer", args.hklin, cycles=1)
+    buccaneer = Buccaneer(args, "00.01_buccaneer", args.hklin, cycles=1)
     assert os.path.exists(buccaneer.stdout)
     assert os.path.exists(buccaneer.stderr)
     assert os.path.exists(buccaneer.xyzout.path)

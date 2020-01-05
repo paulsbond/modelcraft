@@ -18,8 +18,8 @@ def test_waters():
     ]
     args = parse(argument_list)
     xyzin = CoordinateFile(data_path("1kv9_model.pdb"))
-    refmac = Refmac(args, "refmac", xyzin, cycles=1)
-    findwaters = FindWaters("findwaters", refmac.xyzout, refmac.hklout)
+    refmac = Refmac(args, "00.01_refmac", xyzin, cycles=1)
+    findwaters = FindWaters("00.02_findwaters", refmac.xyzout, refmac.hklout)
     assert os.path.exists(findwaters.stdout)
     assert os.path.exists(findwaters.stderr)
     assert os.path.exists(findwaters.xyzout.path)
