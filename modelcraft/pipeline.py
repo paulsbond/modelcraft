@@ -56,7 +56,8 @@ class Pipeline():
         if self.cycle > 1 and self.resolution < 2.3:
             self.prune()
             self.refmac(cycles=5)
-        self.parrot()
+        if self.resolution > 2.3:
+            self.parrot()
         self.buccaneer()
         self.refmac(cycles=10)
         self.prune(chains_only=True)
