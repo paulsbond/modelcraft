@@ -58,6 +58,9 @@ class Pipeline():
             self.refmac(cycles=5)
         if self.resolution > 2.3:
             self.parrot()
+        # if self.current_xyz is not None and self.current_hkl.fphi is not None:
+        #     self.findwaters(dummy=True)
+        #     self.refmac(cycles=5)
         self.buccaneer()
         self.refmac(cycles=10)
         self.prune(chains_only=True)
@@ -134,9 +137,9 @@ class Pipeline():
         self.current_xyz = job.xyzout
         return job
 
-    def findwaters(self):
-        directory = self.job_directory("findwaters")
-        job = FindWaters(directory, self.current_xyz, self.current_hkl)
+    def findwaters(self, dummy=False):
+        directory = self.job_directory("finddummys" if dummy else "findwaters")
+        job = FindWaters(directory, self.current_xyz, self.current_hkl, dummy)
         self.add_job(job)
         self.current_xyz = job.xyzout
         return job
