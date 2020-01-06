@@ -36,6 +36,7 @@ class CoordinateFile():
         self.fragments = 0
         self.longest_fragment = 0
         self.waters = 0
+        self.dummys = 0
         self.exists = os.path.exists(path)
         if self.exists:
             self.get_stats()
@@ -45,7 +46,11 @@ class CoordinateFile():
         structure = gemmi.read_structure(self.path)
         for chain in structure[0]:
             for i, residue in enumerate(chain):
-                if _is_protein(residue):
+                if residue.name == "HOH":
+                    self.waters += 1
+                elif residue.name == "DUM":
+                    self.dummys += 1
+                elif _is_protein(residue):
                     self.residues += 1
                     current_fragment_length += 1
                     if residue.name != "UNK":
@@ -57,5 +62,3 @@ class CoordinateFile():
                     self.fragments += 1
                     self.longest_fragment = max(self.longest_fragment, current_fragment_length)
                     current_fragment_length = 0
-                elif residue.name == "HOH":
-                    self.waters += 1

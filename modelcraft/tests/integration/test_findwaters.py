@@ -8,7 +8,7 @@ import shutil
 import uuid
 
 
-def test_waters():
+def test_1kv9():
     tmp_dir = "tmp%s" % uuid.uuid4()
     os.mkdir(tmp_dir)
     os.chdir(tmp_dir)
@@ -23,6 +23,13 @@ def test_waters():
     assert os.path.exists(findwaters.stdout)
     assert os.path.exists(findwaters.stderr)
     assert os.path.exists(findwaters.xyzout.path)
-    assert findwaters.xyzout.waters > 1
+    assert findwaters.xyzout.waters > 0
+    assert findwaters.xyzout.dummys == 0
+    finddummys = FindWaters("00.03_finddummys", refmac.xyzout, refmac.hklout, dummy=True)
+    assert os.path.exists(finddummys.stdout)
+    assert os.path.exists(finddummys.stderr)
+    assert os.path.exists(finddummys.xyzout.path)
+    assert finddummys.xyzout.waters == 0
+    assert finddummys.xyzout.dummys > 0
     os.chdir("..")
     shutil.rmtree(tmp_dir)
