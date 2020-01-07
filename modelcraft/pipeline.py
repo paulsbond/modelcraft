@@ -64,7 +64,7 @@ class Pipeline():
         self.buccaneer()
         self.refmac(cycles=10)
         self.prune(chains_only=True)
-        if self.args.add_waters and self.min_rwork < 40:
+        if self.min_rwork < 40:
             self.findwaters()
         return self.refmac(cycles=5)
 

@@ -17,8 +17,6 @@ def _argument_parser():
     required.add_argument("--seqin", metavar="FILE", required=True, help="Input protein sequence")
 
     optional = parser.add_argument_group("Optional arguments")
-    optional.add_argument("--add-waters", action="store_true",
-                          help="Add water molecules once R-work drops below 0.4")
     optional.add_argument("--colin-free", metavar="COL",
                           help=("Column label for the free-R flag\n"
                                 "(e.g. FreeR_flag)"))
