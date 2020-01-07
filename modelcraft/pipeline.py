@@ -56,7 +56,7 @@ class Pipeline():
         if self.cycle > 1 and self.resolution < 2.3:
             self.prune()
             self.refmac(cycles=5)
-        if self.resolution > 2.3:
+        if self.resolution > 2.4:
             self.parrot()
         # if self.current_xyz is not None and self.current_hkl.fphi is not None:
         #     self.findwaters(dummy=True)
