@@ -1,1 +1,2 @@
+biopython
 gemmi>=0.3.2
