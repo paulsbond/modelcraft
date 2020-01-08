@@ -105,10 +105,11 @@ class Pipeline():
         if not job.xyzout.exists or job.xyzout.residues == 0:
             print("Stopping the pipeline because buccaneer did not build any residues")
             self.report["cycles"][self.cycle] = {
-                "residues": 0,
-                "residues_sequenced": 0,
                 "r_work": None,
                 "r_free": None,
+                "residues": 0,
+                "residues_sequenced": 0,
+                "waters": 0,
             }
             self.finish()
         self.current_xyz = job.xyzout
@@ -164,10 +165,12 @@ class Pipeline():
         return False
 
     def process_cycle_output(self, refmac):
-        print("\nResidues built: %d" % refmac.xyzout.residues)
-        print("Residues sequenced: %d" % refmac.xyzout.sequenced_residues)
+        print("")
         print("R-work: %.3f" % refmac.final_rwork)
         print("R-free: %.3f" % refmac.final_rfree)
+        print("Residues: %d" % refmac.xyzout.residues)
+        print("Sequenced residues: %d" % refmac.xyzout.sequenced_residues)
+        print("Waters: %d" % refmac.xyzout.waters)
         self.add_cycle_stats(refmac)
 
         if self.improved(refmac):
@@ -198,10 +201,11 @@ class Pipeline():
 
     def refmac_stats(self, refmac):
         return {
-            "residues": refmac.xyzout.residues,
-            "residues_sequenced": refmac.xyzout.sequenced_residues,
             "r_work": refmac.final_rwork,
             "r_free": refmac.final_rfree,
+            "residues": refmac.xyzout.residues,
+            "residues_sequenced": refmac.xyzout.sequenced_residues,
+            "waters": refmac.xyzout.waters,
         }
 
     def write_report(self):
