@@ -12,9 +12,12 @@ def test_1kv9():
     os.mkdir(tmp_dir)
     os.chdir(tmp_dir)
     argument_list = [
-        "--hklin", data_path("1kv9_data.mtz"),
-        "--seqin", data_path("1kv9_sequence.fasta"),
-        "--cycles", "2"
+        "--hklin",
+        data_path("1kv9_data.mtz"),
+        "--seqin",
+        data_path("1kv9_sequence.fasta"),
+        "--cycles",
+        "2",
     ]
     with pytest.raises(SystemExit):
         main(argument_list)

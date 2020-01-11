@@ -1,7 +1,7 @@
 import Bio.SeqIO
 
 
-class AsuContents():
+class AsuContents:
     def __init__(self, relative=False):
         self.polymers = []
         self.ligands = []
@@ -16,7 +16,7 @@ class AsuContents():
             # TODO
 
 
-class Polymer():
+class Polymer:
     def __init__(self, polymer_type, sequence, copies):
         self.polymer_type = polymer_type
         self.sequence = sequence
@@ -24,7 +24,31 @@ class Polymer():
 
 
 class Protein(Polymer):
-    codes = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"}
+    codes = {
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "K",
+        "L",
+        "M",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z",
+    }
 
     def __init__(self, sequence, copies="Unknown"):
         self.polymer_type = "protein"
@@ -44,13 +68,13 @@ class Dna(Polymer):
         self.polymer_type = "dna"
 
 
-class Ligand():
+class Ligand:
     def __init__(self, code, copies="Unknown"):
         self.code = code
         self.copies = copies
 
 
-class HeavyAtoms():
+class HeavyAtoms:
     def __init__(self, element, copies="Unknown"):
         self.element = element
         self.copies = copies
@@ -60,8 +84,11 @@ def determine_polymer_type_from_sequence(sequence):
     def guess(polymer_type, specific=None):
         print("Guessing the polymer type of the following sequence:")
         print_sequence(sequence)
-        print("It is assumed to be %s" % (polymer_type if specific is None else specific))
+        print(
+            "It is assumed to be %s" % (polymer_type if specific is None else specific)
+        )
         return polymer_type
+
     codes = set(sequence)
     if "U" in codes:
         return "rna"
@@ -80,4 +107,4 @@ def determine_polymer_type_from_sequence(sequence):
 
 def print_sequence(sequence, line_length=60):
     for i in range(0, len(sequence), line_length):
-        print(sequence[i:i + line_length])
+        print(sequence[i : i + line_length])

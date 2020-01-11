@@ -28,7 +28,8 @@ class Job:
             stdin=subprocess.PIPE if len(stdin) > 0 else None,
             stdout=open(self.stdout, "a"),
             stderr=open(self.stderr, "a"),
-            encoding="utf8")
+            encoding="utf8",
+        )
         if len(stdin) > 0:
             for line in stdin:
                 p.stdin.write(line + "\n")
@@ -38,20 +39,44 @@ class Job:
     def create_hklin(self, args, hklin):
         new_hklin = ReflectionFile(self.path("hklin.mtz"))
         args = [
-            "-mtzout", new_hklin.path,
-            "-mtzin", args.hklin.path, "-colin", args.colin_fsigf, "-colout", "FP,SIGFP",
-            "-mtzin", args.hklin.path, "-colin", args.colin_free, "-colout", "FREE",
+            "-mtzout",
+            new_hklin.path,
+            "-mtzin",
+            args.hklin.path,
+            "-colin",
+            args.colin_fsigf,
+            "-colout",
+            "FP,SIGFP",
+            "-mtzin",
+            args.hklin.path,
+            "-colin",
+            args.colin_free,
+            "-colout",
+            "FREE",
         ]
         new_hklin.fsigf = "FP,SIGFP"
         new_hklin.free = "FREE"
         if hklin.abcd is not None:
-            args.extend(["-mtzin", hklin.path, "-colin", hklin.abcd, "-colout", "HLA,HLB,HLC,HLD"])
+            args.extend(
+                [
+                    "-mtzin",
+                    hklin.path,
+                    "-colin",
+                    hklin.abcd,
+                    "-colout",
+                    "HLA,HLB,HLC,HLD",
+                ]
+            )
             new_hklin.abcd = "HLA,HLB,HLC,HLD"
         if hklin.phifom is not None:
-            args.extend(["-mtzin", hklin.path, "-colin", hklin.phifom, "-colout", "PHIB,FOM"])
+            args.extend(
+                ["-mtzin", hklin.path, "-colin", hklin.phifom, "-colout", "PHIB,FOM"]
+            )
             new_hklin.phifom = "PHIB,FOM"
         if hklin.fphi is not None:
-            args.extend(["-mtzin", hklin.path, "-colin", hklin.fphi, "-colout", "FWT,PHWT"])
+            args.extend(
+                ["-mtzin", hklin.path, "-colin", hklin.fphi, "-colout", "FWT,PHWT"]
+            )
             new_hklin.fphi = "FWT,PHWT"
         self.run("cmtzjoin", args)
         return new_hklin

@@ -11,7 +11,8 @@ class Parrot(Job):
             fsigf=hklin.fsigf,
             free=hklin.free,
             abcd="parrot.ABCD.A,parrot.ABCD.B,parrot.ABCD.C,parrot.ABCD.D",
-            fphi="parrot.F_phi.F,parrot.F_phi.phi")
+            fphi="parrot.F_phi.F,parrot.F_phi.phi",
+        )
         stdin = self._get_stdin(args, hklin, xyzin)
         self.run("cparrot", ["-stdin"], stdin)
 

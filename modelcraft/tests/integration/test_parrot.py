@@ -11,9 +11,12 @@ def test_1kv9():
     os.mkdir(tmp_dir)
     os.chdir(tmp_dir)
     argument_list = [
-        "--hklin", data_path("1kv9_data.mtz"),
-        "--seqin", data_path("1kv9_sequence.fasta"),
-        "--xyzin", data_path("1kv9_model.pdb")
+        "--hklin",
+        data_path("1kv9_data.mtz"),
+        "--seqin",
+        data_path("1kv9_sequence.fasta"),
+        "--xyzin",
+        data_path("1kv9_model.pdb"),
     ]
     args = parse(argument_list)
     parrot = Parrot(args, "00.00_parrot", args.hklin, args.xyzin)

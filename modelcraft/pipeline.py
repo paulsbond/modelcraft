@@ -10,7 +10,7 @@ import sys
 import time
 
 
-class Pipeline():
+class Pipeline:
     def __init__(self, argument_list):
         print("# ModelCraft")
         print("\nPlease cite [paper to be published]")
@@ -39,7 +39,11 @@ class Pipeline():
 
     def run(self):
         args = self.args
-        if args.colin_hl is None and args.colin_phifom is None and args.mr_model is not None:
+        if (
+            args.colin_hl is None
+            and args.colin_phifom is None
+            and args.mr_model is not None
+        ):
             print("\n## Preparations\n")
             self.get_phases_from_mr_model()
         for self.cycle in range(1, args.cycles + 1):
@@ -102,7 +106,9 @@ class Pipeline():
     def buccaneer(self):
         directory = self.job_directory("buccaneer")
         cycles = 3 if self.cycle == 1 else 2
-        job = Buccaneer(self.args, directory, self.current_hkl, self.current_xyz, cycles)
+        job = Buccaneer(
+            self.args, directory, self.current_hkl, self.current_xyz, cycles
+        )
         self.add_job(job)
         if not job.xyzout.exists or job.xyzout.residues == 0:
             print("Stopping the pipeline because buccaneer did not build any residues")
@@ -152,16 +158,24 @@ class Pipeline():
         improvement = (self.min_rwork - refmac.final_rwork) / self.min_rwork
         if improvement > required_improvement:
             return True
-        improvement = (refmac.xyzout.residues - self.max_residues_built) / float(self.max_residues_built)
+        improvement = (refmac.xyzout.residues - self.max_residues_built) / float(
+            self.max_residues_built
+        )
         if improvement > required_improvement:
             return True
-        improvement = (refmac.xyzout.sequenced_residues - self.max_residues_sequenced) / float(self.max_residues_sequenced)
+        improvement = (
+            refmac.xyzout.sequenced_residues - self.max_residues_sequenced
+        ) / float(self.max_residues_sequenced)
         if improvement > required_improvement:
             return True
-        improvement = (self.min_fragments_built - refmac.xyzout.fragments) / float(self.min_fragments_built)
+        improvement = (self.min_fragments_built - refmac.xyzout.fragments) / float(
+            self.min_fragments_built
+        )
         if improvement > required_improvement:
             return True
-        improvement = (refmac.xyzout.longest_fragment - self.max_longest_fragment) / float(self.max_longest_fragment)
+        improvement = (
+            refmac.xyzout.longest_fragment - self.max_longest_fragment
+        ) / float(self.max_longest_fragment)
         if improvement > required_improvement:
             return True
         return False
@@ -179,7 +193,10 @@ class Pipeline():
             self.cycles_without_improvement = 0
         else:
             self.cycles_without_improvement += 1
-            print("\nNo significant improvement for %d cycle(s)" % self.cycles_without_improvement)
+            print(
+                "\nNo significant improvement for %d cycle(s)"
+                % self.cycles_without_improvement
+            )
 
         if refmac.final_rfree < self.min_rfree:
             self.min_rfree = refmac.final_rfree
@@ -189,9 +206,15 @@ class Pipeline():
             self.add_final_stats(refmac)
         self.min_rwork = min(self.min_rwork, refmac.final_rwork)
         self.max_residues_built = max(self.max_residues_built, refmac.xyzout.residues)
-        self.max_residues_sequenced = max(self.max_residues_sequenced, refmac.xyzout.sequenced_residues)
-        self.min_fragments_built = min(self.min_fragments_built, refmac.xyzout.fragments)
-        self.max_longest_fragment = max(self.max_longest_fragment, refmac.xyzout.longest_fragment)
+        self.max_residues_sequenced = max(
+            self.max_residues_sequenced, refmac.xyzout.sequenced_residues
+        )
+        self.min_fragments_built = min(
+            self.min_fragments_built, refmac.xyzout.fragments
+        )
+        self.max_longest_fragment = max(
+            self.max_longest_fragment, refmac.xyzout.longest_fragment
+        )
 
     def add_cycle_stats(self, refmac):
         self.report["cycles"][self.cycle] = self.refmac_stats(refmac)

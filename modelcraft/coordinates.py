@@ -2,8 +2,28 @@ import gemmi
 import os
 
 _known_protein_residues = {
-    "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU",
-    "LYS", "MET", "MSE", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "UNK", "VAL",
+    "ALA",
+    "ARG",
+    "ASN",
+    "ASP",
+    "CYS",
+    "GLN",
+    "GLU",
+    "GLY",
+    "HIS",
+    "ILE",
+    "LEU",
+    "LYS",
+    "MET",
+    "MSE",
+    "PHE",
+    "PRO",
+    "SER",
+    "THR",
+    "TRP",
+    "TYR",
+    "UNK",
+    "VAL",
 }
 
 
@@ -28,7 +48,7 @@ def _is_protein(residue):
     return all(atom in residue for atom in ("N", "CA", "C"))
 
 
-class CoordinateFile():
+class CoordinateFile:
     def __init__(self, path):
         self.path = os.path.abspath(path)
         self.residues = 0
@@ -57,8 +77,13 @@ class CoordinateFile():
                         self.sequenced_residues += 1
                     if i + 1 < len(chain):
                         next_residue = chain[i + 1]
-                        if _is_protein(next_residue) and _min_distance(residue["C"], next_residue["N"]) < 1.7:
+                        if (
+                            _is_protein(next_residue)
+                            and _min_distance(residue["C"], next_residue["N"]) < 1.7
+                        ):
                             continue
                     self.fragments += 1
-                    self.longest_fragment = max(self.longest_fragment, current_fragment_length)
+                    self.longest_fragment = max(
+                        self.longest_fragment, current_fragment_length
+                    )
                     current_fragment_length = 0

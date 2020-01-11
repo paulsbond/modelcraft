@@ -24,7 +24,8 @@ class Prune(Job):
             "--no-graphics",
             "--no-guano",
             "--no-state-script",
-            "--script", self.path("script.py")
+            "--script",
+            self.path("script.py"),
         ]
         self.run("coot", arguments)
         self.xyzout = CoordinateFile(self.path("xyzout.pdb"))

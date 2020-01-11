@@ -1,5 +1,11 @@
 from modelcraft.coordinates import CoordinateFile
-from modelcraft.reflections import ReflectionFile, fo_columns, free_columns, hl_columns, phifom_columns
+from modelcraft.reflections import (
+    ReflectionFile,
+    fo_columns,
+    free_columns,
+    hl_columns,
+    phifom_columns,
+)
 import argparse
 import gemmi
 import os
@@ -10,68 +16,141 @@ def _argument_parser():
     parser = argparse.ArgumentParser(
         description="ModelCraft: An automated model building pipeline for X-ray crystallography and cryo-EM",
         add_help=False,
-        formatter_class=argparse.RawTextHelpFormatter)
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
 
     required = parser.add_argument_group("Required arguments")
-    required.add_argument("--hklin", metavar="FILE", required=True, help="Input reflection data in MTZ format")
-    required.add_argument("--seqin", metavar="FILE", required=True, help="Input protein sequence")
+    required.add_argument(
+        "--hklin",
+        metavar="FILE",
+        required=True,
+        help="Input reflection data in MTZ format",
+    )
+    required.add_argument(
+        "--seqin", metavar="FILE", required=True, help="Input protein sequence"
+    )
 
     optional = parser.add_argument_group("Optional arguments")
-    optional.add_argument("--colin-free", metavar="COL",
-                          help=("Column label for the free-R flag\n"
-                                "(e.g. FreeR_flag)"))
-    optional.add_argument("--colin-fsigf", metavar="COLS",
-                          help=("Column labels for the observed amplitudes\n"
-                                "(e.g. FP,SIGFP)"))
-    optional.add_argument("--colin-hl", metavar="COLS",
-                          help=("Column labels for input phases as Hendrickson-Lattman coefficients\n"
-                                "(e.g. HLA,HLB,HLC,HLD)"))
-    optional.add_argument("--colin-phifom", metavar="COLS",
-                          help=("Column labels for input phases as a phase and figure of merit\n"
-                                "(e.g. PHIB,FOM)"))
-    optional.add_argument("--cycles", metavar="N", default=25, type=int,
-                          help="Maximum number of pipeline cycles")
-    optional.add_argument("--free-r-flag", metavar="N", default="0",
-                          help="Flag that identifies the free reflections (default: 0)")
-    optional.add_argument("--help", action="help",
-                          help="Show this help message and exit")
-    optional.add_argument("--keep-intermediate-files", action="store_true",
-                          help="Don't delete intermediate files")
-    optional.add_argument("--known-structure", nargs="+", metavar="SELECTION", default=[],
-                          help=("Known structure selections from the input coordinates\n"
-                                "Buccaneer will avoid building into these selections\n"
-                                "and they will be copied into the output coordinates\n"
-                                "Multiple selections can be specified\n"
-                                "The format is /[chain]/[residue]/[atom]:[radius]\n"
-                                "e.g. /A/*/*/:2.0         avoid building within 2A of the A chain\n"
-                                "e.g. /*/*/ZN    /:3.0    avoid building within 3A of ZN atoms\n"))
-    optional.add_argument("--mr-mode", metavar="CHOICE", type=int, choices=range(1, 7), default=2,
-                          help=("Determine how the molecular replacement model is used:\n"
-                                "1 - Phasing\n"
-                                "2 - Phasing, placing/naming chains\n"
-                                "3 - Phasing, placing/naming chains, copy every residue\n"
-                                "4 - Phasing, placing/naming chains, copy every filtered residue\n"
-                                "5 - Phasing, placing/naming chains, copy every 3rd residue\n"
-                                "6 - Phasing, placing/naming chains, copy every 3rd filtered residue\n"
-                                "(default: 2)"))
-    optional.add_argument("--mr-model", metavar="FILE",
-                          help=("Input placed molecular replacement model\n"
-                                "If input phases are not specified this will be refined"))
-    optional.add_argument("--no-auto-stop", dest="auto_stop", action="store_false",
-                          help="Run the maximum number of cycles even if the model is not improving")
-    optional.add_argument("--semet", action="store_true",
-                          help="Build selenomethionine instead of methionine")
-    optional.add_argument("--twinned", action="store_true",
-                          help=("Turn on twinned refinement\n"
-                                "Only do this if you are sure your data are twinned"))
-    optional.add_argument("--unbiased", action="store_true",
-                          help="Pass input phases to REFMAC for MLHL refinement")
-    optional.add_argument("--xyzin", metavar="FILE",
-                          help="Input starting coordinates")
+    optional.add_argument(
+        "--colin-free",
+        metavar="COL",
+        help=("Column label for the free-R flag\n" "(e.g. FreeR_flag)"),
+    )
+    optional.add_argument(
+        "--colin-fsigf",
+        metavar="COLS",
+        help=("Column labels for the observed amplitudes\n" "(e.g. FP,SIGFP)"),
+    )
+    optional.add_argument(
+        "--colin-hl",
+        metavar="COLS",
+        help=(
+            "Column labels for input phases as Hendrickson-Lattman coefficients\n"
+            "(e.g. HLA,HLB,HLC,HLD)"
+        ),
+    )
+    optional.add_argument(
+        "--colin-phifom",
+        metavar="COLS",
+        help=(
+            "Column labels for input phases as a phase and figure of merit\n"
+            "(e.g. PHIB,FOM)"
+        ),
+    )
+    optional.add_argument(
+        "--cycles",
+        metavar="N",
+        default=25,
+        type=int,
+        help="Maximum number of pipeline cycles",
+    )
+    optional.add_argument(
+        "--free-r-flag",
+        metavar="N",
+        default="0",
+        help="Flag that identifies the free reflections (default: 0)",
+    )
+    optional.add_argument(
+        "--help", action="help", help="Show this help message and exit"
+    )
+    optional.add_argument(
+        "--keep-intermediate-files",
+        action="store_true",
+        help="Don't delete intermediate files",
+    )
+    optional.add_argument(
+        "--known-structure",
+        nargs="+",
+        metavar="SELECTION",
+        default=[],
+        help=(
+            "Known structure selections from the input coordinates\n"
+            "Buccaneer will avoid building into these selections\n"
+            "and they will be copied into the output coordinates\n"
+            "Multiple selections can be specified\n"
+            "The format is /[chain]/[residue]/[atom]:[radius]\n"
+            "e.g. /A/*/*/:2.0         avoid building within 2A of the A chain\n"
+            "e.g. /*/*/ZN    /:3.0    avoid building within 3A of ZN atoms\n"
+        ),
+    )
+    optional.add_argument(
+        "--mr-mode",
+        metavar="CHOICE",
+        type=int,
+        choices=range(1, 7),
+        default=2,
+        help=(
+            "Determine how the molecular replacement model is used:\n"
+            "1 - Phasing\n"
+            "2 - Phasing, placing/naming chains\n"
+            "3 - Phasing, placing/naming chains, copy every residue\n"
+            "4 - Phasing, placing/naming chains, copy every filtered residue\n"
+            "5 - Phasing, placing/naming chains, copy every 3rd residue\n"
+            "6 - Phasing, placing/naming chains, copy every 3rd filtered residue\n"
+            "(default: 2)"
+        ),
+    )
+    optional.add_argument(
+        "--mr-model",
+        metavar="FILE",
+        help=(
+            "Input placed molecular replacement model\n"
+            "If input phases are not specified this will be refined"
+        ),
+    )
+    optional.add_argument(
+        "--no-auto-stop",
+        dest="auto_stop",
+        action="store_false",
+        help="Run the maximum number of cycles even if the model is not improving",
+    )
+    optional.add_argument(
+        "--semet",
+        action="store_true",
+        help="Build selenomethionine instead of methionine",
+    )
+    optional.add_argument(
+        "--twinned",
+        action="store_true",
+        help=(
+            "Turn on twinned refinement\n"
+            "Only do this if you are sure your data are twinned"
+        ),
+    )
+    optional.add_argument(
+        "--unbiased",
+        action="store_true",
+        help="Pass input phases to REFMAC for MLHL refinement",
+    )
+    optional.add_argument("--xyzin", metavar="FILE", help="Input starting coordinates")
 
     developer = parser.add_argument_group("Developer arguments")
-    developer.add_argument("--buccaneer", metavar="FILE", default="cbuccaneer",
-                           help="Path to an alternative buccaneer binary")
+    developer.add_argument(
+        "--buccaneer",
+        metavar="FILE",
+        default="cbuccaneer",
+        help="Path to an alternative buccaneer binary",
+    )
 
     return parser
 
@@ -156,7 +235,9 @@ def _find_mtz_columns(args):
 
 
 def _derive_other_args(args):
-    args.hklin = ReflectionFile(args.hklin, args.colin_fsigf, args.colin_free, args.colin_hl, args.colin_phifom)
+    args.hklin = ReflectionFile(
+        args.hklin, args.colin_fsigf, args.colin_free, args.colin_hl, args.colin_phifom
+    )
     if args.xyzin is not None:
         args.xyzin = CoordinateFile(args.xyzin)
     if args.mr_model is not None:

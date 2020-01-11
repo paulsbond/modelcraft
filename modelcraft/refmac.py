@@ -11,7 +11,8 @@ class Refmac(Job):
             path=self.path("hklout.mtz"),
             fsigf=args.hklin.fsigf,
             abcd="HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB",
-            fphi="FWT,PHWT")
+            fphi="FWT,PHWT",
+        )
         self.xmlout = self.path("xmlout.xml")
         arguments = self._get_arguments(args, xyzin)
         stdin = self._get_stdin(args, cycles, use_phases)
@@ -21,11 +22,16 @@ class Refmac(Job):
 
     def _get_arguments(self, args, xyzin):
         return [
-            "HKLIN", args.hklin.path,
-            "XYZIN", xyzin.path,
-            "HKLOUT", self.hklout.path,
-            "XYZOUT", self.path("xyzout.pdb"),
-            "XMLOUT", self.xmlout,
+            "HKLIN",
+            args.hklin.path,
+            "XYZIN",
+            xyzin.path,
+            "HKLOUT",
+            self.hklout.path,
+            "XYZOUT",
+            self.path("xyzout.pdb"),
+            "XMLOUT",
+            self.xmlout,
         ]
 
     def _get_stdin(self, args, cycles, use_phases):

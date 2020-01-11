@@ -2,7 +2,7 @@ import os
 import gemmi
 
 
-class ReflectionFile():
+class ReflectionFile:
     def __init__(self, path, fsigf=None, free=None, abcd=None, phifom=None, fphi=None):
         self.path = os.path.abspath(path)
         self.fsigf = fsigf
@@ -21,6 +21,7 @@ def fo_columns(mtz):
         label1 = label1.lower().replace("sig", "")
         label2 = label2.lower().replace("sig", "")
         return label1 == label2
+
     for f in mtz.columns_with_type("F"):
         for sig in mtz.columns_with_type("Q"):
             if differ_by_sig(f.label, sig.label):
@@ -42,6 +43,7 @@ def hl_columns(mtz):
             if label1[i] != label2[i]:
                 differences += 1
         return differences == 1
+
     groups = []
     for column in mtz.columns_with_type("A"):
         grouped = False
@@ -56,7 +58,6 @@ def hl_columns(mtz):
 
 
 def phifom_columns(mtz):
-
     def is_phi(column):
         if column.type != "P":
             return False

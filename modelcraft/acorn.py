@@ -1,10 +1,10 @@
-from modelcraft.reflections import ReflectionFile
 from modelcraft.job import Job
 
 
 class Acorn(Job):
     def __init__(self, args, directory, hklin):
         super().__init__(directory)
+
 
 # /home/paul/Programs/ccp4-7.0/bin/mtzdump \
 # HKLIN "/home/paul/Desktop/tmp.mtz" \

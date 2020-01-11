@@ -11,8 +11,10 @@ def test_1kv9():
     os.mkdir(tmp_dir)
     os.chdir(tmp_dir)
     argument_list = [
-        "--hklin", data_path("1kv9_data.mtz"),
-        "--seqin", data_path("1kv9_sequence.fasta"),
+        "--hklin",
+        data_path("1kv9_data.mtz"),
+        "--seqin",
+        data_path("1kv9_sequence.fasta"),
     ]
     args = parse(argument_list)
     buccaneer = Buccaneer(args, "00.01_buccaneer", args.hklin, cycles=1)
