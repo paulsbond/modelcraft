@@ -51,21 +51,21 @@ class Protein(Polymer):
     }
 
     def __init__(self, sequence, copies="Unknown"):
-        self.polymer_type = "protein"
+        super().__init__("protein", sequence, copies)
 
 
 class Rna(Polymer):
     codes = {"A", "C", "G", "U", "X"}
 
-    def __init__(self):
-        self.polymer_type = "rna"
+    def __init__(self, sequence, copies="Unknown"):
+        super().__init__("rna", sequence, copies)
 
 
 class Dna(Polymer):
     codes = {"A", "C", "G", "T", "X"}
 
-    def __init__(self):
-        self.polymer_type = "dna"
+    def __init__(self, sequence, copies="Unknown"):
+        super().__init__("dna", sequence, copies)
 
 
 class Ligand:
