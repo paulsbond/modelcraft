@@ -1,4 +1,5 @@
 import Bio.SeqIO
+import modelcraft.residues as residues
 
 
 class AsuContents:
@@ -13,7 +14,14 @@ class AsuContents:
             sequence = str(record.seq).upper()
             if polymer_type == "auto":
                 polymer_type = determine_polymer_type_from_sequence(sequence)
-            # TODO
+            if polymer_type == "protein":
+                self.polymers.append(Protein(sequence))
+            elif polymer_type == "rna":
+                self.polymers.append(Rna(sequence))
+            elif polymer_type == "dna":
+                self.polymers.append(Dna(sequence))
+            else:
+                raise ValueError("Unknown polymer type: %s" % polymer_type)
 
 
 class Polymer:
@@ -24,58 +32,28 @@ class Polymer:
 
 
 class Protein(Polymer):
-    codes = {
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "K",
-        "L",
-        "M",
-        "N",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "V",
-        "W",
-        "X",
-        "Y",
-        "Z",
-    }
-
-    def __init__(self, sequence, copies="Unknown"):
+    def __init__(self, sequence, copies="unknown"):
         super().__init__("protein", sequence, copies)
 
 
 class Rna(Polymer):
-    codes = {"A", "C", "G", "U", "X"}
-
-    def __init__(self, sequence, copies="Unknown"):
+    def __init__(self, sequence, copies="unknown"):
         super().__init__("rna", sequence, copies)
 
 
 class Dna(Polymer):
-    codes = {"A", "C", "G", "T", "X"}
-
-    def __init__(self, sequence, copies="Unknown"):
+    def __init__(self, sequence, copies="unknown"):
         super().__init__("dna", sequence, copies)
 
 
 class Ligand:
-    def __init__(self, code, copies="Unknown"):
+    def __init__(self, code, copies="unknown"):
         self.code = code
         self.copies = copies
 
 
 class HeavyAtoms:
-    def __init__(self, element, copies="Unknown"):
+    def __init__(self, element, copies="unknown"):
         self.element = element
         self.copies = copies
 
@@ -92,7 +70,9 @@ def determine_polymer_type_from_sequence(sequence):
     codes = set(sequence)
     if "U" in codes:
         return "rna"
-    unique_protein_codes = Protein.codes - Dna.codes
+    protein_codes = {residue.code1 for residue in residues.protein}
+    dna_codes = {residue.code1 for residue in residues.dna}
+    unique_protein_codes = protein_codes - dna_codes
     if codes.intersection(unique_protein_codes):
         return "protein"
     if codes == {"A"}:
