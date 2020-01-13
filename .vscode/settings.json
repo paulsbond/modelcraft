@@ -2,7 +2,7 @@
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
   "editor.rulers": [
-    127
+    88
   ],
   "editor.tabSize": 4,
   "files.exclude": {
