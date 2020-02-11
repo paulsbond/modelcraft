@@ -89,8 +89,8 @@ def _argument_parser():
             "and they will be copied into the output coordinates\n"
             "Multiple selections can be specified\n"
             "The format is /[chain]/[residue]/[atom]:[radius]\n"
-            "e.g. /A/*/*/:2.0         avoid building within 2A of the A chain\n"
-            "e.g. /*/*/ZN    /:3.0    avoid building within 3A of ZN atoms\n"
+            "e.g. /A/*/*/:2.0       avoid building within 2A of the A chain\n"
+            "e.g. /*/*/ZN  /:3.0    avoid building within 3A of ZN atoms\n"
         ),
     )
     optional.add_argument(

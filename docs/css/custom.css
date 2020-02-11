@@ -1,0 +1,14 @@
+body {
+  margin-top: 3em;
+}
+
+.heading {
+  text-transform: uppercase;
+  font-size: 1.4rem;
+  letter-spacing: 0.2rem;
+  font-weight: 600;
+}
+
+code {
+  overflow-x: auto;
+}
