@@ -13,10 +13,7 @@
 
 <div class="container">
     <h1>ModelCraft</h1>
-    <p>
-        An automated model building pipeline
-        for X-ray crystallography and cryo-EM
-    </p>
+    <h5>An automated model building pipeline for X-ray crystallography and cryo-EM</h5>
 
     <h2 class="heading">Reference</h2>
     <p>
@@ -38,59 +35,59 @@
     <p>It also requires an installation of CCP4 to work.</p>
 
     <h2 class="heading">Required Arguments</h2>
-    <hr>
+
     <p>
         <code>--hklin FILE</code><br>
         Input reflection data in MTZ format.
     </p>
-    <hr>
+
     <p>
         <code>--seqin FILE</code><br>
         Input protein sequence in FASTA format.
     </p>
-    <hr>
+
     <h2 class="heading">Optional Arguments</h2>
-    <hr>
+
     <p>
         <code>--colin-free COL</code> e.g. <code>FreeR_flag</code><br>
         Column label for the free-R flag.
     </p>
-    <hr>
+
     <p>
         <code>--colin-fsigf COLS</code> e.g. <code>FP,SIGFP</code><br>
         Column labels for the observed amplitudes.
     </p>
-    <hr>
+
     <p>
         <code>--colin-hl COLS</code> e.g. <code>HLA,HLB,HLC,HLD</code><br>
         Column labels for input phases as Hendrickson-Lattman coefficients.
     </p>
-    <hr>
+
     <p>
         <code>--colin-phifom COLS</code> e.g. <code>PHIB,FOM</code><br>
         Column labels for input phases as a phase and figure of merit.
     </p>
-    <hr>
+
     <p>
         <code>--cycles N</code> default: <code>25</code><br>
         Maximum number of pipeline cycles.
     </p>
-    <hr>
+
     <p>
         <code>--free-r-flag N</code> default: <code>0</code><br>
         Flag that identifies the free reflections.
     </p>
-    <hr>
+
     <p>
         <code>--help</code><br>
         Show an automatically generated help message.
     </p>
-    <hr>
+
     <p>
         <code>--keep-intermediate-files</code><br>
         Don't delete intermediate files.
     </p>
-    <hr>
+
     <p>
         <code>--known-structure SELECTION [SELECTION ...]</code><br>
         Known structure selections from the input coordinates.
@@ -103,7 +100,7 @@
         and <code>/*/*/ZN&nbsp;&nbsp;/:3.0</code>
         will avoid building within 3&angst; of zinc atoms.
     </p>
-    <hr>
+
     <p>
         <code>--mr-mode CHOICE</code> default: <code>2</code><br>
         Determine how the molecular replacement model is used:<br>
@@ -114,39 +111,39 @@
         5 - Phasing, placing/naming chains, copy every 3rd residue<br>
         6 - Phasing, placing/naming chains, copy every 3rd filtered residue
     </p>
-    <hr>
+
     <p>
         <code>--mr-model FILE</code><br>
         Input placed molecular replacement model.
         If input phases are not specified this will be refined.
     </p>
-    <hr>
+
     <p>
         <code>--no-auto-stop</code><br>
         Run the maximum number of cycles even if the model is not improving.
     </p>
-    <hr>
+
     <p>
         <code>--semet</code><br>
         Build selenomethionine instead of methionine.
     </p>
-    <hr>
+
     <p>
         <code>--twinned</code><br>
         Turn on twinned refinement.
         Only do this if you are sure your data are twinned.
     </p>
-    <hr>
+
     <p>
         <code>--unbiased</code><br>
         Pass input phases to REFMAC for MLHL refinement.
     </p>
-    <hr>
+
     <h2 class="heading">Developer Arguments</h2>
-    <hr>
+
     <p>
         <code>--buccaneer FILE</code><br>
         Path to an alternative buccaneer binary.
     </p>
-    <hr>
+
 </div>
