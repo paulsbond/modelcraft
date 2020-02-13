@@ -12,3 +12,10 @@ body {
 code {
   overflow-x: auto;
 }
+
+.logo {
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  max-width: 100%;
+  width: 20rem;
+}
