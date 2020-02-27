@@ -2,7 +2,8 @@
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
   "editor.rulers": [
-    88
+    88,
+    120
   ],
   "editor.tabSize": 4,
   "files.exclude": {
@@ -13,4 +14,7 @@
   "python.formatting.provider": "black",
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
+  "python.formatting.blackArgs": [
+    "line-length=120"
+  ]
 }
