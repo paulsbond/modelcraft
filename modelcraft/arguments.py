@@ -29,7 +29,7 @@ def _argument_parser():
     optional.add_argument("--help", action="help")
     optional.add_argument("--keep-intermediate-files", action="store_true")
     optional.add_argument("--known-structure", nargs="+", metavar="SELECTION", default=[])
-    optional.add_argument("--mr-mode", metavar="CHOICE", type=int, choices=range(1, 7), default=2)
+    optional.add_argument("--mr-mode", metavar="CHOICE", type=int, choices=range(1, 7), default=6)
     optional.add_argument("--mr-model", metavar="FILE")
     optional.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
     optional.add_argument("--semet", action="store_true")
