@@ -15,6 +15,6 @@
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
   "python.formatting.blackArgs": [
-    "line-length=120"
+    "--line-length=120"
   ]
 }
