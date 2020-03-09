@@ -9,7 +9,7 @@ class AsuContents:
         self.heavy_atoms = []
         self.relative = relative
 
-    def add_polymers_from_sequence_file(self, path, polymer_type="auto"):
+    def add_from_sequence_file(self, path, polymer_type="auto"):
         for record in Bio.SeqIO.parse(path, "fasta"):
             sequence = str(record.seq).upper()
             if polymer_type == "auto":
@@ -22,6 +22,12 @@ class AsuContents:
                 self.polymers.append(Dna(sequence))
             else:
                 raise ValueError("Unknown polymer type: %s" % polymer_type)
+
+    def add_from_coordinate_file(self, path):
+        records = Bio.SeqIO.parse(
+            path, "pdb-seqres"
+        )  # pdb-seqres cif-seqres pdb-atom cif-atom
+        # TODO
 
 
 class Polymer:
