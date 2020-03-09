@@ -17,137 +17,152 @@
     <h1>ModelCraft</h1>
     <h5>An automated model building pipeline for X-ray crystallography and cryo-EM</h5>
 
-    <h2 class="heading">Reference</h2>
-    <p>
-        If you have used ModelCraft in your work, please cite:<br>
-        <i>Publication in progress</i>
-    </p>
+    <section>
+        <h2 class="heading">Getting Started</h2>
+        <p>ModelCraft can be installed using pip.</p>
+        <pre><code>python3 -m pip install --user modelcraft</code></pre>
+        <p>
+            It also requires an installation of CCP4.
+            The CCP4 environment needs to be set up for the pipeline to work.
+            The simplest execution requires only
+            a reflection data file in MTZ format
+            and a sequence file in FASTA format.
+        </p>
+        <pre><code>modelcraft --hklin reflections.mtz --seqin sequence.fasta</code></pre>
+    </section>
 
-    <h2 class="heading">Getting Started</h2>
+    <section>
+        <h2 class="heading">Required Arguments</h2>
+        <p>
+            <code>--hklin FILE</code><br>
+            Input reflection data in MTZ format.
+        </p>
+        <p>
+            <code>--seqin FILE</code><br>
+            Input protein sequence in FASTA format.
+        </p>
+    </section>
 
-    <p>ModelCraft can be installed using pip.</p>
-    <pre><code>python3 -m pip install --user modelcraft</code></pre>
-    <p>
-        It also requires an installation of CCP4.
-        The CCP4 environment needs to be set up for the pipeline to work.
-        The simplest execution requires only
-        a reflection data file in MTZ format
-        and a sequence file in FASTA format.
-    </p>
-    <pre><code>modelcraft --hklin reflections.mtz --seqin sequence.fasta</code></pre>
+    <section>
+        <h2 class="heading">Optional Arguments</h2>
+        <p>
+            <code>--colin-free COL</code> e.g. <code>FreeR_flag</code><br>
+            Column label for the free-R flag.
+        </p>
+        <p>
+            <code>--colin-fsigf COLS</code> e.g. <code>FP,SIGFP</code><br>
+            Column labels for the observed amplitudes.
+        </p>
+        <p>
+            <code>--colin-hl COLS</code> e.g. <code>HLA,HLB,HLC,HLD</code><br>
+            Column labels for input phases as Hendrickson-Lattman coefficients.
+        </p>
+        <p>
+            <code>--colin-phifom COLS</code> e.g. <code>PHIB,FOM</code><br>
+            Column labels for input phases as a phase and figure of merit.
+        </p>
+        <p>
+            <code>--cycles N</code> default: <code>25</code><br>
+            Maximum number of pipeline cycles.
+        </p>
+        <p>
+            <code>--free-r-flag N</code> default: <code>0</code><br>
+            Flag that identifies the free reflections.
+        </p>
+        <p>
+            <code>--help</code><br>
+            Show an automatically generated help message.
+        </p>
+        <p>
+            <code>--keep-intermediate-files</code><br>
+            Don't delete intermediate files.
+        </p>
+        <p>
+            <code>--known-structure SELECTION [SELECTION ...]</code><br>
+            Known structure selections from the input coordinates.
+            Buccaneer will avoid building into these selections
+            and they will be copied into the output coordinates.
+            Multiple selections can be specified.
+            The format is <code>/[chain]/[residue]/[atom]:[radius]</code>.
+            E.g. <code>/A/*/*/:2.0</code>
+            will avoid building within 2&angst; of the A chain
+            and <code>/*/*/ZN&nbsp;&nbsp;/:3.0</code>
+            will avoid building within 3&angst; of zinc atoms.
+        </p>
+        <p>
+            <code>--mr-mode CHOICE</code> default: <code>6</code><br>
+            Determine how the molecular replacement model is used:<br>
+            1 - Phasing<br>
+            2 - Phasing, placing/naming chains<br>
+            3 - Phasing, placing/naming chains, copy every residue<br>
+            4 - Phasing, placing/naming chains, copy every filtered residue<br>
+            5 - Phasing, placing/naming chains, copy every 3rd residue<br>
+            6 - Phasing, placing/naming chains, copy every 3rd filtered residue<br>
+            The MR model will not be used for phasing if input phases are provided using
+            <code>--colin-hl</code> or <code>--colin-phifom</code>.
+        </p>
+        <p>
+            <code>--mr-model FILE</code><br>
+            Input placed molecular replacement model.
+            If input phases are not specified this will be refined.
+        </p>
+        <p>
+            <code>--no-auto-stop</code><br>
+            Run the maximum number of cycles even if the model is not improving.
+        </p>
+        <p>
+            <code>--semet</code><br>
+            Build selenomethionine instead of methionine.
+        </p>
+        <p>
+            <code>--twinned</code><br>
+            Turn on twinned refinement.
+            Only do this if you are sure your data are twinned.
+        </p>
+        <p>
+            <code>--unbiased</code><br>
+            Pass input phases to REFMAC for MLHL refinement.
+        </p>
+    </section>
 
-    <h2 class="heading">Required Arguments</h2>
+    <section>
+        <h2 class="heading">Developer Arguments</h2>
+        <p>
+            <code>--buccaneer FILE</code><br>
+            Path to an alternative buccaneer binary.
+        </p>
+    </section>
 
-    <p>
-        <code>--hklin FILE</code><br>
-        Input reflection data in MTZ format.
-    </p>
-
-    <p>
-        <code>--seqin FILE</code><br>
-        Input protein sequence in FASTA format.
-    </p>
-
-    <h2 class="heading">Optional Arguments</h2>
-
-    <p>
-        <code>--colin-free COL</code> e.g. <code>FreeR_flag</code><br>
-        Column label for the free-R flag.
-    </p>
-
-    <p>
-        <code>--colin-fsigf COLS</code> e.g. <code>FP,SIGFP</code><br>
-        Column labels for the observed amplitudes.
-    </p>
-
-    <p>
-        <code>--colin-hl COLS</code> e.g. <code>HLA,HLB,HLC,HLD</code><br>
-        Column labels for input phases as Hendrickson-Lattman coefficients.
-    </p>
-
-    <p>
-        <code>--colin-phifom COLS</code> e.g. <code>PHIB,FOM</code><br>
-        Column labels for input phases as a phase and figure of merit.
-    </p>
-
-    <p>
-        <code>--cycles N</code> default: <code>25</code><br>
-        Maximum number of pipeline cycles.
-    </p>
-
-    <p>
-        <code>--free-r-flag N</code> default: <code>0</code><br>
-        Flag that identifies the free reflections.
-    </p>
-
-    <p>
-        <code>--help</code><br>
-        Show an automatically generated help message.
-    </p>
-
-    <p>
-        <code>--keep-intermediate-files</code><br>
-        Don't delete intermediate files.
-    </p>
-
-    <p>
-        <code>--known-structure SELECTION [SELECTION ...]</code><br>
-        Known structure selections from the input coordinates.
-        Buccaneer will avoid building into these selections
-        and they will be copied into the output coordinates.
-        Multiple selections can be specified.
-        The format is <code>/[chain]/[residue]/[atom]:[radius]</code>.
-        E.g. <code>/A/*/*/:2.0</code>
-        will avoid building within 2&angst; of the A chain
-        and <code>/*/*/ZN&nbsp;&nbsp;/:3.0</code>
-        will avoid building within 3&angst; of zinc atoms.
-    </p>
-
-    <p>
-        <code>--mr-mode CHOICE</code> default: <code>6</code><br>
-        Determine how the molecular replacement model is used:<br>
-        1 - Phasing<br>
-        2 - Phasing, placing/naming chains<br>
-        3 - Phasing, placing/naming chains, copy every residue<br>
-        4 - Phasing, placing/naming chains, copy every filtered residue<br>
-        5 - Phasing, placing/naming chains, copy every 3rd residue<br>
-        6 - Phasing, placing/naming chains, copy every 3rd filtered residue<br>
-        The MR model will not be used for phasing if input phases are provided using
-        <code>--colin-hl</code> or <code>--colin-phifom</code>.
-    </p>
-
-    <p>
-        <code>--mr-model FILE</code><br>
-        Input placed molecular replacement model.
-        If input phases are not specified this will be refined.
-    </p>
-
-    <p>
-        <code>--no-auto-stop</code><br>
-        Run the maximum number of cycles even if the model is not improving.
-    </p>
-
-    <p>
-        <code>--semet</code><br>
-        Build selenomethionine instead of methionine.
-    </p>
-
-    <p>
-        <code>--twinned</code><br>
-        Turn on twinned refinement.
-        Only do this if you are sure your data are twinned.
-    </p>
-
-    <p>
-        <code>--unbiased</code><br>
-        Pass input phases to REFMAC for MLHL refinement.
-    </p>
-
-    <h2 class="heading">Developer Arguments</h2>
-
-    <p>
-        <code>--buccaneer FILE</code><br>
-        Path to an alternative buccaneer binary.
-    </p>
+    <section>
+        <h2 class="heading">References</h2>
+        <dl>
+            <dt>ModelCraft</dt>
+            <dd><i>Publication in progress</i></dd>
+            <dt>Buccaneer</dt>
+            <dd>
+                K Cowtan.
+                <i>Acta Cryst.</i> D<b>62</b> 1002-1011 (2006)
+                <a href="https://doi.org/10.1107/S0907444906022116">DOI</a>
+            </dd>
+            <dt>REFMAC</dt>
+            <dd>
+                O Kovalevskiy, RA Nicholls, F Long, A Carlon, GN Murshudov.
+                <i>Acta Cryst.</i> D<b>74</b> 215-227 (2018)
+                <a href="https://doi.org/10.1107/S2059798318000979">DOI</a>
+            </dd>
+            <dt>Coot</dt>
+            <dd>
+                P Emsley, B Lohkamp, WG Scott, K Cowtan.
+                <i>Acta Cryst.</i> D<b>66</b> 486-501 (2010)
+                <a href="https://doi.org/10.1107/S0907444910007493">DOI</a>
+            </dd>
+            <dt>Parrot</dt>
+            <dd>
+                K Cowtan.
+                <i>Acta Cryst.</i> D<b>66</b> 470-478 (2010)
+                <a href="https://doi.org/10.1107/S090744490903947X">DOI</a>
+            </dd>
+        </dl>
+    </section>
 
 </div>
