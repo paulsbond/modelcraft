@@ -58,25 +58,14 @@ class Job:
         new_hklin.free = "FREE"
         if hklin.abcd is not None:
             args.extend(
-                [
-                    "-mtzin",
-                    hklin.path,
-                    "-colin",
-                    hklin.abcd,
-                    "-colout",
-                    "HLA,HLB,HLC,HLD",
-                ]
+                ["-mtzin", hklin.path, "-colin", hklin.abcd, "-colout", "HLA,HLB,HLC,HLD",]
             )
             new_hklin.abcd = "HLA,HLB,HLC,HLD"
         if hklin.phifom is not None:
-            args.extend(
-                ["-mtzin", hklin.path, "-colin", hklin.phifom, "-colout", "PHIB,FOM"]
-            )
+            args.extend(["-mtzin", hklin.path, "-colin", hklin.phifom, "-colout", "PHIB,FOM"])
             new_hklin.phifom = "PHIB,FOM"
         if hklin.fphi is not None:
-            args.extend(
-                ["-mtzin", hklin.path, "-colin", hklin.fphi, "-colout", "FWT,PHWT"]
-            )
+            args.extend(["-mtzin", hklin.path, "-colin", hklin.fphi, "-colout", "FWT,PHWT"])
             new_hklin.fphi = "FWT,PHWT"
         self.run("cmtzjoin", args)
         return new_hklin

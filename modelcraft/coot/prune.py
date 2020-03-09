@@ -1462,4 +1462,3 @@ def prune(
                 deleted += 1
                 delete_residue_sidechain(imol, residue.chain, residue.resno, residue.ins_code, 0)
         print("ML_CORRECTNESS: Deleted %.0f%% of sidechains" % (float(deleted) / len(remaining) * 100))
-

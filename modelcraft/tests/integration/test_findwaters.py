@@ -27,9 +27,7 @@ def test_1kv9():
     assert os.path.exists(findwaters.xyzout.path)
     assert findwaters.xyzout.waters > 0
     assert findwaters.xyzout.dummys == 0
-    finddummys = FindWaters(
-        "00.03_finddummys", refmac.xyzout, refmac.hklout, dummy=True
-    )
+    finddummys = FindWaters("00.03_finddummys", refmac.xyzout, refmac.hklout, dummy=True)
     assert os.path.exists(finddummys.stdout)
     assert os.path.exists(finddummys.stderr)
     assert os.path.exists(finddummys.xyzout.path)

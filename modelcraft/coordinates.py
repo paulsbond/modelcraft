@@ -77,13 +77,8 @@ class CoordinateFile:
                         self.sequenced_residues += 1
                     if i + 1 < len(chain):
                         next_residue = chain[i + 1]
-                        if (
-                            _is_protein(next_residue)
-                            and _min_distance(residue["C"], next_residue["N"]) < 1.7
-                        ):
+                        if _is_protein(next_residue) and _min_distance(residue["C"], next_residue["N"]) < 1.7:
                             continue
                     self.fragments += 1
-                    self.longest_fragment = max(
-                        self.longest_fragment, current_fragment_length
-                    )
+                    self.longest_fragment = max(self.longest_fragment, current_fragment_length)
                     current_fragment_length = 0

@@ -123,9 +123,7 @@ def _find_mtz_columns(args):
 
 
 def _derive_other_args(args):
-    args.hklin = ReflectionFile(
-        args.hklin, args.colin_fsigf, args.colin_free, args.colin_hl, args.colin_phifom
-    )
+    args.hklin = ReflectionFile(args.hklin, args.colin_fsigf, args.colin_free, args.colin_hl, args.colin_phifom)
     if args.xyzin is not None:
         args.xyzin = CoordinateFile(args.xyzin)
     if args.mr_model is not None:
