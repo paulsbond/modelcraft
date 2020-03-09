@@ -19,10 +19,8 @@ class FindWaters(Job):
         ]
         if dummy:
             arguments.append("--flood")
-        # --sigma 2.0
-        # --min-dist X
-        # --max-dist X
-        # --flood-atom-radius 1.4 (adjusts contact distance)
+            # arguments.extend(["--sigma", "2.0"]) # Default
+            # arguments.extend(["--flood-atom-radius", "1.4"]) # Default
         self.run("findwaters", arguments)
         arguments = [
             "xyzin1",
