@@ -17,8 +17,10 @@ class Refmac(Job):
         arguments = self._get_arguments(args, xyzin)
         stdin = self._get_stdin(args, cycles, use_phases)
         self.run("refmac5", arguments, stdin)
-        self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
         self._set_results()
+        self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
+        self.xyzout.rwork = self.final_rwork
+        self.xyzout.rfree = self.final_rfree
 
     def _get_arguments(self, args, xyzin):
         return [

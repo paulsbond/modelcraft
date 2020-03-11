@@ -45,8 +45,8 @@ class Pipeline:
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
             self.jobs[self.cycle] = []
-            refmac = self.run_cycle()
-            self.process_cycle_output(refmac)
+            self.run_cycle()
+            self.process_cycle_output()
             self.remove_job_directories(self.cycle - 1)
             if args.auto_stop and self.cycles_without_improvement == 4:
                 break
@@ -61,11 +61,9 @@ class Pipeline:
         self.buccaneer()
         self.refmac(cycles=10)
         self.prune(chains_only=True)
+        self.refmac(cycles=5)
         if self.min_rwork < 40:
-            self.refmac(cycles=5)
             self.findwaters()
-            return self.refmac(cycles=10)
-        return self.refmac(cycles=5)
 
     def finish(self):
         for cycle in range(self.cycle + 1):
@@ -94,7 +92,6 @@ class Pipeline:
         self.add_job(job)
         job.hklout.fphi = None
         self.current_hkl = job.hklout
-        return job
 
     def buccaneer(self):
         directory = self.job_directory("buccaneer")
@@ -112,7 +109,6 @@ class Pipeline:
             }
             self.finish()
         self.current_xyz = job.xyzout
-        return job
 
     def refmac(self, cycles):
         directory = self.job_directory("refmac")
@@ -121,92 +117,92 @@ class Pipeline:
         self.add_job(job)
         self.current_hkl = job.hklout
         self.current_xyz = job.xyzout
-        return job
 
     def parrot(self):
         directory = self.job_directory("parrot")
         job = Parrot(self.args, directory, self.current_hkl, self.current_xyz)
         self.add_job(job)
         self.current_hkl = job.hklout
-        return job
 
     def prune(self, chains_only=False):
         directory = self.job_directory("prune_chains" if chains_only else "prune")
         job = Prune(directory, self.current_xyz, self.current_hkl, chains_only)
         self.add_job(job)
         self.current_xyz = job.xyzout
-        return job
 
     def findwaters(self, dummy=False):
-        directory = self.job_directory("finddummys" if dummy else "findwaters")
-        job = FindWaters(directory, self.current_xyz, self.current_hkl, dummy)
-        self.add_job(job)
-        self.current_xyz = job.xyzout
-        return job
+        waters_dir = self.job_directory("finddummys" if dummy else "findwaters")
+        waters_job = FindWaters(waters_dir, self.current_xyz, self.current_hkl, dummy)
+        self.add_job(waters_job)
+        refmac_dir = self.job_directory("refmac")
+        refmac_job = Refmac(self.args, refmac_dir, waters_job.xyzout, 10)
+        self.add_job(refmac_job)
+        if refmac_job.xyzout.rfree < self.current_xyz.rfree:
+            self.current_hkl = refmac_job.hklout
+            self.current_xyz = refmac_job.xyzout
 
-    def improved(self, refmac):
+    def improved(self):
+        xyz = self.current_xyz
         required_improvement = 0.02
-        improvement = (self.min_rwork - refmac.final_rwork) / self.min_rwork
+        improvement = (self.min_rwork - xyz.rwork) / self.min_rwork
         if improvement > required_improvement:
             return True
-        improvement = (refmac.xyzout.residues - self.max_residues_built) / float(self.max_residues_built)
+        improvement = (xyz.residues - self.max_residues_built) / float(self.max_residues_built)
         if improvement > required_improvement:
             return True
-        improvement = (refmac.xyzout.sequenced_residues - self.max_residues_sequenced) / float(
-            self.max_residues_sequenced
-        )
+        improvement = (xyz.sequenced_residues - self.max_residues_sequenced) / float(self.max_residues_sequenced)
         if improvement > required_improvement:
             return True
-        improvement = (self.min_fragments_built - refmac.xyzout.fragments) / float(self.min_fragments_built)
+        improvement = (self.min_fragments_built - xyz.fragments) / float(self.min_fragments_built)
         if improvement > required_improvement:
             return True
-        improvement = (refmac.xyzout.longest_fragment - self.max_longest_fragment) / float(self.max_longest_fragment)
+        improvement = (xyz.longest_fragment - self.max_longest_fragment) / float(self.max_longest_fragment)
         if improvement > required_improvement:
             return True
         return False
 
-    def process_cycle_output(self, refmac):
+    def process_cycle_output(self):
         print("")
-        print("R-work: %.3f" % refmac.final_rwork)
-        print("R-free: %.3f" % refmac.final_rfree)
-        print("Residues: %d" % refmac.xyzout.residues)
-        print("Sequenced residues: %d" % refmac.xyzout.sequenced_residues)
-        print("Waters: %d" % refmac.xyzout.waters)
-        self.add_cycle_stats(refmac)
+        print("R-work: %.3f" % self.current_xyz.rwork)
+        print("R-free: %.3f" % self.current_xyz.rfree)
+        print("Residues: %d" % self.current_xyz.residues)
+        print("Sequenced residues: %d" % self.current_xyz.sequenced_residues)
+        print("Waters: %d" % self.current_xyz.waters)
+        self.add_cycle_stats()
 
-        if self.improved(refmac):
+        if self.improved():
             self.cycles_without_improvement = 0
         else:
             self.cycles_without_improvement += 1
             print("\nNo significant improvement for %d cycle(s)" % self.cycles_without_improvement)
 
-        if refmac.final_rfree < self.min_rfree:
-            self.min_rfree = refmac.final_rfree
+        if self.current_xyz.rfree < self.min_rfree:
+            self.min_rfree = self.current_xyz.rfree
             print("Copying files to output because R-free has improved")
-            shutil.copyfile(str(refmac.xyzout.path), "modelcraft.pdb")
-            shutil.copyfile(str(refmac.hklout.path), "modelcraft.mtz")
-            self.add_final_stats(refmac)
-        self.min_rwork = min(self.min_rwork, refmac.final_rwork)
-        self.max_residues_built = max(self.max_residues_built, refmac.xyzout.residues)
-        self.max_residues_sequenced = max(self.max_residues_sequenced, refmac.xyzout.sequenced_residues)
-        self.min_fragments_built = min(self.min_fragments_built, refmac.xyzout.fragments)
-        self.max_longest_fragment = max(self.max_longest_fragment, refmac.xyzout.longest_fragment)
+            shutil.copyfile(str(self.current_xyz.path), "modelcraft.pdb")
+            shutil.copyfile(str(self.current_hkl.path), "modelcraft.mtz")
+            self.add_final_stats()
+        self.min_rwork = min(self.min_rwork, self.current_xyz.rwork)
+        self.max_residues_built = max(self.max_residues_built, self.current_xyz.residues)
+        self.max_residues_sequenced = max(self.max_residues_sequenced, self.current_xyz.sequenced_residues)
+        self.min_fragments_built = min(self.min_fragments_built, self.current_xyz.fragments)
+        self.max_longest_fragment = max(self.max_longest_fragment, self.current_xyz.longest_fragment)
 
-    def add_cycle_stats(self, refmac):
-        self.report["cycles"][self.cycle] = self.refmac_stats(refmac)
+    def add_cycle_stats(self):
+        self.report["cycles"][self.cycle] = self.current_stats()
         self.write_report()
 
-    def add_final_stats(self, refmac):
-        self.report["final"] = self.refmac_stats(refmac)
+    def add_final_stats(self):
+        self.report["final"] = self.current_stats()
         self.write_report()
 
-    def refmac_stats(self, refmac):
+    def current_stats(self):
         return {
-            "r_work": refmac.final_rwork,
-            "r_free": refmac.final_rfree,
-            "residues": refmac.xyzout.residues,
-            "residues_sequenced": refmac.xyzout.sequenced_residues,
-            "waters": refmac.xyzout.waters,
+            "r_work": self.current_xyz.rwork,
+            "r_free": self.current_xyz.rfree,
+            "residues": self.current_xyz.residues,
+            "residues_sequenced": self.current_xyz.sequenced_residues,
+            "waters": self.current_xyz.waters,
         }
 
     def write_report(self):

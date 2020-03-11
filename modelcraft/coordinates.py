@@ -57,6 +57,8 @@ class CoordinateFile:
         self.longest_fragment = 0
         self.waters = 0
         self.dummys = 0
+        self.rwork = None
+        self.rfree = None
         self.exists = os.path.exists(path)
         if self.exists:
             self.get_stats()
