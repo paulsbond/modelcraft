@@ -53,7 +53,7 @@ class Pipeline:
         self.finish()
 
     def run_cycle(self):
-        if self.cycle > 1:  # and self.resolution < 2.3:
+        if self.cycle > 1 and self.resolution < 2.3:
             self.prune()
             self.refmac(cycles=5)
         if self.resolution > 2.4:
