@@ -58,8 +58,6 @@ class Pipeline:
             self.refmac(cycles=5)
         if self.resolution > 2.4:
             self.parrot()
-        if self.current_xyz is not None and self.current_hkl.fphi is not None:
-            self.findwaters(dummy=True)
         self.buccaneer()
         self.refmac(cycles=10)
         self.prune(chains_only=True)
