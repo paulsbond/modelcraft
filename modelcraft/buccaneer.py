@@ -3,14 +3,14 @@ from modelcraft.job import Job
 
 
 class Buccaneer(Job):
-    def __init__(self, args, directory, hklin, xyzin=None, cycles=2, use_mr_model=True):
+    def __init__(self, args, directory, hklin, xyzin=None, cycles=2):
         super().__init__(directory)
         hklin = self.create_hklin(args, hklin)
-        stdin = self._get_stdin(args, hklin, xyzin, cycles, use_mr_model)
+        stdin = self._get_stdin(args, hklin, xyzin, cycles)
         self.run(args.buccaneer, ["-stdin"], stdin)
         self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
 
-    def _get_stdin(self, args, hklin, xyzin, cycles, use_mr_model):
+    def _get_stdin(self, args, hklin, xyzin, cycles):
         stdin = []
         stdin.append("mtzin %s" % hklin.path)
         stdin.extend(self._colin_keywords(hklin))
@@ -19,8 +19,7 @@ class Buccaneer(Job):
             stdin.append("pdbin %s" % xyzin.path)
             for structure in args.known_structure:
                 stdin.append("known-structure %s" % structure)
-        if use_mr_model:
-            stdin.extend(self._mr_keywords(args))
+        stdin.extend(self._mr_keywords(args))
         stdin.append("pdbout %s" % self.path("xyzout.pdb"))
         stdin.append("cycles %d" % cycles)
         if args.semet:

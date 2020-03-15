@@ -4,6 +4,7 @@ from modelcraft.findwaters import FindWaters
 from modelcraft.parrot import Parrot
 from modelcraft.prune import Prune
 from modelcraft.refmac import Refmac
+from modelcraft.sidechains import Sidechains
 import json
 import shutil
 import sys
@@ -62,6 +63,8 @@ class Pipeline:
         self.refmac(cycles=10)
         self.prune(chains_only=True)
         self.refmac(cycles=5)
+        if self.min_rwork < 30:
+            self.fix_sidechains()
         if self.min_rwork < 40:
             self.findwaters()
 
@@ -95,14 +98,8 @@ class Pipeline:
 
     def buccaneer(self):
         directory = self.job_directory("buccaneer")
-        job = Buccaneer(
-            args=self.args,
-            directory=directory,
-            hklin=self.current_hkl,
-            xyzin=self.current_xyz,
-            cycles=3 if self.cycle == 1 else 2,
-            use_mr_model=self.min_rwork > 30,
-        )
+        cycles = 3 if self.cycle == 1 else 2
+        job = Buccaneer(self.args, directory, self.current_hkl, self.current_xyz, cycles)
         self.add_job(job)
         if not job.xyzout.exists or job.xyzout.residues == 0:
             print("Stopping the pipeline because buccaneer did not build any residues")
@@ -135,6 +132,17 @@ class Pipeline:
         job = Prune(directory, self.current_xyz, self.current_hkl, chains_only)
         self.add_job(job)
         self.current_xyz = job.xyzout
+
+    def fix_sidechains(self):
+        sidechains_dir = self.job_directory("sidechains")
+        sidechains_job = Sidechains(sidechains_dir, self.current_xyz, self.current_hkl)
+        self.add_job(sidechains_job)
+        refmac_dir = self.job_directory("refmac")
+        refmac_job = Refmac(self.args, refmac_dir, sidechains_job.xyzout, 5)
+        self.add_job(refmac_job)
+        if refmac_job.xyzout.rfree < self.current_xyz.rfree:
+            self.current_hkl = refmac_job.hklout
+            self.current_xyz = refmac_job.xyzout
 
     def findwaters(self, dummy=False):
         waters_dir = self.job_directory("finddummys" if dummy else "findwaters")
