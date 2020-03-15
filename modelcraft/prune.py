@@ -11,9 +11,9 @@ class Prune(Job):
         with open(path) as coot_prune:
             script = coot_prune.read()
         if chains_only:
-            script += "deleted = prune(0, 1, 2, residues=False, sidechains=False)\n"
+            script += "prune(0, 1, 2, residues=False, sidechains=False)\n"
         else:
-            script += "deleted = prune(0, 1, 2)\n"
+            script += "prune(0, 1, 2)\n"
         script += "write_pdb_file(0, '%s')\n" % self.path("xyzout.pdb")
         script += "exit()"
         with open(self.path("script.py"), "w") as f:
