@@ -63,7 +63,7 @@ class Pipeline:
         self.refmac(cycles=10)
         self.prune(chains_only=True)
         self.refmac(cycles=5)
-        if self.min_rwork < 30:
+        if self.args.fix_side_chains and self.min_rwork < 30:
             self.fix_sidechains()
         if self.min_rwork < 40:
             self.findwaters()

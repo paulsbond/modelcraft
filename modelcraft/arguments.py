@@ -25,6 +25,7 @@ def _argument_parser():
     optional.add_argument("--colin-hl", metavar="COLS")
     optional.add_argument("--colin-phifom", metavar="COLS")
     optional.add_argument("--cycles", metavar="N", default=25, type=int)
+    optional.add_argument("--fix-side-chains", action="store_true")
     optional.add_argument("--free-r-flag", metavar="N", default="0")
     optional.add_argument("--help", action="help")
     optional.add_argument("--keep-intermediate-files", action="store_true")
