@@ -3,17 +3,39 @@ import gemmi
 
 
 class ReflectionFile:
-    def __init__(self, path, fsigf=None, free=None, abcd=None, phifom=None, fphi=None):
+    def __init__(self, path):
         self.path = os.path.abspath(path)
-        self.fsigf = fsigf
-        self.free = free
-        self.abcd = abcd
-        self.phifom = phifom
-        self.fphi = fphi
+        mtz = gemmi.read_mtz_file(path)
 
-    def resolution(self):
-        mtz = gemmi.read_mtz_file(self.path)
-        return round(mtz.resolution_high(), 2)
+        self.cell = mtz.cell
+        self.spacegroup = mtz.spacegroup
+        self.num_reflections = mtz.nreflections
+        self.resolution_high = mtz.resolution_high()
+        self.resolution_low = mtz.resolution_low()
+
+        self.columns = {col.label for col in mtz.columns}
+        self.fsigfs = columns_with_types(mtz, ["F", "Q"])
+        self.frees = columns_with_types(mtz, ["I"])
+        self.abcds = columns_with_types(mtz, ["A", "A", "A", "A"])
+        self.phifoms = set()
+        self.fphis = set()
+        for i in range(len(mtz.columns)):
+            col1 = mtz.columns[0]
+            if col1.type == "F" and i < len(mtz.columns) - 1:
+                col2 = mtz.columns[i + 1]
+                if col2.type == "Q":
+                    labels = ",".join((col1.label, col2.label))
+                    self.fsigfs.add(labels)
+                    i + 1
+            elif col1.type == "I":
+                self.frees.add(col1.label)
+
+    def __contains__(self, column):
+        return column in self.columns
+
+
+def columns_with_types(mtz, types):
+    pass
 
 
 def fo_columns(mtz):
