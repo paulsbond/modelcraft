@@ -21,6 +21,13 @@ class DataFile:
         self.phifoms = self._data_items(mtz, ["P", "W"], sequential=False)
         self.fphis = self._data_items(mtz, ["F", "P"])
 
+        self.fsigf = None
+        self.free = None
+        self.abcd = None
+        self.phifom = None
+        self.fwphiw = None
+        self.fcphic = None
+
     def __contains__(self, columns):
         return all(col in self.columns for col in columns.split(","))
 
@@ -40,22 +47,3 @@ class DataFile:
             for combination in itertools.product(*columns):
                 items.add(",".join(col.label for col in combination))
         return items
-
-    def _phifoms(self, mtz):
-        def is_phi(column):
-            if column.type != "P":
-                return False
-            label = column.label.lower()
-            return "ph" in label and "del" not in label
-
-        def is_fom(column):
-            if column.type != "W":
-                return False
-            label = column.label.lower()
-            return "fom" in label
-
-        phis = [column for column in mtz.columns if is_phi(column)]
-        foms = [column for column in mtz.columns if is_fom(column)]
-        for phi in phis:
-            for fom in foms:
-                yield "%s,%s" % (phi.label, fom.label)

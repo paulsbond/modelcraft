@@ -11,9 +11,9 @@ class FindWaters(Job):
             "--hklin",
             hklin.path,
             "--f",
-            hklin.fphi.split(",")[0],
+            hklin.fwphiw.split(",")[0],
             "--phi",
-            hklin.fphi.split(",")[0],
+            hklin.fwphiw.split(",")[0],
             "--pdbout",
             self.path("waters.pdb"),
         ]

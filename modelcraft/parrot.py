@@ -1,4 +1,4 @@
-from modelcraft.reflections import ReflectionFile
+from modelcraft.reflections import DataFile
 from modelcraft.job import Job
 
 
@@ -6,15 +6,13 @@ class Parrot(Job):
     def __init__(self, args, directory, hklin, xyzin=None):
         super().__init__(directory)
         hklin = self.create_hklin(args, hklin)
-        self.hklout = ReflectionFile(
-            path=self.path("hklout.mtz"),
-            fsigf=hklin.fsigf,
-            free=hklin.free,
-            abcd="parrot.ABCD.A,parrot.ABCD.B,parrot.ABCD.C,parrot.ABCD.D",
-            fphi="parrot.F_phi.F,parrot.F_phi.phi",
-        )
         stdin = self._get_stdin(args, hklin, xyzin)
         self.run("cparrot", ["-stdin"], stdin)
+        self.hklout = DataFile(self.path("hklout.mtz"))
+        self.hklout.fsigf = hklin.fsigf
+        self.hklout.free = hklin.free
+        self.hklout.abcd = "parrot.ABCD.A,parrot.ABCD.B,parrot.ABCD.C,parrot.ABCD.D"
+        self.hklout.fwphiw = "parrot.F_phi.F,parrot.F_phi.phi"
 
     def _get_stdin(self, args, hklin, xyzin):
         stdin = []
@@ -23,7 +21,7 @@ class Parrot(Job):
         stdin.append("seqin %s" % args.seqin)
         if xyzin is not None:
             stdin.append("pdbin %s" % xyzin.path)  # or pdbin-ha or pdbin-mr?
-        stdin.append("mtzout %s" % self.hklout.path)
+        stdin.append("mtzout %s" % self.path("hklout.mtz"))
         stdin.append("cycles 5")
         stdin.append("anisotropy-correction")
         return stdin
@@ -35,5 +33,5 @@ class Parrot(Job):
             yield "colin-hl %s" % hklin.abcd
         if hklin.phifom is not None:
             yield "colin-phifom %s" % hklin.phifom
-        if hklin.fphi is not None:
-            yield "colin-fc %s" % hklin.fphi
+        if hklin.fwphiw is not None:
+            yield "colin-fc %s" % hklin.fwphiw

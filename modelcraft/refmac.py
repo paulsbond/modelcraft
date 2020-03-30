@@ -1,5 +1,5 @@
 from modelcraft.coordinates import CoordinateFile
-from modelcraft.reflections import ReflectionFile
+from modelcraft.reflections import DataFile
 from modelcraft.job import Job
 import xml.etree.ElementTree as ET
 
@@ -7,17 +7,17 @@ import xml.etree.ElementTree as ET
 class Refmac(Job):
     def __init__(self, args, directory, xyzin, cycles, use_phases=False):
         super().__init__(directory)
-        self.hklout = ReflectionFile(
-            path=self.path("hklout.mtz"),
-            fsigf=args.hklin.fsigf,
-            abcd="HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB",
-            fphi="FWT,PHWT",
-        )
         self.xmlout = self.path("xmlout.xml")
         arguments = self._get_arguments(args, xyzin)
         stdin = self._get_stdin(args, cycles, use_phases)
         self.run("refmac5", arguments, stdin)
         self._set_results()
+        self.hklout = DataFile(self.path("hklout.mtz"))
+        self.hklout.fsigf = args.hklin.fsigf
+        self.hklout.free = args.hklin.free
+        self.hklout.abcd = "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB"
+        self.hklout.fwphiw = "FWT,PHWT"
+        self.hklout.fcphic = "FC_ALL,PHIC_ALL"
         self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
         self.xyzout.rwork = self.final_rwork
         self.xyzout.rfree = self.final_rfree
@@ -29,7 +29,7 @@ class Refmac(Job):
             "XYZIN",
             xyzin.path,
             "HKLOUT",
-            self.hklout.path,
+            self.path("hklout.mtz"),
             "XYZOUT",
             self.path("xyzout.pdb"),
             "XMLOUT",

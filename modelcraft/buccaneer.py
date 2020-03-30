@@ -39,8 +39,8 @@ class Buccaneer(Job):
             yield "colin-hl %s" % hklin.abcd
         if hklin.phifom is not None:
             yield "colin-phifom %s" % hklin.phifom
-        if hklin.fphi is not None:
-            yield "colin-fc %s" % hklin.fphi
+        if hklin.fwphiw is not None:
+            yield "colin-fc %s" % hklin.fwphiw
 
     def _mr_keywords(self, args):
         if args.mr_model is not None and args.mr_mode > 1:

@@ -20,7 +20,7 @@ class Pipeline:
         self.run()
 
     def initialise(self):
-        self.resolution = self.args.hklin.resolution()
+        self.resolution = self.args.hklin.resolution_high
         self.cycle = 0
         self.jobs = {0: []}
         self.current_hkl = self.args.hklin
@@ -93,7 +93,7 @@ class Pipeline:
         directory = self.job_directory("mr_refinement")
         job = Refmac(self.args, directory, self.args.mr_model, cycles=10)
         self.add_job(job)
-        job.hklout.fphi = None
+        job.hklout.fwphiw = None
         self.current_hkl = job.hklout
 
     def buccaneer(self):

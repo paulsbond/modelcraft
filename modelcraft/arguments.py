@@ -1,13 +1,6 @@
 from modelcraft.coordinates import CoordinateFile
-from modelcraft.reflections import (
-    ReflectionFile,
-    fo_columns,
-    free_columns,
-    hl_columns,
-    phifom_columns,
-)
+from modelcraft.reflections import DataFile
 import argparse
-import gemmi
 import os
 import sys
 
@@ -55,8 +48,8 @@ def _check_paths(args):
             sys.exit()
 
 
-def _find_amplitudes(args, mtz):
-    options = list(fo_columns(mtz))
+def _find_amplitudes(args):
+    options = list(args.hklin.fsigfs)
     if len(options) == 1:
         print("Using --colin-fsigf %s" % options[0])
         args.colin_fsigf = options[0]
@@ -70,8 +63,8 @@ def _find_amplitudes(args, mtz):
         sys.exit()
 
 
-def _find_freer(args, mtz):
-    options = list(free_columns(mtz))
+def _find_freer(args):
+    options = list(args.hklin.frees)
     if len(options) == 1:
         print("Using --colin-free %s" % options[0])
         args.colin_free = options[0]
@@ -85,9 +78,9 @@ def _find_freer(args, mtz):
         sys.exit()
 
 
-def _find_phases(args, mtz):
-    hl_options = list(hl_columns(mtz))
-    phifom_options = list(phifom_columns(mtz))
+def _find_phases(args):
+    hl_options = list(args.hklin.abcds)
+    phifom_options = list(args.hklin.phifoms)
     if len(hl_options) + len(phifom_options) == 1:
         if len(hl_options) == 1:
             print("Using --colin-hl %s" % hl_options[0])
@@ -108,23 +101,27 @@ def _find_phases(args, mtz):
 
 
 def _find_mtz_columns(args):
-    mtz = gemmi.read_mtz_file(args.hklin)
+    args.hklin = DataFile(args.hklin)
 
     if args.colin_fsigf is None:
         print("\nInput amplitudes not provided")
-        _find_amplitudes(args, mtz)
+        _find_amplitudes(args)
 
     if args.colin_free is None:
         print("\nInput free-R flag not provided")
-        _find_freer(args, mtz)
+        _find_freer(args)
 
     if args.colin_hl is None and args.colin_phifom is None and args.mr_model is None:
         print("\nInput phases not provided")
-        _find_phases(args, mtz)
+        _find_phases(args)
 
 
 def _derive_other_args(args):
-    args.hklin = ReflectionFile(args.hklin, args.colin_fsigf, args.colin_free, args.colin_hl, args.colin_phifom)
+    args.hklin.fsigf = args.colin_fsigf
+    args.hklin.free = args.colin_free
+    args.hklin.abcd = args.colin_hl
+    args.hklin.phifom = args.colin_phifom
+
     if args.xyzin is not None:
         args.xyzin = CoordinateFile(args.xyzin)
     if args.mr_model is not None:
@@ -157,6 +154,11 @@ def _check(args):
         print("--colin-hl %s" % args.colin_hl)
         print("--colin-phifom %s" % args.colin_phifom)
         sys.exit()
+
+    for colin in (args.colin_fsigf, args.colin_free, args.colin_hl, args.colin_phifom):
+        if colin is not None and colin not in args.hklin:
+            print("Columns (%s) not found in reflection data file")
+            sys.exit()
 
 
 def parse(argument_list):

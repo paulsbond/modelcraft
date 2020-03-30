@@ -1,4 +1,4 @@
-from modelcraft.reflections import ReflectionFile
+from modelcraft.reflections import DataFile
 import distutils.spawn
 import os
 import subprocess
@@ -37,35 +37,27 @@ class Job:
         p.wait()
 
     def create_hklin(self, args, hklin):
-        new_hklin = ReflectionFile(self.path("hklin.mtz"))
-        args = [
-            "-mtzout",
-            new_hklin.path,
-            "-mtzin",
-            args.hklin.path,
-            "-colin",
-            args.colin_fsigf,
-            "-colout",
-            "FP,SIGFP",
-            "-mtzin",
-            args.hklin.path,
-            "-colin",
-            args.colin_free,
-            "-colout",
-            "FREE",
+        columns = [
+            (args.hklin.path, args.colin_fsigf),
+            (args.hklin.path, args.colin_free),
         ]
-        new_hklin.fsigf = "FP,SIGFP"
-        new_hklin.free = "FREE"
         if hklin.abcd is not None:
-            args.extend(
-                ["-mtzin", hklin.path, "-colin", hklin.abcd, "-colout", "HLA,HLB,HLC,HLD",]
-            )
-            new_hklin.abcd = "HLA,HLB,HLC,HLD"
+            columns.append((hklin.path, hklin.abcd))
         if hklin.phifom is not None:
-            args.extend(["-mtzin", hklin.path, "-colin", hklin.phifom, "-colout", "PHIB,FOM"])
-            new_hklin.phifom = "PHIB,FOM"
-        if hklin.fphi is not None:
-            args.extend(["-mtzin", hklin.path, "-colin", hklin.fphi, "-colout", "FWT,PHWT"])
-            new_hklin.fphi = "FWT,PHWT"
-        self.run("cmtzjoin", args)
+            columns.append((hklin.path, hklin.phifom))
+        if hklin.fwphiw is not None:
+            columns.append((hklin.path, hklin.fwphiw))
+        if hklin.fcphic is not None:
+            columns.append((hklin.path, hklin.fcphic))
+        cmtzjoin_args = ["-mtzout", self.path("hklin.mtz")]
+        for path, label in columns:
+            cmtzjoin_args += ["-mtzin", path, "-colin", label, "-colout", label]
+        self.run("cmtzjoin", cmtzjoin_args)
+        new_hklin = DataFile(self.path("hklin.mtz"))
+        new_hklin.fsigf = args.colin_fsigf
+        new_hklin.free = args.colin_free
+        new_hklin.abcd = hklin.abcd
+        new_hklin.phifom = hklin.phifom
+        new_hklin.fwphiw = hklin.fwphiw
+        new_hklin.fcphic = hklin.fcphic
         return new_hklin
