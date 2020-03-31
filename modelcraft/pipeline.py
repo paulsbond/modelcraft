@@ -1,5 +1,6 @@
 from modelcraft.arguments import parse
 from modelcraft.buccaneer import Buccaneer
+from modelcraft.comit import Comit
 from modelcraft.findwaters import FindWaters
 from modelcraft.parrot import Parrot
 from modelcraft.prune import Prune
@@ -90,11 +91,13 @@ class Pipeline:
         self.write_report()
 
     def get_phases_from_mr_model(self):
-        directory = self.job_directory("mr_refinement")
-        job = Refmac(self.args, directory, self.args.mr_model, cycles=10)
-        self.add_job(job)
-        job.hklout.fwphiw = None
-        self.current_hkl = job.hklout
+        refmac_dir = self.job_directory("refmac")
+        refmac_job = Refmac(self.args, refmac_dir, self.args.mr_model, cycles=10)
+        self.add_job(refmac_job)
+        comit_dir = self.job_directory("comit")
+        comit_job = Comit(comit_dir, refmac_job.hklout)
+        self.add_job(comit_job)
+        self.current_hkl = comit_job.hklout
 
     def buccaneer(self):
         directory = self.job_directory("buccaneer")

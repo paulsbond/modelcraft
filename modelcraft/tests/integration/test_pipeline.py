@@ -7,18 +7,10 @@ import shutil
 import uuid
 
 
-def test_1kv9():
+def _test_pipeline(argument_list):
     tmp_dir = "tmp%s" % uuid.uuid4()
     os.mkdir(tmp_dir)
     os.chdir(tmp_dir)
-    argument_list = [
-        "--hklin",
-        data_path("1kv9_data.mtz"),
-        "--seqin",
-        data_path("1kv9_sequence.fasta"),
-        "--cycles",
-        "2",
-    ]
     with pytest.raises(SystemExit):
         main(argument_list)
     with open("modelcraft.json") as f:
@@ -26,3 +18,24 @@ def test_1kv9():
     assert report["real_time"]["total"] > 0
     os.chdir("..")
     shutil.rmtree(tmp_dir)
+
+
+def test_1kv9_from_phases():
+    _test_pipeline(
+        ["--hklin", data_path("1kv9_data.mtz"), "--seqin", data_path("1kv9_sequence.fasta"), "--cycles", "2"]
+    )
+
+
+def test_1kv9_from_mr_model():
+    _test_pipeline(
+        [
+            "--hklin",
+            data_path("1kv9_data.mtz"),
+            "--seqin",
+            data_path("1kv9_sequence.fasta"),
+            "--mr-model",
+            data_path("1kv9_model.pdb"),
+            "--cycles",
+            "1",
+        ]
+    )
