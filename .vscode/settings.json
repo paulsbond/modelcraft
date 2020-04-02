@@ -6,15 +6,21 @@
     120
   ],
   "editor.tabSize": 4,
+  "files.autoSave": "afterDelay",
   "files.exclude": {
     ".pytest_cache": true,
     "**/__pycache__": true,
     "**/*.pyc": true,
   },
+  "python.formatting.blackArgs": [
+    "--line-length=120"
+  ],
   "python.formatting.provider": "black",
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
-  "python.formatting.blackArgs": [
-    "--line-length=120"
-  ]
+  "python.linting.pylintArgs": [
+    "--extension-pkg-whitelist=PySide2"
+  ],
+  "python.linting.pylintCategorySeverity.refactor": "Information",
+  "python.linting.pylintUseMinimalCheckers": false,
 }
