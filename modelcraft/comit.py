@@ -18,5 +18,5 @@ class Comit(Job):
         self.hklout = DataFile(self.path("hklout.mtz"))
         self.hklout.fsigf = hklin.fsigf
         self.hklout.free = hklin.free
-        self.hklout.abcd = "omit.ABCD.A,omit.ABCD.B,omit.ABCD.C,omit.ABCD.D"
+        self.hklout.abcd = hklin.abcd
         self.hklout.fwphiw = "omit.F_phi.F,omit.F_phi.phi"
