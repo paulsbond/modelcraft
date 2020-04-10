@@ -94,10 +94,7 @@ class Pipeline:
         refmac_dir = self.job_directory("refmac")
         refmac_job = Refmac(self.args, refmac_dir, self.args.mr_model, cycles=10)
         self.add_job(refmac_job)
-        comit_dir = self.job_directory("comit")
-        comit_job = Comit(comit_dir, refmac_job.hklout)
-        self.add_job(comit_job)
-        self.current_hkl = comit_job.hklout
+        self.current_hkl = refmac_job.hklout
 
     def buccaneer(self):
         directory = self.job_directory("buccaneer")
