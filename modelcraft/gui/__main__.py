@@ -52,14 +52,12 @@ class ReflectionGroupBox(QGroupBox):
         hbox.addWidget(QLabel("Free-R Flag"))
         self.colin_free_combo = QComboBox()
         hbox.addWidget(self.colin_free_combo)
-        hbox.addWidget(QLabel("Set"))
-        self.free_flag_combo = QComboBox()
-        hbox.addWidget(self.free_flag_combo)
         layout.addLayout(hbox)
 
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel("Phases"))
         self.phases_combo = QComboBox()
+        self.phases_combo.addItem("None - create phases from an MR model")
         hbox.addWidget(self.phases_combo)
         layout.addLayout(hbox)
 
@@ -76,14 +74,22 @@ class ReflectionGroupBox(QGroupBox):
                 "Cell: %.3f  %.3f  %.3f  %.2f  %.2f  %.2f"
                 % (hklin.cell.a, hklin.cell.b, hklin.cell.c, hklin.cell.alpha, hklin.cell.beta, hklin.cell.gamma)
             )
-            print(dir(hklin.cell))
-            print(dir(hklin.spacegroup))
             self.spacegroup_label.setText("Spacegroup: " + hklin.spacegroup.hm)
-            self.volume_label.setText(u"ASU Volume: %.0f Å" % (hklin.cell.volume / len(hklin.spacegroup.operations())))
+            self.volume_label.setText(
+                u"ASU Volume: %.0f Å<sup>3</sup>" % (hklin.cell.volume / len(hklin.spacegroup.operations()))
+            )
             self.resolution_label.setText(
                 u"Resolution limits: %.2f – %.2f Å" % (hklin.resolution_high, hklin.resolution_low)
             )
             self.reflection_label.setText("Number of Reflections: %d" % hklin.num_reflections)
+            self.colin_fo_combo.clear()
+            self.colin_fo_combo.addItems(hklin.fsigfs)
+            self.colin_free_combo.clear()
+            self.colin_free_combo.addItems(hklin.frees)
+            self.phases_combo.clear()
+            self.phases_combo.addItem("None - create phases from an MR model")
+            self.phases_combo.addItems(hklin.abcds)
+            self.phases_combo.addItems(hklin.phifoms)
 
 
 class AsuContentsGroupBox(QGroupBox):
