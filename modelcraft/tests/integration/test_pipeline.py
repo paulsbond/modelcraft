@@ -21,21 +21,17 @@ def _test_pipeline(argument_list):
 
 
 def test_1kv9_from_phases():
-    _test_pipeline(
-        ["--hklin", data_path("1kv9_data.mtz"), "--seqin", data_path("1kv9_sequence.fasta"), "--cycles", "2"]
-    )
+    args = []
+    args += ["--hklin", data_path("1kv9_data.mtz")]
+    args += ["--seqin", data_path("1kv9_sequence.fasta")]
+    args += ["--cycles", "2"]
+    _test_pipeline(args)
 
 
 def test_1kv9_from_mr_model():
-    _test_pipeline(
-        [
-            "--hklin",
-            data_path("1kv9_data.mtz"),
-            "--seqin",
-            data_path("1kv9_sequence.fasta"),
-            "--mr-model",
-            data_path("1kv9_model.pdb"),
-            "--cycles",
-            "1",
-        ]
-    )
+    args = []
+    args += ["--hklin", data_path("1kv9_data.mtz")]
+    args += ["--seqin", data_path("1kv9_sequence.fasta")]
+    args += ["--mr-model", data_path("1kv9_model.pdb")]
+    args += ["--cycles", "1"]
+    _test_pipeline(args)

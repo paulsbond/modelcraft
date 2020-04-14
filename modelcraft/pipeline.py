@@ -1,15 +1,15 @@
-from modelcraft.arguments import parse
-from modelcraft.buccaneer import Buccaneer
-from modelcraft.comit import Comit
-from modelcraft.findwaters import FindWaters
-from modelcraft.parrot import Parrot
-from modelcraft.prune import Prune
-from modelcraft.refmac import Refmac
-from modelcraft.sidechains import Sidechains
 import json
 import shutil
 import sys
 import time
+from modelcraft.arguments import parse
+from modelcraft.buccaneer import Buccaneer
+from modelcraft.findwaters import FindWaters
+from modelcraft.parrot import Parrot
+from modelcraft.prune import Prune
+from modelcraft.refmac import Refmac
+from modelcraft.sheetbend import Sheetbend
+from modelcraft.sidechains import Sidechains
 
 
 class Pipeline:
@@ -91,8 +91,11 @@ class Pipeline:
         self.write_report()
 
     def get_phases_from_mr_model(self):
+        sheetbend_dir = self.job_directory("sheetbend")
+        sheetbend_job = Sheetbend(self.args, sheetbend_dir, self.args.mr_model)
+        self.add_job(sheetbend_job)
         refmac_dir = self.job_directory("refmac")
-        refmac_job = Refmac(self.args, refmac_dir, self.args.mr_model, cycles=10)
+        refmac_job = Refmac(self.args, refmac_dir, sheetbend_job.xyzout, cycles=10)
         self.add_job(refmac_job)
         self.current_hkl = refmac_job.hklout
 
