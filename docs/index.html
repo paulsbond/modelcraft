@@ -66,17 +66,6 @@
             Maximum number of pipeline cycles.
         </p>
         <p>
-            <code>--fix-side-chains</code><br>
-            Once R-work drops below 30%,
-            fix side chains with low correctness scores at the end of each cycle.
-            The fix uses Coot to delete the side chain,
-            refine the residue and its neighbours,
-            re-add and auto-fit the side chain,
-            then refine the residue with its neighbours again.
-            The resulting model is only accepted if R-free improves.
-            This step is very slow so is not used by default.
-        </p>
-        <p>
             <code>--free-r-flag N</code> default: <code>0</code><br>
             Flag that identifies the free reflections.
         </p>

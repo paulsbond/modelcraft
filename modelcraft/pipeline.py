@@ -53,6 +53,12 @@ class Pipeline:
             self.remove_job_directories(self.cycle - 1)
             if args.auto_stop and self.cycles_without_improvement == 4:
                 break
+        if self.min_rwork < 30:
+            print("\n## Finalisations\n")
+            self.cycle += 1
+            self.jobs[self.cycle] = []
+            self.fix_sidechains()
+            self.process_cycle_output()
         self.finish()
 
     def run_cycle(self):
@@ -65,8 +71,6 @@ class Pipeline:
         self.refmac(cycles=10)
         self.prune(chains_only=True)
         self.refmac(cycles=5)
-        if self.args.fix_side_chains and self.min_rwork < 30:
-            self.fix_sidechains()
         if self.min_rwork < 40:
             self.findwaters()
 
