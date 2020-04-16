@@ -1,3 +1,4 @@
+import distutils.spawn
 import json
 import shutil
 import sys
@@ -91,11 +92,14 @@ class Pipeline:
         self.write_report()
 
     def get_phases_from_mr_model(self):
-        sheetbend_dir = self.job_directory("sheetbend")
-        sheetbend_job = Sheetbend(self.args, sheetbend_dir, self.args.mr_model)
-        self.add_job(sheetbend_job)
+        xyzin = self.args.mr_model
+        if distutils.spawn.find_executable("csheetbend") is not None:
+            sheetbend_dir = self.job_directory("sheetbend")
+            sheetbend_job = Sheetbend(self.args, sheetbend_dir, self.args.mr_model)
+            self.add_job(sheetbend_job)
+            xyzin = sheetbend_job.xyzout
         refmac_dir = self.job_directory("refmac")
-        refmac_job = Refmac(self.args, refmac_dir, sheetbend_job.xyzout, cycles=10)
+        refmac_job = Refmac(self.args, refmac_dir, xyzin, cycles=10)
         self.add_job(refmac_job)
         self.current_hkl = refmac_job.hklout
 
