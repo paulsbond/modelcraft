@@ -1,5 +1,6 @@
 import distutils.spawn
 import json
+import os
 import shutil
 import sys
 import time
@@ -57,6 +58,8 @@ class Pipeline:
             print("\n## Finalisations\n")
             self.cycle += 1
             self.jobs[self.cycle] = []
+            self.current_xyz = self.best_xyz
+            self.current_hkl = self.best_hkl
             self.fix_sidechains()
             self.process_cycle_output()
         self.finish()
@@ -206,6 +209,10 @@ class Pipeline:
             print("Copying files to output because R-free has improved")
             shutil.copyfile(str(self.current_xyz.path), "modelcraft.pdb")
             shutil.copyfile(str(self.current_hkl.path), "modelcraft.mtz")
+            self.best_xyz = self.current_xyz
+            self.best_hkl = self.current_hkl
+            self.best_xyz.path = os.path.abspath("modelcraft.pdb")
+            self.best_hkl.path = os.path.abspath("modelcraft.mtz")
             self.add_final_stats()
         self.min_rwork = min(self.min_rwork, self.current_xyz.rwork)
         self.max_residues_built = max(self.max_residues_built, self.current_xyz.residues)
