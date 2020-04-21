@@ -54,7 +54,7 @@ class Pipeline:
             self.remove_job_directories(self.cycle - 1)
             if args.auto_stop and self.cycles_without_improvement == 4:
                 break
-        if self.min_rwork < 30:
+        if self.min_rwork < 30 and self.resolution < 2.5:
             print("\n## Finalisations\n")
             self.cycle += 1
             self.jobs[self.cycle] = []

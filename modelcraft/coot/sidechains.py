@@ -1,4 +1,4 @@
-residues_with_sidechains = {
+RESIDUES_WITH_SIDECHAINS = {
     "ARG",
     "ASN",
     "ASP",
@@ -47,10 +47,14 @@ def fix_side_chain(imol, imap, residue):
 
 def fix_side_chains(imol, imap, imap_diff):
     model = Model(imol, imap, imap_diff)
+    main_median = median([r.main_chain_correctness for r in model.residues])
     side_median = median([r.side_chain_correctness for r in model.residues if r.truncatable])
-    threshold = side_median * 0.5
+    main_threshold = main_median * 0.25
+    side_threshold = side_median * 0.25
     for residue in model.residues:
-        if (residue.name in residues_with_sidechains and not residue.truncatable) or (
-            residue.truncatable and residue.side_chain_correctness < threshold
+        if (
+            residue.name in RESIDUES_WITH_SIDECHAINS
+            and residue.main_chain_correctness > main_threshold
+            and ((not residue.truncatable) or (residue.truncatable and residue.side_chain_correctness < side_threshold))
         ):
             fix_side_chain(imol, imap, residue)
