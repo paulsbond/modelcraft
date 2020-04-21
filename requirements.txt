@@ -1,3 +1,4 @@
 biopython
+dataclasses
 gemmi>=0.3.2
 pyside2

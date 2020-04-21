@@ -2,8 +2,7 @@
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
   "editor.rulers": [
-    88,
-    120
+    88
   ],
   "editor.tabSize": 4,
   "files.autoSave": "afterDelay",
@@ -12,14 +11,12 @@
     "**/__pycache__": true,
     "**/*.pyc": true,
   },
-  "python.formatting.blackArgs": [
-    "--line-length=120"
-  ],
   "python.formatting.provider": "black",
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
   "python.linting.pylintArgs": [
-    "--extension-pkg-whitelist=PySide2"
+    "--extension-pkg-whitelist=gemmi,PySide2",
+    "--disable=bad-continuation"
   ],
   "python.linting.pylintCategorySeverity.refactor": "Information",
   "python.linting.pylintUseMinimalCheckers": false,
