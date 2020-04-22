@@ -16,7 +16,10 @@
   "python.linting.flake8Enabled": true,
   "python.linting.pylintArgs": [
     "--extension-pkg-whitelist=gemmi,PySide2",
-    "--disable=bad-continuation"
+    "--disable=bad-continuation",
+    "--disable=missing-module-docstring",
+    "--disable=missing-class-docstring",
+    "--disable=missing-function-docstring",
   ],
   "python.linting.pylintCategorySeverity.refactor": "Information",
   "python.linting.pylintUseMinimalCheckers": false,

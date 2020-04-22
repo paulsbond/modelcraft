@@ -1,5 +1,3 @@
-"""Model"""
-
 from dataclasses import dataclass
 import gemmi
 
@@ -52,8 +50,6 @@ def _is_protein(residue: gemmi.Residue) -> bool:
 
 @dataclass
 class ModelStats:
-    """Useful model statistics"""
-
     residues: int = 0
     sequenced_residues: int = 0
     fragments: int = 0
@@ -63,7 +59,6 @@ class ModelStats:
 
 
 def model_stats(model: gemmi.Model) -> ModelStats:
-    """Calculate model statistics"""
     stats = ModelStats
     current_fragment_length = 0
     for chain in model:
