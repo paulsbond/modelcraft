@@ -1,10 +1,9 @@
-from modelcraft.arguments import parse
-from modelcraft.coordinates import CoordinateFile
-from modelcraft.sheetbend import Sheetbend
-from modelcraft.tests import data_path
 import os
 import shutil
 import uuid
+from modelcraft.data import DataItem
+from modelcraft.sheetbend import Sheetbend
+from modelcraft.tests import data_path
 
 
 def test_1kv9():

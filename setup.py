@@ -20,7 +20,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
-    install_requires=["biopython", "dataclasses", "gemmi>=0.3.2", "pyside2"],
+    install_requires=["biopython", "dataclasses", "gemmi>=0.3.2", "pandas", "pyside2"],
     entry_points={
         "console_scripts": [
             "modelcraft = modelcraft.__main__:main",

@@ -48,6 +48,10 @@ def _is_protein(residue: gemmi.Residue) -> bool:
     )
 
 
+def write_mmcif(path: str, structure: gemmi.Structure) -> None:
+    structure.make_mmcif_document().write_file(path)
+
+
 @dataclass
 class ModelStats:
     residues: int = 0
@@ -58,9 +62,10 @@ class ModelStats:
     dummy_atoms: int = 0
 
 
-def model_stats(model: gemmi.Model) -> ModelStats:
+def model_stats(structure: gemmi.Structure) -> ModelStats:
     stats = ModelStats
     current_fragment_length = 0
+    model = structure[0]
     for chain in model:
         for i, residue in enumerate(chain):
             if residue.name == "HOH":
