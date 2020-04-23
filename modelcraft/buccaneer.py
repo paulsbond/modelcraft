@@ -1,19 +1,48 @@
-from modelcraft.coordinates import CoordinateFile
+import gemmi
+from modelcraft.data import DataItem, write_mtz
 from modelcraft.job import Job
+from modelcraft.model import write_mmcif
+from modelcraft.contents import AsuContents
 
 
 class Buccaneer(Job):
-    def __init__(self, args, directory, hklin, xyzin=None, cycles=2):
-        super().__init__(directory)
-        hklin = self.create_hklin(args, hklin)
-        stdin = self._get_stdin(args, hklin, xyzin, cycles)
-        self.run(args.buccaneer, ["-stdin"], stdin)
-        self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
+    def __init__(
+        self,
+        fsigf: DataItem,
+        free: DataItem,
+        phases: DataItem,
+        contents: AsuContents,
+        fphi: DataItem = None,
+        structure: gemmi.Structure = None,
+        cycles: int = 2,
+        program: str = "cbuccaneer",
+    ):
+        super().__init__()
+        args = []
 
-    def _get_stdin(self, args, hklin, xyzin, cycles):
-        stdin = []
-        stdin.append("mtzin %s" % hklin.path)
-        stdin.extend(self._colin_keywords(hklin))
+        hklin = self.path("hklin.mtz")
+        data_items = [fsigf, free, phases]
+        args += "mtzin %s" % hklin.path)
+        write_mtz(hklin, data_items)
+        args += ["colin-fo", fsigf.label()]
+        args += ["colin-free", free.label()]
+        if hklin.abcd is not None:
+            yield "colin-hl %s" % hklin.abcd
+        if hklin.phifom is not None:
+            yield "colin-phifom %s" % hklin.phifom
+        if hklin.fwphiw is not None:
+            yield "colin-fc %s" % hklin.fwphiw
+
+        xyzin = self.path("xyzin.cif")
+        seqin = self.path("seqin.seq")
+        xyzout = self.path("xyzout.cif")
+
+        write_mmcif(xyzin, structure)
+
+        self.run(program, args)
+        self.structure = gemmi.read_structure(xyzout)
+        self.finish()
+
         stdin.append("seqin %s" % args.seqin)
         if xyzin is not None:
             stdin.append("pdbin %s" % xyzin.path)
@@ -33,14 +62,7 @@ class Buccaneer(Job):
         return stdin
 
     def _colin_keywords(self, hklin):
-        yield "colin-fo %s" % hklin.fsigf
-        yield "colin-free %s" % hklin.free
-        if hklin.abcd is not None:
-            yield "colin-hl %s" % hklin.abcd
-        if hklin.phifom is not None:
-            yield "colin-phifom %s" % hklin.phifom
-        if hklin.fwphiw is not None:
-            yield "colin-fc %s" % hklin.fwphiw
+
 
     def _mr_keywords(self, args):
         if args.mr_model is not None and args.mr_mode > 1:
