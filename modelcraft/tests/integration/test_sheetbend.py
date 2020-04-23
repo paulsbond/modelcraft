@@ -1,23 +1,14 @@
-import os
-import shutil
-import uuid
+import gemmi
 from modelcraft.data import DataItem
 from modelcraft.sheetbend import Sheetbend
 from modelcraft.tests import data_path
+from modelcraft.model import model_stats
 
 
 def test_1kv9():
-    tmp_dir = "tmp%s" % uuid.uuid4()
-    os.mkdir(tmp_dir)
-    os.chdir(tmp_dir)
-    argument_list = []
-    argument_list += ["--hklin", data_path("1kv9_data.mtz")]
-    argument_list += ["--seqin", data_path("1kv9_sequence.fasta")]
-    args = parse(argument_list)
-    xyzin = CoordinateFile(data_path("1kv9_model.pdb"))
-    sheetbend = Sheetbend(args, "00.01_sheetbend", xyzin)
-    assert os.path.exists(sheetbend.stdout)
-    assert os.path.exists(sheetbend.stderr)
-    assert os.path.exists(sheetbend.xyzout.path)
-    os.chdir("..")
-    shutil.rmtree(tmp_dir)
+    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
+    fsigf = DataItem(mtz, ["FP", "SIGFP"])
+    free = DataItem(mtz, ["FREE"])
+    structure = gemmi.read_structure(data_path("1kv9_model.pdb"))
+    sheetbend = Sheetbend(fsigf, free, structure)
+    assert model_stats(structure) == model_stats(sheetbend.structure)

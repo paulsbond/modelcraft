@@ -1,42 +1,90 @@
 from typing import List
 import itertools
-import os
 import gemmi
+import numpy
 import pandas
+from modelcraft.utils import all_equal, contains_duplicates
 
 
-class MiniMtz(gemmi.Mtz):
-    def __init__(self, mtz: gemmi.Mtz, *labels: str):
+def cells_are_equal(*cells: gemmi.UnitCell):
+    return (
+        all_equal(cell.a for cell in cells)
+        and all_equal(cell.b for cell in cells)
+        and all_equal(cell.c for cell in cells)
+        and all_equal(cell.alpha for cell in cells)
+        and all_equal(cell.beta for cell in cells)
+        and all_equal(cell.gamma for cell in cells)
+    )
+
+
+def find_column(mtz: gemmi.Mtz, label: str):
+    # TODO: Support project/crystal/dataset/column names
+    if label not in mtz.column_labels():
+        raise ValueError(f"No '{label}' column in MTZ")
+    if mtz.column_labels().count(label) > 1:
+        raise ValueError(f"Multiple '{label}' columns in MTZ")
+    return mtz.column_with_label(label)
+
+
+class DataItem(gemmi.Mtz):
+    def __init__(self, mtz: gemmi.Mtz, labels: List[str]):
         super().__init__()
         self.cell = mtz.cell
         self.spacegroup = mtz.spacegroup
-        self.label = ",".join(labels)
-        self.columns = []
-        for label in ("H", "K", "L") + labels:
-            # TODO: throw error if dataset cell and spacegroup are not the same
-            if label not in mtz.column_labels():
-                raise ValueError(f"No '{label}' column in MTZ")
-            if mtz.column_labels().count(label) > 1:
-                raise ValueError(f"Multiple '{label}' columns in MTZ")
-            self.columns.append(mtz.column_with_label(label))
+        self.add_dataset("HKL_base")
+        columns = []
+        for label in ["H", "K", "L"] + labels:
+            column = find_column(mtz, label)
+            if not cells_are_equal(column.dataset.cell, mtz.cell):
+                raise ValueError("Dataset cell not equal to the MTZ cell")
+            columns.append(column)
+            self.add_column(column.label, column.type)
+        data = numpy.stack(columns, axis=1)
+        self.set_data(data)
+
+    def label(self, index: int = None) -> str:
+        if index is None:
+            return ",".join(column.label for column in self.columns[3:])
+        return self.columns[index + 3].label
+
+    def data_frame(self) -> pandas.DataFrame:
+        data = numpy.array(self, copy=False)
+        return pandas.DataFrame(data=data, columns=self.column_labels())
 
 
-def write_mtz(path: str, *data_items: DataItem) -> None:
+def _combine_data_items(items: List[DataItem]) -> gemmi.Mtz:
+    assert len(items) > 1
+    assert cells_are_equal(*(item.cell for item in items))
+    assert all_equal(item.spacegroup for item in items)
+    column_labels = ["H", "K", "L"]
+    column_types = ["H", "H", "H"]
+    for item in items:
+        for column in item.columns[3:]:
+            column_labels.append(column.label)
+            column_types.append(column.type)
+    assert not contains_duplicates(column_labels)
+    data_frame = items[0].data_frame()
+    for item in items[1:]:
+        data_frame = pandas.merge(data_frame, item.data_frame(), on=["H", "K", "L"])
     mtz = gemmi.Mtz()
-    mtz.cell = data_items[0].mtz.cell
-    mtz.spacegroup = data_items[0].mtz.spacegroup
-
-    for data_item in data_items:
-        for column in data_item.columns:
-            mtz.add_column(column.label)
-    pass
-    # TODO: Throw an error if the column labels aren't unique
-    # TODO: Create a combined MTZ file and write it out
+    mtz.cell = items[0].cell
+    mtz.spacegroup = items[0].spacegroup
+    mtz.add_dataset("HKL_base")
+    for i, label in enumerate(column_labels):
+        mtz.add_column(label, column_types[i])
+    mtz.set_data(data_frame.to_numpy())
+    return mtz
 
 
+def write_mtz(path: str, items: List[DataItem]) -> None:
+    mtz = _combine_data_items(items)
+    mtz.write_to_file(path)
+
+
+# TODO: Return labels used to uniquely identify the columns
 def _columns(
     mtz: gemmi.Mtz, types: List[str], sequential: bool = True
-) -> gemmi.MtzColumns:
+) -> List[gemmi.Mtz.Column]:
     items = set()
     if sequential:
         mtz_types = [col.type for col in mtz.columns]
@@ -52,32 +100,3 @@ def _columns(
         for combination in itertools.product(*columns):
             items.add(",".join(col.label for col in combination))
     return items
-
-
-class DataFile:
-    def __init__(self, path):
-        self.path = os.path.abspath(path)
-        mtz = gemmi.read_mtz_file(path)
-
-        self.cell = mtz.cell
-        self.spacegroup = mtz.spacegroup
-        self.num_reflections = mtz.nreflections
-        self.resolution_high = mtz.resolution_high()
-        self.resolution_low = mtz.resolution_low()
-
-        self.columns = {col.label for col in mtz.columns}
-        self.fsigfs = self._data_items(mtz, ["F", "Q"])
-        self.frees = self._data_items(mtz, ["I"])
-        self.abcds = self._data_items(mtz, ["A", "A", "A", "A"])
-        self.phifoms = self._data_items(mtz, ["P", "W"], sequential=False)
-        self.fphis = self._data_items(mtz, ["F", "P"])
-
-        self.fsigf = None
-        self.free = None
-        self.abcd = None
-        self.phifom = None
-        self.fwphiw = None
-        self.fcphic = None
-
-    def __contains__(self, columns):
-        return all(col in self.columns for col in columns.split(","))

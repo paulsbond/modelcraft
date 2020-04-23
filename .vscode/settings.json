@@ -20,6 +20,8 @@
     "--disable=missing-module-docstring",
     "--disable=missing-class-docstring",
     "--disable=missing-function-docstring",
+    "--disable=not-an-iterable", // Problem with gemmi.Mtz.columns inheritance
+    "--disable=unsubscriptable-object", // Problem with gemmi.Mtz.columns inheritance
   ],
   "python.linting.pylintCategorySeverity.refactor": "Information",
   "python.linting.pylintUseMinimalCheckers": false,

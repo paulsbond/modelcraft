@@ -1,37 +1,73 @@
+from typing import List
 import gemmi
+from modelcraft.data import DataItem, cells_are_equal, _combine_data_items
 from modelcraft.tests import data_path
 
 
-def test_1kv9():
+def _test_data_item(mtz: gemmi.Mtz, labels: List[str]):
+    item = DataItem(mtz, labels)
+    assert cells_are_equal(item.cell, mtz.cell)
+    assert item.spacegroup == mtz.spacegroup
+    assert item.nreflections == mtz.nreflections
+    assert len(item.columns) == len(labels) + 3
+    assert item.label() == ",".join(labels)
+    for i, label in enumerate(labels):
+        assert item.label(i) == label
+
+
+def test_1kb9_data_items():
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-    print(dir(mtz))
-    assert isinstance(mtz.columns, gemmi.MtzColumns)
-    columns = mtz.columns[:3]
-    print(dir(mtz.columns))
-    assert isinstance(columns, gemmi.MtzColumns)
-    columns = mtz.columns[:1] + mtz.columns[2:3]
-    assert isinstance(columns, gemmi.MtzColumns)
-    # hklin = DataFile(data_path("1kv9_data.mtz"))
-    # assert round(hklin.cell.a, 3) == 54.807
-    # assert round(hklin.cell.b, 3) == 57.437
-    # assert round(hklin.cell.c, 3) == 67.523
-    # assert round(hklin.cell.alpha, 2) == 89.65
-    # assert round(hklin.cell.beta, 2) == 69.34
-    # assert round(hklin.cell.gamma, 2) == 68.39
-    # assert hklin.spacegroup.hm == "P 1"
-    # assert hklin.num_reflections == 51422
-    # assert round(hklin.resolution_high, 2) == 1.80
-    # assert round(hklin.resolution_low, 2) == 29.87
-    # columns = ["H", "K", "L", "FREE", "FP", "SIGFP", "HLA", "HLB", "HLC", "HLD"]
-    # assert len(hklin.columns) == len(columns)
-    # assert all(col in hklin for col in columns)
-    # assert ",".join(columns) in hklin
-    # assert "LABEL_NOT_IN_FILE" not in hklin
-    # assert hklin.frees == {"FREE"}
-    # assert hklin.fsigfs == {"FP,SIGFP"}
-    # assert hklin.abcds == {"HLA,HLB,HLC,HLD"}
-    # assert hklin.phifoms == set()
-    # assert hklin.fphis == set()
+    for labels in (["FREE"], ["FP", "SIGFP"], ["HLA", "HLB", "HLC", "HLD"]):
+        _test_data_item(mtz, labels)
+
+
+def test_hewl_data_items():
+    mtz = gemmi.read_mtz_file(data_path("hewl_data.mtz"))
+    for labels in (
+        ["F_New", "SIGF_New"],
+        ["DANO_New", "SIGDANO_New"],
+        ["F_New(+)", "SIGF_New(+)", "F_New(-)", "SIGF_New(-)"],
+        ["IMEAN_New", "SIGIMEAN_New"],
+        ["I_New(+)", "SIGI_New(+)", "I_New(-)", "SIGI_New(-)"],
+        ["FreeR_flag"],
+        ["FWT", "PHWT"],
+        ["PHIB", "FOM"],
+        ["HLA", "HLB", "HLC", "HLD"],
+        ["HLanomA", "HLanomB", "HLanomC", "HLanomD"],
+        ["parrot.ABCD.A", "parrot.ABCD.B", "parrot.ABCD.C", "parrot.ABCD.D"],
+        ["parrot.F_phi.F", "parrot.F_phi.phi"],
+    ):
+        _test_data_item(mtz, labels)
+
+
+def test_combine_data_items():
+    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
+    types = [column.type for column in mtz.columns]
+    fsigf = DataItem(mtz, ["FP", "SIGFP"])
+    free = DataItem(mtz, ["FREE"])
+    combined = _combine_data_items(fsigf, free)
+    assert cells_are_equal(mtz.cell, combined.cell)
+    assert mtz.spacegroup == combined.spacegroup
+    assert mtz.nreflections == combined.nreflections
+    assert combined.column_labels() == ["H", "K", "L", "FP", "SIGFP", "FREE"]
+    types = [column.type for column in combined.columns]
+    assert types == ["H", "H", "H", "F", "Q", "I"]
+
+
+#     columns = [
+#         "ISYM_New",
+#         "FPFOM",
+#     ]
+
+# assert len(hklin.columns) == len(columns)
+# assert all(col in hklin for col in columns)
+# assert ",".join(columns) in hklin
+# assert "LABEL_NOT_IN_FILE" not in hklin
+# assert hklin.frees == {"FREE"}
+# assert hklin.fsigfs == {"FP,SIGFP"}
+# assert hklin.abcds == {"HLA,HLB,HLC,HLD"}
+# assert hklin.phifoms == set()
+# assert hklin.fphis == set()
 
 
 # def test_hewl():
@@ -40,46 +76,7 @@ def test_1kv9():
 #     assert hklin.num_reflections == 10055
 #     assert round(hklin.resolution_high, 2) == 1.86
 #     assert round(hklin.resolution_low, 2) == 55.23
-#     columns = [
-#         "H",
-#         "K",
-#         "L",
-#         "F_New",
-#         "SIGF_New",
-#         "DANO_New",
-#         "SIGDANO_New",
-#         "F_New(+)",
-#         "SIGF_New(+)",
-#         "F_New(-)",
-#         "SIGF_New(-)",
-#         "IMEAN_New",
-#         "SIGIMEAN_New",
-#         "I_New(+)",
-#         "SIGI_New(+)",
-#         "I_New(-)",
-#         "SIGI_New(-)",
-#         "ISYM_New",
-#         "FreeR_flag",
-#         "FWT",
-#         "PHWT",
-#         "PHIB",
-#         "FOM",
-#         "FPFOM",
-#         "HLA",
-#         "HLB",
-#         "HLC",
-#         "HLD",
-#         "HLanomA",
-#         "HLanomB",
-#         "HLanomC",
-#         "HLanomD",
-#         "parrot.ABCD.A",
-#         "parrot.ABCD.B",
-#         "parrot.ABCD.C",
-#         "parrot.ABCD.D",
-#         "parrot.F_phi.F",
-#         "parrot.F_phi.phi",
-#     ]
+
 #     assert len(hklin.columns) == len(columns)
 #     assert all(col in hklin for col in columns)
 #     assert hklin.frees == {"FreeR_flag"}

@@ -9,10 +9,10 @@ class Sheetbend(Job):
         super().__init__()
 
         hklin = self.path("hklin.mtz")
-        xyzin = self.path("xyzin.mmcif")
-        xyzout = self.path("xyzout.mmcif")
+        xyzin = self.path("xyzin.cif")
+        xyzout = self.path("xyzout.cif")
 
-        write_mtz(hklin, fsigf, free)
+        write_mtz(hklin, [fsigf, free])
         write_mmcif(xyzin, structure)
 
         args = []
@@ -25,4 +25,6 @@ class Sheetbend(Job):
         args += ["-resolution-by-cycle", "6,6,3"]
         self.run("csheetbend", args)
 
-        self.model = gemmi.read_structure(self.path("xyzout.pdb"))
+        self.structure = gemmi.read_structure(xyzout)
+
+        self.finish()
