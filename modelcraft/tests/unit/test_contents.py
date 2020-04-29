@@ -21,8 +21,8 @@ def test_1kv9_sequence():
     assert contents.polymers[0].copies == "unknown"
 
 
-def test_1kv9_model():
-    contents = AsuContents()
-    path = data_path("1kv9_model.pdb")
-    # result = contents.add_from_coordinate_file(path)
-    # assert len(list(result)) == 1
+# def test_1kv9_model():
+#     contents = AsuContents()
+#     path = data_path("1kv9_model.pdb")
+#     # result = contents.add_from_coordinate_file(path)
+#     # assert len(list(result)) == 1

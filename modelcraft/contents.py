@@ -23,9 +23,12 @@ class AsuContents:
             else:
                 raise ValueError("Unknown polymer type: %s" % polymer_type)
 
-    def add_from_coordinate_file(self, path):
-        records = Bio.SeqIO.parse(path, "pdb-seqres")  # pdb-seqres cif-seqres pdb-atom cif-atom
-        # TODO
+    # def add_from_coordinate_file(self, path):
+    #     records = Bio.SeqIO.parse(path, "pdb-seqres")  # pdb-seqres cif-seqres pdb-atom cif-atom
+    #     # TODO
+
+    def write_protein(self, path: str):
+        pass
 
 
 class Polymer:
@@ -66,7 +69,9 @@ def determine_polymer_type_from_sequence(sequence):
     def guess(polymer_type, specific=None):
         print("Guessing the polymer type of the following sequence:")
         print_sequence(sequence)
-        print("It is assumed to be %s" % (polymer_type if specific is None else specific))
+        print(
+            "It is assumed to be %s" % (polymer_type if specific is None else specific)
+        )
         return polymer_type
 
     codes = set(sequence)

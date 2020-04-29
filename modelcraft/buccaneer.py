@@ -1,76 +1,83 @@
+from typing import List, Optional, Union
 import gemmi
-from modelcraft.data import DataItem, write_mtz
-from modelcraft.job import Job
-from modelcraft.model import write_mmcif
 from modelcraft.contents import AsuContents
+from modelcraft.job import Job
+from modelcraft.reflections import FsigF, FreeRFlag, ABCD, PhiFom, FPhi, write_mtz
+from modelcraft.structure import write_mmcif
 
 
 class Buccaneer(Job):
     def __init__(
         self,
-        fsigf: DataItem,
-        free: DataItem,
-        phases: DataItem,
         contents: AsuContents,
-        fphi: DataItem = None,
-        structure: gemmi.Structure = None,
+        fsigf: FsigF,
+        freer: FreeRFlag,
+        phases: Union[ABCD, PhiFom],
+        fphi: Optional[FPhi] = None,
+        input_structure: Optional[gemmi.Structure] = None,
+        known_structure: Optional[List[str]] = None,
+        mr_structure: Optional[gemmi.Structure] = None,
+        use_mr: bool = True,
+        filter_mr: bool = True,
+        seed_mr: bool = True,
         cycles: int = 2,
+        semet: bool = False,
         program: str = "cbuccaneer",
     ):
         super().__init__()
         args = []
 
-        hklin = self.path("hklin.mtz")
-        data_items = [fsigf, free, phases]
-        args += "mtzin %s" % hklin.path)
-        write_mtz(hklin, data_items)
-        args += ["colin-fo", fsigf.label()]
-        args += ["colin-free", free.label()]
-        if hklin.abcd is not None:
-            yield "colin-hl %s" % hklin.abcd
-        if hklin.phifom is not None:
-            yield "colin-phifom %s" % hklin.phifom
-        if hklin.fwphiw is not None:
-            yield "colin-fc %s" % hklin.fwphiw
-
-        xyzin = self.path("xyzin.cif")
         seqin = self.path("seqin.seq")
-        xyzout = self.path("xyzout.cif")
+        args += ["-seqin", seqin]
+        contents.write_protein(seqin)
 
-        write_mmcif(xyzin, structure)
+        hklin = self.path("hklin.mtz")
+        data_items = [fsigf, freer, phases]
+        args += ["-mtzin", hklin]
+        args += ["-colin-fo", fsigf.label()]
+        args += ["-colin-free", freer.label()]
+        if phases is ABCD:
+            args += ["-colin-hl", phases.label()]
+        else:
+            args += ["-colin-phifom", phases.label()]
+        if fphi is not None:
+            args += ["-colin-fc", fphi.label()]
+            data_items.append(fphi)
+        write_mtz(hklin, data_items)
+
+        if input_structure is not None:
+            xyzin = self.path("xyzin.cif")
+            args += ["-pdbin", xyzin]
+            if known_structure is not None:
+                for keyword in known_structure:
+                    args += ["-known-structure", keyword]
+            write_mmcif(xyzin, input_structure)
+
+        if mr_structure is not None:
+            xyzmr = self.path("xyzmr.cif")
+            args += ["-pdbin-mr", xyzmr]
+            if use_mr:
+                args += ["mr-model"]
+                if filter_mr:
+                    args += ["mr-model-filter"]
+                    args += ["mr-model-filter-sigma 2.0"]
+                if seed_mr:
+                    args += ["mr-model-seed"]
+            write_mmcif(xyzmr, mr_structure)
+
+        args += ["-cycles", cycles]
+        if semet:
+            args += ["-build-semet"]
+        args += ["-fast"]
+        args += ["-correlation-mode"]
+        args += ["-anisotropy-correction"]
+        args += ["-resolution 2.0"]
+        args += ["-model-filter"]
+        args += ["-model-filter-sigma 1.0"]
+
+        xyzout = self.path("xyzout.cif")
+        args += ["-pdbout", xyzout]
 
         self.run(program, args)
         self.structure = gemmi.read_structure(xyzout)
         self.finish()
-
-        stdin.append("seqin %s" % args.seqin)
-        if xyzin is not None:
-            stdin.append("pdbin %s" % xyzin.path)
-            for structure in args.known_structure:
-                stdin.append("known-structure %s" % structure)
-        stdin.extend(self._mr_keywords(args))
-        stdin.append("pdbout %s" % self.path("xyzout.pdb"))
-        stdin.append("cycles %d" % cycles)
-        if args.semet:
-            stdin.append("build-semet")
-        stdin.append("fast")
-        stdin.append("correlation-mode")
-        stdin.append("anisotropy-correction")
-        stdin.append("resolution 2.0")
-        stdin.append("model-filter")
-        stdin.append("model-filter-sigma 1.0")
-        return stdin
-
-    def _colin_keywords(self, hklin):
-
-
-    def _mr_keywords(self, args):
-        if args.mr_model is not None and args.mr_mode > 1:
-            yield "pdbin-mr %s" % args.mr_model.path
-            if args.mr_mode == 3:
-                yield "mr-model"
-            if args.mr_mode in (4, 6):
-                yield "mr-model-filter"
-                yield "mr-model-filter-sigma 2.0"
-            if args.mr_mode in (5, 6):
-                yield "mr-model-seed"
