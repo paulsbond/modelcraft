@@ -1,62 +1,89 @@
+from typing import Iterator, Iterable, List, Optional, Union
+from dataclasses import dataclass
 import itertools
 import gemmi
 import numpy
 import pandas
 
 
-def matching_columns(mtz, pattern):
-    pattern = pattern.replace("*", "")
-    split = [""] * 3 + pattern.split("/")
+@dataclass
+class ColumnRef:
+    label: str
+    dataset: str = ""
+    crystal: str = ""
+    project: str = ""
+
+    def matching_columns(self, mtz: gemmi.Mtz) -> Iterator[gemmi.Mtz.Column]:
+        for column in mtz.columns:
+            if (
+                self.label == column.label
+                and self.dataset in ("", column.dataset.dataset_name)
+                and self.crystal in ("", column.dataset.crystal_name)
+                and self.project in ("", column.dataset.project_name)
+            ):
+                yield column
+
+    def find_column(self, mtz: gemmi.Mtz) -> gemmi.Mtz.Column:
+        matching = list(self.matching_columns(mtz))
+        if len(matching) == 0:
+            raise ValueError(f"No columns matching '{self}' in MTZ")
+        if len(matching) > 1:
+            raise ValueError(f"Multiple columns matching '{self}' in MTZ")
+        return matching[0]
+
+    def __str__(self):
+        parts = (self.project, self.crystal, self.dataset, self.label)
+        return "/".join(part for part in parts if part != "")
+
+
+def expand_label(label: str) -> str:
+    if "." in label:
+        if "_" in label.split(".")[-1]:
+            split = label.split(".")[-1].split("_")
+            return ",".join(f"{label}.{x}" for x in split)
+        if label[-4:] == "ABCD":
+            return ",".join(f"{label}.{x}" for x in ("A", "B", "C", "D"))
+    if "HL" in label:
+        return ",".join(f"{label}{x}" for x in ("A", "B", "C", "D"))
+    return label
+
+
+def column_refs(columns: str) -> List[ColumnRef]:
+    columns = columns.replace("*", "")
+    split = [""] * 3 + columns.split("/")
     project, crystal, dataset, label = split[-4:]
-    for column in mtz.columns:
-        if (
-            label in ("", column.label)
-            and dataset in ("", column.dataset.dataset_name)
-            and crystal in ("", column.dataset.crystal_name)
-            and project in ("", column.dataset.project_name)
-        ):
-            yield column
-
-
-def find_column(mtz, pattern):
-    matching = list(matching_columns(mtz, pattern))
-    if len(matching) == 0:
-        raise ValueError(f"No columns matching '{pattern}' in MTZ")
-    if len(matching) > 1:
-        raise ValueError(f"Multiple columns matching '{pattern}' in MTZ")
-    return matching[0]
-
-
-def find_columns(mtz, pattern):
-    split = pattern.split(",")
-    return [find_column(mtz, pattern) for pattern in split]
+    if "," not in label:
+        label = expand_label(label)
+    return [ColumnRef(label, dataset, crystal, project) for label in label.split(",")]
 
 
 class DataItem(gemmi.Mtz):
-    def __init__(self, mtz, columns):
+    def __init__(self, mtz: gemmi.Mtz, columns: Union[str, Iterable[gemmi.Mtz.Column]]):
         super().__init__()
-        if isinstance(columns, str):
-            columns = find_columns(mtz, columns)
         self.cell = mtz.cell
         self.spacegroup = mtz.spacegroup
         self.add_dataset("HKL_base")
+        if isinstance(columns, str):
+            refs = column_refs(columns)
+            columns = [ref.find_column(mtz) for ref in refs]
         columns = list(mtz.columns[:3]) + list(columns)
         for column in columns:
             self.add_column(column.label, column.type)
         data = numpy.stack(columns, axis=1)
         self.set_data(data)
+        # TODO: Add self.update_reso() when it is available
 
-    def label(self, index=None):
+    def label(self, index: Optional[int] = None) -> str:
         if index is None:
             return ",".join(column.label for column in self.columns[3:])
         return self.columns[index + 3].label
 
-    def data_frame(self):
+    def data_frame(self) -> pandas.DataFrame:
         data = numpy.array(self, copy=False)
         return pandas.DataFrame(data=data, columns=self.column_labels())
 
     @classmethod
-    def search(cls, mtz, sequential=True):
+    def search(cls, mtz: gemmi.Mtz, sequential: bool = True):
         if cls is DataItem:
             raise TypeError("Cannot search for abstract data items")
         if sequential:
@@ -98,7 +125,7 @@ class PhiFom(DataItem):
     _types = ["P", "W"]
 
 
-def _combine_data_items(items):
+def _combine_data_items(items: List[DataItem]) -> gemmi.Mtz:
     column_labels = ["H", "K", "L"]
     column_types = ["H", "H", "H"]
     for item in items:
@@ -118,6 +145,6 @@ def _combine_data_items(items):
     return mtz
 
 
-def write_mtz(path, items):
+def write_mtz(path: str, items: List[DataItem]) -> None:
     mtz = _combine_data_items(items)
     mtz.write_to_file(path)

@@ -1,20 +1,20 @@
 import gemmi
 import pytest
 from modelcraft.reflections import (
-    _combine_data_items,
-    find_column,
+    expand_label,
     DataItem,
     FreeRFlag,
     FsigF,
     FPhi,
     ABCD,
     PhiFom,
+    _combine_data_items,
 )
 from modelcraft.tests import data_path
 
 
 @pytest.mark.parametrize(
-    "pattern",
+    "columns",
     [
         "FREE",
         "*/FREE",
@@ -28,13 +28,14 @@ from modelcraft.tests import data_path
         "HKL_base/HKL_base/HKL_base/FREE",
     ],
 )
-def test_1kv9_free_valid_find_column(pattern):
+def test_valid_1kv9_free_columns(columns: str):
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-    assert find_column(mtz, pattern) == mtz.columns[3]
+    free = FreeRFlag(mtz, columns)
+    assert len(free.columns) == 4
 
 
 @pytest.mark.parametrize(
-    "pattern",
+    "columns",
     [
         "",
         "*",
@@ -44,10 +45,25 @@ def test_1kv9_free_valid_find_column(pattern):
         "project/crystal/dataset/label",
     ],
 )
-def test_1kv9_invalid_find_column(pattern):
+def test_invalid_1kv9_columns(columns: str):
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
     with pytest.raises(ValueError):
-        find_column(mtz, pattern)
+        DataItem(mtz, columns)
+
+
+@pytest.mark.parametrize(
+    "label,expanded",
+    [
+        ("HL", "HLA,HLB,HLC,HLD"),
+        ("HLanom", "HLanomA,HLanomB,HLanomC,HLanomD"),
+        ("HLABCD.F_sigF", "HLABCD.F_sigF.F,HLABCD.F_sigF.sigF"),
+        ("parrot.ABCD", "parrot.ABCD.A,parrot.ABCD.B,parrot.ABCD.C,parrot.ABCD.D"),
+        ("parrot.F_phi", "parrot.F_phi.F,parrot.F_phi.phi"),
+        ("FreeR_flag", "FreeR_flag"),
+    ],
+)
+def test_expand_label(label: str, expanded: str):
+    assert expand_label(label) == expanded
 
 
 def test_dataitem_search_exception():
@@ -74,6 +90,55 @@ def test_1kv9_item_search(item_type, expected_labels):
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
     labels = [item.label() for item in item_type.search(mtz)]
     assert labels == expected_labels
+
+
+@pytest.mark.parametrize(
+    "columns",
+    [
+        "HLA,HLB,HLC,HLD",
+        "HL",
+        "New/HL",
+        "New/HLA,HLB,HLC,HLD",
+        "HLanomA,HLanomB,HLanomC,HLanomD",
+        "HLanom",
+        "New/HLanom",
+        "parrot.ABCD.A,parrot.ABCD.B,parrot.ABCD.C,parrot.ABCD.D",
+        "parrot.ABCD",
+        "New/parrot.ABCD",
+    ],
+)
+def test_hewl_abcd_columns(columns):
+    mtz = gemmi.read_mtz_file(data_path("hewl_data.mtz"))
+    abcd = ABCD(mtz, columns)
+    assert len(abcd.columns) == 7
+
+
+@pytest.mark.parametrize(
+    "columns", ["New/HLA,HLB,HLC,HLD", "Old/HLA,HLB,HLC,HLD", "New/HL", "Old/HL"],
+)
+def test_valid_columns_for_mtz_with_multiple_datasets(columns):
+    mtz = gemmi.read_mtz_file(data_path("hewl_data.mtz"))
+    mtz.add_dataset("Old")
+    mtz.add_column("HLA", "A")
+    mtz.add_column("HLB", "A")
+    mtz.add_column("HLC", "A")
+    mtz.add_column("HLD", "A")
+    abcd = ABCD(mtz, columns)
+    assert len(abcd.columns) == 7
+
+
+@pytest.mark.parametrize(
+    "columns", ["HLA,HLB,HLC,HLD", "HL"],
+)
+def test_invalid_columns_for_mtz_with_multiple_datasets(columns):
+    mtz = gemmi.read_mtz_file(data_path("hewl_data.mtz"))
+    mtz.add_dataset("Old")
+    mtz.add_column("HLA", "A")
+    mtz.add_column("HLB", "A")
+    mtz.add_column("HLC", "A")
+    mtz.add_column("HLD", "A")
+    with pytest.raises(ValueError):
+        ABCD(mtz, columns)
 
 
 @pytest.mark.parametrize(
