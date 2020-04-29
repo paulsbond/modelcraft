@@ -1,114 +1,108 @@
 import gemmi
 import pytest
-from modelcraft.reflections import find_column
+from modelcraft.reflections import (
+    _combine_data_items,
+    find_column,
+    DataItem,
+    FreeRFlag,
+    FsigF,
+    FPhi,
+    ABCD,
+    PhiFom,
+)
 from modelcraft.tests import data_path
 
 
-# @pytest.mark.parametrize(
-#     "label,split",
-#     [
-#         ("", (None, None, None, None)),
-#         ("*", (None, None, None, None)),
-#         ("label", (None, None, None, "label")),
-#         ("*/label", (None, None, None, "label")),
-#         ("/*/label", (None, None, None, "label")),
-#         ("*/*/label", (None, None, None, "label")),
-#         ("/*/*/label", (None, None, None, "label")),
-#         ("*/*/*/label", (None, None, None, "label")),
-#         ("/*/*/*/label", (None, None, None, "label")),
-#         ("dataset/label", (None, None, "dataset", "label")),
-#         ("/dataset/label", (None, None, "dataset", "label")),
-#         ("crystal/dataset/label", (None, "crystal", "dataset", "label")),
-#         ("/crystal/dataset/label", (None, "crystal", "dataset", "label")),
-#         ("project/crystal/dataset/label", ("project", "crystal", "dataset", "label")),
-#         ("/project/crystal/dataset/label", ("project", "crystal", "dataset", "label")),
-#     ],
-# )
-# def test_split_column_label(label, split):
-#     assert _split_column_label(label) == split
-
-
-def test_find_column():
+@pytest.mark.parametrize(
+    "pattern",
+    [
+        "FREE",
+        "*/FREE",
+        "/*/FREE",
+        "*/*/FREE",
+        "/*/*/FREE",
+        "*/*/*/FREE",
+        "/*/*/*/*/*/*/*/*/*/*/*/*/FREE",
+        "HKL_base/FREE",
+        "HKL_base/HKL_base/FREE",
+        "HKL_base/HKL_base/HKL_base/FREE",
+    ],
+)
+def test_1kv9_free_valid_find_column(pattern):
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-
-    def test_passing(pattern):
-        assert find_column(mtz, pattern) == mtz.columns[3]
-
-    def test_failing(pattern):
-        with pytest.raises(ValueError):
-            find_column(mtz, pattern)
-
-    test_passing("FREE")
-    test_passing("HKL_base/FREE")
-    test_passing("*/FREE")
-    test_passing("/*/FREE")
-    test_passing("FREE")
-    test_passing("*/FREE")
-    test_passing("/*/FREE")
-    test_passing("*/*/FREE")
-    test_passing("/*/*/FREE")
-    test_passing("*/*/*/FREE")
-    test_passing("/*/*/*/*/*/*/*/*/*/*/*/*/FREE")
-    test_passing("HKL_base/FREE")
-    test_passing("HKL_base/HKL_base/FREE")
-    test_passing("HKL_base/HKL_base/HKL_base/FREE")
-    test_failing("")
-    test_failing("*")
-    test_failing("label")
-    test_failing("dataset/label")
-    test_failing("crystal/dataset/label")
-    test_failing("project/crystal/dataset/label")
+    assert find_column(mtz, pattern) == mtz.columns[3]
 
 
-# def test_data_item_abc():
-#     # with pytest.raises(TypeError):
-#     DataItem()
-
-# def _test_data_item(mtz: gemmi.Mtz, labels: List[str]):
-#     item = DataItem(mtz, labels)
-#     assert cells_are_equal(item.cell, mtz.cell)
-#     assert item.spacegroup == mtz.spacegroup
-#     assert item.nreflections == mtz.nreflections
-#     assert len(item.columns) == len(labels) + 3
-#     assert item.label() == ",".join(labels)
-#     for i, label in enumerate(labels):
-#         assert item.label(i) == label
-
-
-# def test_1kb9_data_items():
-#     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-#     for labels in (["FREE"], ["FP", "SIGFP"], ["HLA", "HLB", "HLC", "HLD"]):
-#         _test_data_item(mtz, labels)
+@pytest.mark.parametrize(
+    "pattern",
+    [
+        "",
+        "*",
+        "label",
+        "dataset/label",
+        "crystal/dataset/label",
+        "project/crystal/dataset/label",
+    ],
+)
+def test_1kv9_invalid_find_column(pattern):
+    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
+    with pytest.raises(ValueError):
+        find_column(mtz, pattern)
 
 
-# def test_hewl_data_items():
-#     mtz = gemmi.read_mtz_file(data_path("hewl_data.mtz"))
-#     for labels in (
-#         ["F_New", "SIGF_New"],
-#         ["DANO_New", "SIGDANO_New"],
-#         ["F_New(+)", "SIGF_New(+)", "F_New(-)", "SIGF_New(-)"],
-#         ["IMEAN_New", "SIGIMEAN_New"],
-#         ["I_New(+)", "SIGI_New(+)", "I_New(-)", "SIGI_New(-)"],
-#         ["FreeR_flag"],
-#         ["FWT", "PHWT"],
-#         ["PHIB", "FOM"],
-#         ["HLA", "HLB", "HLC", "HLD"],
-#         ["HLanomA", "HLanomB", "HLanomC", "HLanomD"],
-#         ["parrot.ABCD.A", "parrot.ABCD.B", "parrot.ABCD.C", "parrot.ABCD.D"],
-#         ["parrot.F_phi.F", "parrot.F_phi.phi"],
-#     ):
-#         _test_data_item(mtz, labels)
+def test_dataitem_search_exception():
+    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
+    with pytest.raises(TypeError):
+        list(DataItem.search(mtz))
 
 
-# def test_combine_data_items():
-#     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-#     types = [column.type for column in mtz.columns]
-#     fsigf = DataItem(mtz, ["FP", "SIGFP"])
-#     free = DataItem(mtz, ["FREE"])
-#     combined = _combine_data_items(fsigf, free)
-#     assert cells_are_equal(mtz.cell, combined.cell)
-#     assert mtz.spacegroup == combined.spacegroup
-#     assert mtz.nreflections == combined.nreflections
-#     assert combined.column_labels() == ["H", "K", "L", "FP", "SIGFP", "FREE"]
-#     types = [column.type for column in combined.columns]
-#     assert types == ["H", "H", "H", "F", "Q", "I"]
+def test_1kv9_dataitem_init_types():
+    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
+    item = DataItem(mtz, "FP,SIGFP")  # str
+    assert item.label() == "FP,SIGFP"
+    item = DataItem(mtz, mtz.columns[4:6])  # gemmi.MtzColumns
+    assert item.label() == "FP,SIGFP"
+    item = DataItem(mtz, [mtz.columns[4], mtz.columns[5]])  # List[gemmi.Mtz.Column]
+    assert item.label() == "FP,SIGFP"
+
+
+@pytest.mark.parametrize(
+    "item_type,expected_labels",
+    [(FreeRFlag, ["FREE"]), (FsigF, ["FP,SIGFP"]), (ABCD, ["HLA,HLB,HLC,HLD"])],
+)
+def test_1kv9_item_search(item_type, expected_labels):
+    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
+    labels = [item.label() for item in item_type.search(mtz)]
+    assert labels == expected_labels
+
+
+@pytest.mark.parametrize(
+    "item_type,expected_labels",
+    [
+        (FreeRFlag, ["FreeR_flag"]),
+        (FsigF, ["F_New,SIGF_New"]),
+        (FPhi, ["FWT,PHWT", "parrot.F_phi.F,parrot.F_phi.phi"]),
+        (PhiFom, ["PHIB,FOM"]),
+        (
+            ABCD,
+            [
+                "HLA,HLB,HLC,HLD",
+                "HLanomA,HLanomB,HLanomC,HLanomD",
+                "parrot.ABCD.A,parrot.ABCD.B,parrot.ABCD.C,parrot.ABCD.D",
+            ],
+        ),
+    ],
+)
+def test_hewl_item_search(item_type, expected_labels):
+    mtz = gemmi.read_mtz_file(data_path("hewl_data.mtz"))
+    labels = [item.label() for item in item_type.search(mtz)]
+    assert labels == expected_labels
+
+
+def test_combine_data_items():
+    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
+    fsigf = FsigF(mtz, "FP,SIGFP")
+    freer = FreeRFlag(mtz, "FREE")
+    combined = _combine_data_items([fsigf, freer])
+    assert combined.column_labels() == ["H", "K", "L", "FP", "SIGFP", "FREE"]
+    assert mtz.nreflections == combined.nreflections
