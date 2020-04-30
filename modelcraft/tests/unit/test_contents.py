@@ -1,28 +1,42 @@
-from modelcraft.contents import AsuContents, determine_polymer_type_from_sequence
+import pytest
+from modelcraft.contents import PolymerType, read_sequence_file
 from modelcraft.tests import data_path
 
 
-def test_type_determination():
-    assert determine_polymer_type_from_sequence("ABCDEFGHIKLMNPQRSTVWXYZ") == "protein"
-    assert determine_polymer_type_from_sequence("ACGU") == "rna"
-    assert determine_polymer_type_from_sequence("ACGT") == "dna"
-    assert determine_polymer_type_from_sequence("ACG") == "rna"
-    assert determine_polymer_type_from_sequence("AAAA") == "protein"
-    assert determine_polymer_type_from_sequence("GGGG") == "protein"
+@pytest.mark.parametrize(
+    "sequence,expected",
+    [
+        ("ABCDEFGHIKLMNPQRSTVWXYZ", PolymerType.PROTEIN),
+        ("ACGU", PolymerType.RNA),
+        ("ACGT", PolymerType.DNA),
+        ("ACG", PolymerType.RNA),
+        ("AAAA", PolymerType.PROTEIN),
+        ("GGGG", PolymerType.PROTEIN),
+    ],
+)
+def test_polymer_type_from_sequence(sequence: str, expected: PolymerType):
+    assert PolymerType.from_sequence(sequence) == expected
 
 
-def test_1kv9_sequence():
-    contents = AsuContents()
+def test_1kv9_read_sequence_file():
     path = data_path("1kv9_sequence.fasta")
-    contents.add_from_sequence_file(path)
-    assert len(contents.polymers) == 1
-    assert contents.polymers[0].polymer_type == "protein"
-    assert len(contents.polymers[0].sequence) == 668
-    assert contents.polymers[0].copies == "unknown"
+    polymers = list(read_sequence_file(path))
+    assert len(polymers) == 1
+    assert polymers[0].label == "A"
+    assert polymers[0].copies == 1
+    assert polymers[0].polymer_type == PolymerType.PROTEIN
+    assert len(polymers[0].sequence) == 668
+    assert polymers[0].sequence[:5] == "AGVDE"
+    assert polymers[0].sequence[-5:] == "HKAAP"
 
 
-# def test_1kv9_model():
-#     contents = AsuContents()
-#     path = data_path("1kv9_model.pdb")
-#     # result = contents.add_from_coordinate_file(path)
-#     # assert len(list(result)) == 1
+def test_hewl_read_sequence_file():
+    path = data_path("hewl_sequence.fasta")
+    polymers = list(read_sequence_file(path))
+    assert len(polymers) == 1
+    assert polymers[0].label == "hewl"
+    assert polymers[0].copies == 1
+    assert polymers[0].polymer_type == PolymerType.PROTEIN
+    assert len(polymers[0].sequence) == 129
+    assert polymers[0].sequence[:5] == "KVFGR"
+    assert polymers[0].sequence[-5:] == "RGCRL"

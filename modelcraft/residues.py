@@ -1,8 +1,14 @@
-from collections import namedtuple
+from dataclasses import dataclass
 
-Residue = namedtuple("Residue", ["code1", "code3", "name"])
 
-protein = [
+@dataclass
+class Residue:
+    code1: str
+    code3: str
+    name: str
+
+
+PROTEIN = [
     Residue("A", "ALA", "Alanine"),
     Residue("C", "CYS", "Cysteine"),
     Residue("D", "ASP", "Aspartic Acid"),
@@ -25,14 +31,14 @@ protein = [
     Residue("Y", "TYR", "Tyrosine"),
 ]
 
-rna = [
+RNA = [
     Residue("A", "A", "Adenosine monophosphate"),
     Residue("C", "C", "Cytidine monophosphate"),
     Residue("G", "G", "Guanosine monophosphate"),
     Residue("U", "U", "Uridine monophosphate"),
 ]
 
-dna = [
+DNA = [
     Residue("A", "DA", "Deoxyadenosine monophosphate"),
     Residue("C", "DC", "Deoxycytidine monophosphate"),
     Residue("G", "DG", "Deoxyguanosine monophosphate"),

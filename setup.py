@@ -1,7 +1,7 @@
 import setuptools
 
 with open("README.md", "r") as f:
-    long_description = f.read()
+    LONG_DESCRIPTION = f.read()
 
 setuptools.setup(
     name="modelcraft",
@@ -9,7 +9,7 @@ setuptools.setup(
     author="Paul Bond",
     author_email="paul.bond@york.ac.uk",
     description="Automated model building pipeline for X-ray crystallography",
-    long_description=long_description,
+    long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url="https://github.com/paulsbond/modelcraft",
     packages=setuptools.find_packages(),
@@ -20,7 +20,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
-    install_requires=["biopython", "dataclasses", "gemmi>=0.3.2", "pandas", "pyside2"],
+    install_requires=["dataclasses", "gemmi>=0.3.2", "pandas", "pyside2"],
     entry_points={
         "console_scripts": [
             "modelcraft = modelcraft.__main__:main",
