@@ -37,14 +37,15 @@ class ColumnRef:
 
 
 def expand_label(label: str) -> str:
-    if "." in label:
-        if "_" in label.split(".")[-1]:
-            split = label.split(".")[-1].split("_")
-            return ",".join(f"{label}.{x}" for x in split)
-        if label[-4:] == "ABCD":
-            return ",".join(f"{label}.{x}" for x in ("A", "B", "C", "D"))
-    if "HL" in label:
-        return ",".join(f"{label}{x}" for x in ("A", "B", "C", "D"))
+    i = label.rindex(".") if "." in label else -1
+    prefix = label[: i + 1]
+    suffix = label[i + 1 :]
+    if suffix[-4:] == "ABCD":
+        return ",".join(f"{prefix}{suffix}.{x}" for x in ("A", "B", "C", "D"))
+    if suffix[:2] == "HL" or suffix[-2:] == "HL":
+        return ",".join(f"{prefix}{suffix}{x}" for x in ("A", "B", "C", "D"))
+    if suffix in ("F_sigF", "I_sigI", "F_phi", "phi_fom"):
+        return ",".join(f"{prefix}{suffix}.{x}" for x in suffix.split("_"))
     return label
 
 
@@ -64,8 +65,7 @@ class DataItem(gemmi.Mtz):
         self.spacegroup = mtz.spacegroup
         self.add_dataset("HKL_base")
         if isinstance(columns, str):
-            refs = column_refs(columns)
-            columns = [ref.find_column(mtz) for ref in refs]
+            columns = [ref.find_column(mtz) for ref in column_refs(columns)]
         columns = list(mtz.columns[:3]) + list(columns)
         for column in columns:
             self.add_column(column.label, column.type)
