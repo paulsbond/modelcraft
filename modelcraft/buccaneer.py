@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
+import os
 import gemmi
-from modelcraft.contents import AsuContents
+from modelcraft.contents import AsuContents, PolymerType
 from modelcraft.job import Job
 from modelcraft.reflections import FsigF, FreeRFlag, ABCD, PhiFom, FPhi, write_mtz
 from modelcraft.structure import write_mmcif
@@ -29,14 +30,14 @@ class Buccaneer(Job):
 
         seqin = self.path("seqin.seq")
         args += ["-seqin", seqin]
-        contents.write_protein(seqin)
+        contents.write_sequence_file(seqin, PolymerType.PROTEIN)
 
         hklin = self.path("hklin.mtz")
         data_items = [fsigf, freer, phases]
         args += ["-mtzin", hklin]
         args += ["-colin-fo", fsigf.label()]
         args += ["-colin-free", freer.label()]
-        if phases is ABCD:
+        if isinstance(phases, ABCD):
             args += ["-colin-hl", phases.label()]
         else:
             args += ["-colin-phifom", phases.label()]
@@ -48,6 +49,8 @@ class Buccaneer(Job):
         if input_structure is not None:
             xyzin = self.path("xyzin.cif")
             args += ["-pdbin", xyzin]
+            args += ["-model-filter"]
+            args += ["-model-filter-sigma", "1.0"]
             if known_structure is not None:
                 for keyword in known_structure:
                     args += ["-known-structure", keyword]
@@ -65,19 +68,20 @@ class Buccaneer(Job):
                     args += ["mr-model-seed"]
             write_mmcif(xyzmr, mr_structure)
 
-        args += ["-cycles", cycles]
+        args += ["-cycles", str(cycles)]
         if semet:
             args += ["-build-semet"]
         args += ["-fast"]
         args += ["-correlation-mode"]
         args += ["-anisotropy-correction"]
-        args += ["-resolution 2.0"]
-        args += ["-model-filter"]
-        args += ["-model-filter-sigma 1.0"]
+        args += ["-resolution", "2.0"]
 
         xyzout = self.path("xyzout.cif")
         args += ["-pdbout", xyzout]
+        args += ["-cif"]
 
         self.run(program, args)
+        if not os.path.exists(xyzout):
+            raise RuntimeError("Buccaneer did not produce an output structure")
         self.structure = gemmi.read_structure(xyzout)
         self.finish()
