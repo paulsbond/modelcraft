@@ -1,16 +1,22 @@
 from typing import List
 import distutils.spawn
 import os
+import random
 import shutil
+import string
 import subprocess
 import sys
 import time
-import uuid
+
+
+def _generate_id():
+    chars = string.ascii_lowercase + string.digits
+    return "".join(random.choice(chars) for _ in range(8))
 
 
 class Job:
     def __init__(self):
-        self._directory = os.path.abspath("job_%s" % uuid.uuid4())
+        self._directory = os.path.abspath("job_%s" % _generate_id())
         self._stdout = self.path("stdout.txt")
         self._stderr = self.path("stderr.txt")
         os.mkdir(self._directory)
