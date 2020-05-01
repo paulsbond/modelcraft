@@ -76,9 +76,11 @@ class Ligand:
 
 
 class AsuContents:
-    def __init__(self):
+    def __init__(self, path: Optional[str] = None):
         self.polymers: List[Polymer] = []
         self.ligands: List[Ligand] = []
+        if path is not None:
+            self.polymers.extend(Polymer.from_sequence_file(path))
 
     def sequence_file_lines(
         self, polymer_type: Optional[PolymerType] = None, line_length: int = 60

@@ -45,7 +45,6 @@ def test_hewl_polymer_from_sequence_file():
 def test_hewl_sequence_file_lines():
     path = data_path("hewl_sequence.fasta")
     old_lines = list(open(path).readlines())
-    contents = AsuContents()
-    contents.polymers.extend(Polymer.from_sequence_file(path))
+    contents = AsuContents(path)
     new_lines = list(contents.sequence_file_lines())
     assert old_lines == new_lines
