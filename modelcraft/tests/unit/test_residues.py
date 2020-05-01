@@ -1,7 +1,9 @@
-import modelcraft.residues as residues
+import pytest
+from modelcraft.residues import PROTEIN, RNA, DNA
 
 
-def test_residue_count():
-    assert len(residues.protein) == 20
-    assert len(residues.rna) == 4
-    assert len(residues.dna) == 4
+@pytest.mark.parametrize(
+    "residues,expected", [(PROTEIN, 20), (RNA, 4), (DNA, 4)],
+)
+def test_residue_count(residues, expected):
+    assert len(residues) == expected
