@@ -30,7 +30,7 @@ class Job:
         self, executable: str, arguments: List[str] = None, stdin: List[str] = None
     ) -> None:
         if distutils.spawn.find_executable(executable) is None:
-            sys.exit("Executable '%s' not found." % executable)
+            raise ValueError("Executable '%s' not found" % executable)
         process = subprocess.Popen(
             args=[executable] if arguments is None else ([executable] + arguments),
             stdin=None if stdin is None else subprocess.PIPE,
