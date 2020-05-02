@@ -1,7 +1,7 @@
 import gemmi
-from modelcraft.job import Job
-from modelcraft.reflections import FsigF, FreeRFlag, write_mtz
-from modelcraft.structure import write_mmcif
+from .job import Job
+from ..reflections import FsigF, FreeRFlag, write_mtz
+from ..structure import write_mmcif
 
 
 class Sheetbend(Job):
@@ -26,5 +26,7 @@ class Sheetbend(Job):
         args += ["-pdbout", xyzout]
 
         self.run("csheetbend", args)
+
         self.structure = gemmi.read_structure(xyzout)
+
         self.finish()

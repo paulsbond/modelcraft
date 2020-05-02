@@ -1,5 +1,5 @@
 import gemmi
-from modelcraft.buccaneer import Buccaneer
+from modelcraft.jobs import Buccaneer
 from modelcraft.contents import AsuContents
 from modelcraft.reflections import FsigF, FreeRFlag, ABCD
 from modelcraft.structure import model_stats

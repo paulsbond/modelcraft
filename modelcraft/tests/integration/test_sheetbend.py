@@ -1,6 +1,6 @@
 import gemmi
 from modelcraft.reflections import FsigF, FreeRFlag
-from modelcraft.sheetbend import Sheetbend
+from modelcraft.jobs import Sheetbend
 from modelcraft.structure import model_stats
 from modelcraft.tests import data_path
 

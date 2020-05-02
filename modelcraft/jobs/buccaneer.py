@@ -1,10 +1,10 @@
 from typing import List, Optional, Union
 import os
 import gemmi
-from modelcraft.contents import AsuContents, PolymerType
-from modelcraft.job import Job
-from modelcraft.reflections import FsigF, FreeRFlag, ABCD, PhiFom, FPhi, write_mtz
-from modelcraft.structure import write_mmcif
+from ..contents import AsuContents, PolymerType
+from .job import Job
+from ..reflections import FsigF, FreeRFlag, ABCD, PhiFom, FPhi, write_mtz
+from ..structure import write_mmcif
 
 
 class Buccaneer(Job):
