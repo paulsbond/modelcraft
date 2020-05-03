@@ -63,7 +63,7 @@ class ModelStats:
 
 
 def model_stats(structure: gemmi.Structure) -> ModelStats:
-    stats = ModelStats
+    stats = ModelStats()
     current_fragment_length = 0
     model = structure[0]
     for chain in model:
