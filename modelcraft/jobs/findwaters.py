@@ -1,35 +1,40 @@
-from modelcraft.coordinates import CoordinateFile
-from modelcraft.job import Job
+import gemmi
+from ..reflections import FPhi, write_mtz
+from ..structure import write_mmcif
+from .job import Job
 
 
 class FindWaters(Job):
-    def __init__(self, directory, xyzin, hklin, dummy=False):
-        super().__init__(directory)
-        arguments = [
-            "--pdbin",
-            xyzin.path,
-            "--hklin",
-            hklin.path,
-            "--f",
-            hklin.fwphiw.split(",")[0],
-            "--phi",
-            hklin.fwphiw.split(",")[0],
-            "--pdbout",
-            self.path("waters.pdb"),
-        ]
+    def __init__(self, structure: gemmi.Structure, fphi: FPhi, dummy: bool = False):
+        super().__init__()
+
+        xyzin = self.path("xyzin.cif")
+        hklin = self.path("hklin.mtz")
+        waters = self.path("waters.pdb")  # In PDB format even with a cif extension
+        xyzout = self.path("xyzout.cif")
+
+        write_mmcif(xyzin, structure)
+        write_mtz(hklin, [fphi])
+
+        args = []
+        args += ["--pdbin", xyzin]
+        args += ["--hklin", hklin]
+        args += ["--f", fphi.label(0)]
+        args += ["--phi", fphi.label(1)]
         if dummy:
-            arguments.append("--flood")
-            # arguments.extend(["--sigma", "2.0"]) # Default
-            # arguments.extend(["--flood-atom-radius", "1.4"]) # Default
-        self.run("findwaters", arguments)
-        arguments = [
-            "xyzin1",
-            xyzin.path,
-            "xyzin2",
-            self.path("waters.pdb"),
-            "xyzout",
-            self.path("xyzout.pdb"),
-        ]
-        stdin = ["NOMERGE", "END"]
-        self.run("pdb_merge", arguments, stdin)
-        self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
+            # May be a bug in the minimum distance between the dummy atoms an structure
+            args += ["--flood"]
+        args += ["--pdbout", waters]
+        self.run("findwaters", args)
+
+        # TODO: Remove reliance on pdb_merge using gemmi
+        args = []
+        args += ["xyzin1", xyzin]
+        args += ["xyzin2", waters]
+        args += ["xyzout", xyzout]
+        stdin = ["NOMERGE", "OUTPUT CIF", "END"]
+        self.run("pdb_merge", args, stdin)
+
+        self.structure = gemmi.read_structure(xyzout)
+
+        self.finish()
