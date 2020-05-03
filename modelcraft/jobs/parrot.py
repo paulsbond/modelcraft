@@ -1,37 +1,55 @@
-from modelcraft.reflections import DataFile
-from modelcraft.job import Job
+from typing import Optional, Union
+import gemmi
+from ..contents import AsuContents, PolymerType
+from ..reflections import FsigF, FreeRFlag, ABCD, PhiFom, FPhi, write_mtz
+from ..structure import write_mmcif
+from .job import Job
 
 
 class Parrot(Job):
-    def __init__(self, args, directory, hklin, xyzin=None):
-        super().__init__(directory)
-        hklin = self.create_hklin(args, hklin)
-        stdin = self._get_stdin(args, hklin, xyzin)
-        self.run("cparrot", ["-stdin"], stdin)
-        self.hklout = DataFile(self.path("hklout.mtz"))
-        self.hklout.fsigf = hklin.fsigf
-        self.hklout.free = hklin.free
-        self.hklout.abcd = "parrot.ABCD.A,parrot.ABCD.B,parrot.ABCD.C,parrot.ABCD.D"
-        self.hklout.fwphiw = "parrot.F_phi.F,parrot.F_phi.phi"
+    def __init__(
+        self,
+        contents: AsuContents,
+        fsigf: FsigF,
+        freer: FreeRFlag,
+        phases: Union[ABCD, PhiFom],
+        fphi: Optional[FPhi] = None,
+        structure: Optional[gemmi.Structure] = None,
+    ):
+        super().__init__()
+        args = []
 
-    def _get_stdin(self, args, hklin, xyzin):
-        stdin = []
-        stdin.append("mtzin %s" % hklin.path)
-        stdin.extend(self._colin_keywords(hklin))
-        stdin.append("seqin %s" % args.seqin)
-        if xyzin is not None:
-            stdin.append("pdbin %s" % xyzin.path)  # or pdbin-ha or pdbin-mr?
-        stdin.append("mtzout %s" % self.path("hklout.mtz"))
-        stdin.append("cycles 5")
-        stdin.append("anisotropy-correction")
-        return stdin
+        seqin = self.path("seqin.seq")
+        args += ["-seqin", seqin]
+        contents.write_sequence_file(seqin, PolymerType.PROTEIN)
 
-    def _colin_keywords(self, hklin):
-        yield "colin-fo %s" % hklin.fsigf
-        yield "colin-free %s" % hklin.free
-        if hklin.abcd is not None:
-            yield "colin-hl %s" % hklin.abcd
-        if hklin.phifom is not None:
-            yield "colin-phifom %s" % hklin.phifom
-        if hklin.fwphiw is not None:
-            yield "colin-fc %s" % hklin.fwphiw
+        hklin = self.path("hklin.mtz")
+        write_mtz(hklin, [fsigf, freer, phases, fphi])
+        args += ["-mtzin", hklin]
+        args += ["-colin-fo", fsigf.label()]
+        args += ["-colin-free", freer.label()]
+        if isinstance(phases, ABCD):
+            args += ["-colin-hl", phases.label()]
+        else:
+            args += ["-colin-phifom", phases.label()]
+        if fphi is not None:
+            args += ["-colin-fc", fphi.label()]
+
+        if structure is not None:
+            xyzin = self.path("xyzin.cif")
+            args += ["-pdbin", xyzin]  # or pdbin-ha or pdbin-mr?
+            write_mmcif(xyzin, structure)
+
+        args += ["-cycles", "5"]
+        args += ["-anisotropy-correction"]
+
+        hklout = self.path("hklout.mtz")
+        args += ["-mtzout", hklout]
+
+        self.run("cparrot", args)
+
+        mtz = gemmi.read_mtz_file(hklout)
+        self.abcd = ABCD(mtz, "parrot.ABCD")
+        self.fphi = FPhi(mtz, "parrot.F_phi")
+
+        self.finish()
