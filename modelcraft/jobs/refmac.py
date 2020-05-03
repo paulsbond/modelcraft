@@ -1,69 +1,77 @@
-from modelcraft.coordinates import CoordinateFile
-from modelcraft.reflections import DataFile
-from modelcraft.job import Job
+from typing import Optional, Union
 import xml.etree.ElementTree as ET
+import gemmi
+from ..reflections import FsigF, FreeRFlag, ABCD, PhiFom, write_mtz
+from ..structure import write_mmcif
+from .job import Job
 
 
 class Refmac(Job):
-    def __init__(self, args, directory, xyzin, cycles, use_phases=False):
-        super().__init__(directory)
-        self.xmlout = self.path("xmlout.xml")
-        arguments = self._get_arguments(args, xyzin)
-        stdin = self._get_stdin(args, cycles, use_phases)
-        self.run("refmac5", arguments, stdin)
-        self._set_results()
-        self.hklout = DataFile(self.path("hklout.mtz"))
-        self.hklout.fsigf = args.hklin.fsigf
-        self.hklout.free = args.hklin.free
-        self.hklout.abcd = "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB"
-        self.hklout.fwphiw = "FWT,PHWT"
-        self.hklout.fcphic = "FC_ALL,PHIC_ALL"
-        self.xyzout = CoordinateFile(self.path("xyzout.pdb"))
-        self.xyzout.rwork = self.final_rwork
-        self.xyzout.rfree = self.final_rfree
+    def __init__(
+        self,
+        structure: gemmi.Structure,
+        fsigf: FsigF,
+        freer: FreeRFlag,
+        cycles: int,
+        phases: Optional[Union[ABCD, PhiFom]] = None,
+        twinned: bool = False,
+    ):
+        super().__init__()
 
-    def _get_arguments(self, args, xyzin):
-        return [
-            "HKLIN",
-            args.hklin.path,
-            "XYZIN",
-            xyzin.path,
-            "HKLOUT",
-            self.path("hklout.mtz"),
-            "XYZOUT",
-            self.path("xyzout.pdb"),
-            "XMLOUT",
-            self.xmlout,
-        ]
+        hklin = self.path("hklin.mtz")
+        xyzin = self.path("xyzin.cif")
+        hklout = self.path("hklout.mtz")
+        xyzout = self.path("xyzout.cif")
+        xmlout = self.path("xmlout.xml")
 
-    def _get_stdin(self, args, cycles, use_phases):
+        write_mmcif(xyzin, structure)
+        write_mtz(hklin, [fsigf, freer, phases])
+
+        args = []
+        args += ["HKLIN", hklin]
+        args += ["XYZIN", xyzin]
+        args += ["HKLOUT", hklout]
+        args += ["XYZOUT", xyzout]
+        args += ["XMLOUT", xmlout]
+
         stdin = []
-        labin = "FP=" + args.colin_fp
-        labin += " SIGFP=" + args.colin_sigfp
-        labin += " FREE=" + args.colin_free
-        if use_phases:
-            if args.colin_hl is not None:
-                labin += " HLA=" + args.colin_hla
-                labin += " HLB=" + args.colin_hlb
-                labin += " HLC=" + args.colin_hlc
-                labin += " HLD=" + args.colin_hld
-            if args.colin_phifom is not None:
-                labin += " PHIB=" + args.colin_phi
-                labin += " FOM=" + args.colin_fom
+        labin = "FP=" + fsigf.label(0)
+        labin += " SIGFP=" + fsigf.label(1)
+        labin += " FREE=" + freer.label()
+        if phases is not None:
+            if isinstance(phases, ABCD):
+                labin += " HLA=" + phases.label(0)
+                labin += " HLB=" + phases.label(1)
+                labin += " HLC=" + phases.label(2)
+                labin += " HLD=" + phases.label(3)
+            else:
+                labin += " PHIB=" + phases.label(0)
+                labin += " FOM=" + phases.label(1)
         stdin.append("LABIN " + labin)
         stdin.append("NCYCLES %d" % cycles)
         stdin.append("MAKE HYDR NO")
-        if args.twinned:
+        if twinned:
             stdin.append("TWIN")
         stdin.append("MAKE NEWLIGAND NOEXIT")
         stdin.append("PHOUT")
         stdin.append("PNAME modelcraft")
         stdin.append("DNAME modelcraft")
         stdin.append("END")
-        return stdin
 
-    def _set_results(self):
-        xml = ET.parse(self.xmlout).getroot()
+        self.run("refmac5", args, stdin)
+
+        self._set_rfactors(xmlout)
+
+        self.structure = gemmi.read_structure(xyzout)
+        mtz = gemmi.read_mtz_file(hklout)
+        self.abcd = ABCD(mtz, "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB")
+        self.fphi_best = PhiFom(mtz, "FWT,PHWT")
+        self.fphi_calc = PhiFom(mtz, "FC_ALL,PHIC_ALL")
+
+        self.finish()
+
+    def _set_rfactors(self, path: str) -> None:
+        xml = ET.parse(path).getroot()
         rworks = list(xml.iter("r_factor"))
         rfrees = list(xml.iter("r_free"))
         self.initial_rwork = float(rworks[0].text) * 100

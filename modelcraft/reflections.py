@@ -146,5 +146,6 @@ def _combine_data_items(items: List[DataItem]) -> gemmi.Mtz:
 
 
 def write_mtz(path: str, items: List[DataItem]) -> None:
+    items = [item for item in items if item is not None]
     mtz = _combine_data_items(items)
     mtz.write_to_file(path)
