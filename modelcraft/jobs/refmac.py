@@ -64,8 +64,10 @@ class Refmac(Job):
 
         self.structure = gemmi.read_structure(xyzout)
         mtz = gemmi.read_mtz_file(hklout)
+        self.fsigf = FsigF(mtz, fsigf.label())
         self.abcd = ABCD(mtz, "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB")
         self.fphi_best = PhiFom(mtz, "FWT,PHWT")
+        self.fphi_diff = PhiFom(mtz, "DELFWT,PHDELWT")
         self.fphi_calc = PhiFom(mtz, "FC_ALL,PHIC_ALL")
 
         self.finish()
