@@ -58,3 +58,15 @@ class Prune(Coot):
         else:
             script += "prune(0, 1, 2)\n"
         super().__init__(structure, fphi_best, fphi_diff, script)
+
+
+class FixSideChains(Coot):
+    def __init__(self, structure: gemmi.Structure, fphi_best: FPhi, fphi_diff: FPhi):
+        path = os.path.join(os.path.dirname(__file__), "..", "coot", "prune.py")
+        with open(path) as script_file:
+            script = script_file.read()
+        path = os.path.join(os.path.dirname(__file__), "..", "coot", "sidechains.py")
+        with open(path) as script_file:
+            script += "\n\n%s\n" % script_file.read()
+        script += "fix_side_chains(0, 1, 2)\n"
+        super().__init__(structure, fphi_best, fphi_diff, script)
