@@ -46,27 +46,19 @@
     <section>
         <h2 class="heading">Optional Arguments</h2>
         <p>
-            <code>--colin-free COL</code> e.g. <code>FreeR_flag</code><br>
-            Column label for the free-R flag.
-        </p>
-        <p>
-            <code>--colin-fsigf COLS</code> e.g. <code>FP,SIGFP</code><br>
+            <code>--amplitude-columns COLS</code> e.g. <code>FP,SIGFP</code><br>
             Column labels for the observed amplitudes.
-        </p>
-        <p>
-            <code>--colin-hl COLS</code> e.g. <code>HLA,HLB,HLC,HLD</code><br>
-            Column labels for input phases as Hendrickson-Lattman coefficients.
-        </p>
-        <p>
-            <code>--colin-phifom COLS</code> e.g. <code>PHIB,FOM</code><br>
-            Column labels for input phases as a phase and figure of merit.
         </p>
         <p>
             <code>--cycles N</code> default: <code>25</code><br>
             Maximum number of pipeline cycles.
         </p>
         <p>
-            <code>--free-r-flag N</code> default: <code>0</code><br>
+            <code>--freerflag-column COL</code> e.g. <code>FreeR_flag</code><br>
+            Column label for the free-R flags.
+        </p>
+        <p>
+            <code>--freerflag N</code> default: <code>0</code><br>
             Flag that identifies the free reflections.
         </p>
         <p>
@@ -98,8 +90,8 @@
             4 - Phasing, placing/naming chains, copy every filtered residue<br>
             5 - Phasing, placing/naming chains, copy every 3rd residue<br>
             6 - Phasing, placing/naming chains, copy every 3rd filtered residue<br>
-            The MR model will not be used for phasing if input phases are provided using
-            <code>--colin-hl</code> or <code>--colin-phifom</code>.
+            The MR model will not be used for phasing
+            if input phases are provided using <code>--phases</code>.
         </p>
         <p>
             <code>--mr-model FILE</code><br>
@@ -109,6 +101,12 @@
         <p>
             <code>--no-auto-stop</code><br>
             Run the maximum number of cycles even if the model is not improving.
+        </p>
+        <p>
+            <code>--phases-columns COLS</code>
+            e.g. <code>PHIB,FOM</code> or <code>HLA,HLB,HLC,HLD</code><br>
+            Column labels for input phases as either
+            a phase and figure of merit or Hendrickson-Lattman coefficients.
         </p>
         <p>
             <code>--semet</code><br>

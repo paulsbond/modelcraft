@@ -5,19 +5,22 @@ import shutil
 import sys
 import time
 from modelcraft.arguments import parse
-from modelcraft.buccaneer import Buccaneer
-from modelcraft.findwaters import FindWaters
-from modelcraft.parrot import Parrot
-from modelcraft.prune import Prune
-from modelcraft.refmac import Refmac
-from modelcraft.sheetbend import Sheetbend
-from modelcraft.sidechains import Sidechains
+from modelcraft.jobs import (
+    Buccaneer,
+    FindWaters,
+    FixSideChains,
+    Parrot,
+    Prune,
+    Refmac,
+    Sheetbend,
+)
 
 
 class Pipeline:
     def __init__(self, argument_list):
         print("# ModelCraft")
         print("\nPlease cite [paper to be published]")
+        print("\n %s" % " ".join(argument_list).replace(" --", "\n --"))
         self.args = parse(argument_list)
         self.initialise()
         self.run()
@@ -43,7 +46,11 @@ class Pipeline:
 
     def run(self):
         args = self.args
-        if args.colin_hl is None and args.colin_phifom is None and args.mr_model is not None:
+        if (
+            args.colin_hl is None
+            and args.colin_phifom is None
+            and args.mr_model is not None
+        ):
             print("\n## Preparations\n")
             self.get_phases_from_mr_model()
         for self.cycle in range(1, args.cycles + 1):
@@ -113,7 +120,9 @@ class Pipeline:
     def buccaneer(self):
         directory = self.job_directory("buccaneer")
         cycles = 3 if self.cycle == 1 else 2
-        job = Buccaneer(self.args, directory, self.current_hkl, self.current_xyz, cycles)
+        job = Buccaneer(
+            self.args, directory, self.current_hkl, self.current_xyz, cycles
+        )
         self.add_job(job)
         if not job.xyzout.exists or job.xyzout.residues == 0:
             print("Stopping the pipeline because buccaneer did not build any residues")
@@ -175,16 +184,24 @@ class Pipeline:
         improvement = (self.min_rwork - xyz.rwork) / self.min_rwork
         if improvement > required_improvement:
             return True
-        improvement = (xyz.residues - self.max_residues_built) / float(self.max_residues_built)
+        improvement = (xyz.residues - self.max_residues_built) / float(
+            self.max_residues_built
+        )
         if improvement > required_improvement:
             return True
-        improvement = (xyz.sequenced_residues - self.max_residues_sequenced) / float(self.max_residues_sequenced)
+        improvement = (xyz.sequenced_residues - self.max_residues_sequenced) / float(
+            self.max_residues_sequenced
+        )
         if improvement > required_improvement:
             return True
-        improvement = (self.min_fragments_built - xyz.fragments) / float(self.min_fragments_built)
+        improvement = (self.min_fragments_built - xyz.fragments) / float(
+            self.min_fragments_built
+        )
         if improvement > required_improvement:
             return True
-        improvement = (xyz.longest_fragment - self.max_longest_fragment) / float(self.max_longest_fragment)
+        improvement = (xyz.longest_fragment - self.max_longest_fragment) / float(
+            self.max_longest_fragment
+        )
         if improvement > required_improvement:
             return True
         return False
@@ -202,7 +219,10 @@ class Pipeline:
             self.cycles_without_improvement = 0
         else:
             self.cycles_without_improvement += 1
-            print("\nNo significant improvement for %d cycle(s)" % self.cycles_without_improvement)
+            print(
+                "\nNo significant improvement for %d cycle(s)"
+                % self.cycles_without_improvement
+            )
 
         if self.current_xyz.rfree < self.min_rfree:
             self.min_rfree = self.current_xyz.rfree
@@ -215,10 +235,18 @@ class Pipeline:
             self.best_hkl.path = os.path.abspath("modelcraft.mtz")
             self.add_final_stats()
         self.min_rwork = min(self.min_rwork, self.current_xyz.rwork)
-        self.max_residues_built = max(self.max_residues_built, self.current_xyz.residues)
-        self.max_residues_sequenced = max(self.max_residues_sequenced, self.current_xyz.sequenced_residues)
-        self.min_fragments_built = min(self.min_fragments_built, self.current_xyz.fragments)
-        self.max_longest_fragment = max(self.max_longest_fragment, self.current_xyz.longest_fragment)
+        self.max_residues_built = max(
+            self.max_residues_built, self.current_xyz.residues
+        )
+        self.max_residues_sequenced = max(
+            self.max_residues_sequenced, self.current_xyz.sequenced_residues
+        )
+        self.min_fragments_built = min(
+            self.min_fragments_built, self.current_xyz.fragments
+        )
+        self.max_longest_fragment = max(
+            self.max_longest_fragment, self.current_xyz.longest_fragment
+        )
 
     def add_cycle_stats(self):
         self.report["cycles"][self.cycle] = self.current_stats()

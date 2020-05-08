@@ -66,6 +66,7 @@ class DataItem(gemmi.Mtz):
         self.add_dataset("HKL_base")
         if isinstance(columns, str):
             columns = [ref.find_column(mtz) for ref in column_refs(columns)]
+        self.types = "".join(col.type for col in columns)
         columns = list(mtz.columns[:3]) + list(columns)
         for column in columns:
             self.add_column(column.label, column.type)
@@ -83,15 +84,14 @@ class DataItem(gemmi.Mtz):
         return pandas.DataFrame(data=data, columns=self.column_labels())
 
     @classmethod
-    def search(cls, mtz: gemmi.Mtz, sequential: bool = True):
-        if cls is DataItem:
-            raise TypeError("Cannot search for abstract data items")
+    def search(cls, mtz: gemmi.Mtz, types=str, sequential: bool = True):
+        types = list(types)
         if sequential:
             mtz_types = [col.type for col in mtz.columns]
-            num_cols = len(cls._types)
+            num_cols = len(types)
             i = 0
             while i < len(mtz_types) - num_cols + 1:
-                if mtz_types[i : i + num_cols] == cls._types:
+                if mtz_types[i : i + num_cols] == types:
                     columns = mtz.columns[i : i + num_cols]
                     yield cls(mtz, columns)
                     i += num_cols
@@ -99,30 +99,10 @@ class DataItem(gemmi.Mtz):
                     i += 1
         else:
             columns = []
-            for column_type in cls._types:
+            for column_type in types:
                 columns.append([col for col in mtz.columns if col.type == column_type])
             for combination in itertools.product(*columns):
                 yield cls(mtz, combination)
-
-
-class FsigF(DataItem):
-    _types = ["F", "Q"]
-
-
-class FreeRFlag(DataItem):
-    _types = ["I"]
-
-
-class FPhi(DataItem):
-    _types = ["F", "P"]
-
-
-class ABCD(DataItem):
-    _types = ["A", "A", "A", "A"]
-
-
-class PhiFom(DataItem):
-    _types = ["P", "W"]
 
 
 def _combine_data_items(items: List[DataItem]) -> gemmi.Mtz:

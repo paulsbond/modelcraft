@@ -1,11 +1,11 @@
 import gemmi
 from .job import Job
-from ..reflections import FsigF, FreeRFlag, write_mtz
+from ..reflections import DataItem, write_mtz
 from ..structure import write_mmcif
 
 
 class Sheetbend(Job):
-    def __init__(self, fsigf: FsigF, freer: FreeRFlag, structure: gemmi.Structure):
+    def __init__(self, fsigf: DataItem, freer: DataItem, structure: gemmi.Structure):
         super().__init__()
         args = []
 

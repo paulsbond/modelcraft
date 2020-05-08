@@ -1,10 +1,10 @@
 import gemmi
-from ..reflections import FsigF, FPhi, ABCD, write_mtz
+from ..reflections import DataItem, write_mtz
 from .job import Job
 
 
 class Comit(Job):
-    def __init__(self, fsigf: FsigF, fphi: FPhi):
+    def __init__(self, fsigf: DataItem, fphi: DataItem):
         super().__init__()
         args = []
 
@@ -20,7 +20,7 @@ class Comit(Job):
         self.run("comit", args)
 
         mtz = gemmi.read_mtz_file(hklout)
-        self.abcd = ABCD(mtz, "omit.ABCD")
-        self.fphi = FPhi(mtz, "omit.F_phi")
+        self.abcd = DataItem(mtz, "omit.ABCD")
+        self.fphi = DataItem(mtz, "omit.F_phi")
 
         self.finish()

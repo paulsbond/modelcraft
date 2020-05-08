@@ -1,15 +1,7 @@
+from typing import List
 import gemmi
 import pytest
-from modelcraft.reflections import (
-    expand_label,
-    DataItem,
-    FreeRFlag,
-    FsigF,
-    FPhi,
-    ABCD,
-    PhiFom,
-    _combine_data_items,
-)
+from modelcraft.reflections import expand_label, DataItem, _combine_data_items
 from modelcraft.tests import data_path
 
 
@@ -30,7 +22,7 @@ from modelcraft.tests import data_path
 )
 def test_valid_1kv9_free_columns(columns: str):
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-    free = FreeRFlag(mtz, columns)
+    free = DataItem(mtz, columns)
     assert len(free.columns) == 4
 
 
@@ -74,12 +66,6 @@ def test_expand_label(label: str, expanded: str):
     assert expand_label(label) == expanded
 
 
-def test_dataitem_search_exception():
-    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-    with pytest.raises(TypeError):
-        list(DataItem.search(mtz))
-
-
 def test_1kv9_dataitem_init_types():
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
     item = DataItem(mtz, "FP,SIGFP")  # str
@@ -91,12 +77,12 @@ def test_1kv9_dataitem_init_types():
 
 
 @pytest.mark.parametrize(
-    "item_type,expected_labels",
-    [(FreeRFlag, ["FREE"]), (FsigF, ["FP,SIGFP"]), (ABCD, ["HLA,HLB,HLC,HLD"])],
+    "types,expected_labels",
+    [("I", ["FREE"]), ("FQ", ["FP,SIGFP"]), ("AAAA", ["HLA,HLB,HLC,HLD"])],
 )
-def test_1kv9_item_search(item_type, expected_labels):
+def test_1kv9_item_search(types: str, expected_labels: List[str]):
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-    labels = [item.label() for item in item_type.search(mtz)]
+    labels = [item.label() for item in DataItem.search(mtz, types)]
     assert labels == expected_labels
 
 
@@ -115,9 +101,10 @@ def test_1kv9_item_search(item_type, expected_labels):
         "New/parrot.ABCD",
     ],
 )
-def test_hewl_abcd_columns(columns):
+def test_hewl_abcd_columns(columns: str):
     mtz = gemmi.read_mtz_file(data_path("hewl_data.mtz"))
-    abcd = ABCD(mtz, columns)
+    abcd = DataItem(mtz, columns)
+    assert abcd.types == "AAAA"
     assert len(abcd.columns) == 7
 
 
@@ -131,7 +118,8 @@ def test_valid_columns_for_mtz_with_multiple_datasets(columns):
     mtz.add_column("HLB", "A")
     mtz.add_column("HLC", "A")
     mtz.add_column("HLD", "A")
-    abcd = ABCD(mtz, columns)
+    abcd = DataItem(mtz, columns)
+    assert abcd.types == "AAAA"
     assert len(abcd.columns) == 7
 
 
@@ -146,18 +134,18 @@ def test_invalid_columns_for_mtz_with_multiple_datasets(columns):
     mtz.add_column("HLC", "A")
     mtz.add_column("HLD", "A")
     with pytest.raises(ValueError):
-        ABCD(mtz, columns)
+        DataItem(mtz, columns)
 
 
 @pytest.mark.parametrize(
-    "item_type,expected_labels",
+    "types,expected_labels",
     [
-        (FreeRFlag, ["FreeR_flag"]),
-        (FsigF, ["F_New,SIGF_New"]),
-        (FPhi, ["FWT,PHWT", "parrot.F_phi.F,parrot.F_phi.phi"]),
-        (PhiFom, ["PHIB,FOM"]),
+        ("I", ["FreeR_flag"]),
+        ("FQ", ["F_New,SIGF_New"]),
+        ("FP", ["FWT,PHWT", "parrot.F_phi.F,parrot.F_phi.phi"]),
+        ("PW", ["PHIB,FOM"]),
         (
-            ABCD,
+            "AAAA",
             [
                 "HLA,HLB,HLC,HLD",
                 "HLanomA,HLanomB,HLanomC,HLanomD",
@@ -166,16 +154,16 @@ def test_invalid_columns_for_mtz_with_multiple_datasets(columns):
         ),
     ],
 )
-def test_hewl_item_search(item_type, expected_labels):
+def test_hewl_item_search(types, expected_labels):
     mtz = gemmi.read_mtz_file(data_path("hewl_data.mtz"))
-    labels = [item.label() for item in item_type.search(mtz)]
+    labels = [item.label() for item in DataItem.search(mtz, types)]
     assert labels == expected_labels
 
 
 def test_combine_data_items():
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-    fsigf = FsigF(mtz, "FP,SIGFP")
-    freer = FreeRFlag(mtz, "FREE")
+    fsigf = DataItem(mtz, "FP,SIGFP")
+    freer = DataItem(mtz, "FREE")
     combined = _combine_data_items([fsigf, freer])
     assert combined.column_labels() == ["H", "K", "L", "FP", "SIGFP", "FREE"]
     assert mtz.nreflections == combined.nreflections

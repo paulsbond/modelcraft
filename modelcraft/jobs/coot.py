@@ -1,14 +1,17 @@
 import os
 import shutil
 import gemmi
-from ..structure import write_mmcif
-from ..reflections import FPhi, write_mtz
+from ..reflections import DataItem, write_mtz
 from .job import Job
 
 
 class Coot(Job):
     def __init__(
-        self, structure: gemmi.Structure, fphi_best: FPhi, fphi_diff: FPhi, script: str
+        self,
+        structure: gemmi.Structure,
+        fphi_best: DataItem,
+        fphi_diff: DataItem,
+        script: str,
     ):
         super().__init__()
         xyzin = self.path("xyzin.pdb")  # TODO: Change to CIF
@@ -46,8 +49,8 @@ class Prune(Coot):
     def __init__(
         self,
         structure: gemmi.Structure,
-        fphi_best: FPhi,
-        fphi_diff: FPhi,
+        fphi_best: DataItem,
+        fphi_diff: DataItem,
         chains_only: bool = False,
     ):
         path = os.path.join(os.path.dirname(__file__), "..", "coot", "prune.py")
@@ -61,7 +64,9 @@ class Prune(Coot):
 
 
 class FixSideChains(Coot):
-    def __init__(self, structure: gemmi.Structure, fphi_best: FPhi, fphi_diff: FPhi):
+    def __init__(
+        self, structure: gemmi.Structure, fphi_best: DataItem, fphi_diff: DataItem
+    ):
         path = os.path.join(os.path.dirname(__file__), "..", "coot", "prune.py")
         with open(path) as script_file:
             script = script_file.read()

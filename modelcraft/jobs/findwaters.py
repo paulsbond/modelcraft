@@ -1,11 +1,11 @@
 import gemmi
-from ..reflections import FPhi, write_mtz
+from ..reflections import DataItem, write_mtz
 from ..structure import write_mmcif
 from .job import Job
 
 
 class FindWaters(Job):
-    def __init__(self, structure: gemmi.Structure, fphi: FPhi, dummy: bool = False):
+    def __init__(self, structure: gemmi.Structure, fphi: DataItem, dummy: bool = False):
         super().__init__()
 
         xyzin = self.path("xyzin.cif")

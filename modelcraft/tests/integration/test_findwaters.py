@@ -2,15 +2,15 @@ import gemmi
 from modelcraft.jobs import Refmac, FindWaters
 from modelcraft.tests import data_path
 from modelcraft.structure import model_stats
-from modelcraft.reflections import FsigF, FreeRFlag
+from modelcraft.reflections import DataItem
 
 
 def test_1kv9():
     structure = gemmi.read_structure(data_path("1kv9_model.pdb"))
     stats_in = model_stats(structure)
     mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
-    fsigf = FsigF(mtz, "FP,SIGFP")
-    freer = FreeRFlag(mtz, "FREE")
+    fsigf = DataItem(mtz, "FP,SIGFP")
+    freer = DataItem(mtz, "FREE")
     refmac = Refmac(structure, fsigf, freer, cycles=1)
 
     findwaters = FindWaters(structure, refmac.fphi_best)

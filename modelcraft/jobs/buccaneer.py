@@ -1,9 +1,9 @@
-from typing import List, Optional, Union
+from typing import List, Optional
 import os
 import gemmi
 from ..contents import AsuContents, PolymerType
 from .job import Job
-from ..reflections import FsigF, FreeRFlag, ABCD, PhiFom, FPhi, write_mtz
+from ..reflections import DataItem, write_mtz
 from ..structure import write_mmcif
 
 
@@ -11,10 +11,10 @@ class Buccaneer(Job):
     def __init__(
         self,
         contents: AsuContents,
-        fsigf: FsigF,
-        freer: FreeRFlag,
-        phases: Union[ABCD, PhiFom],
-        fphi: Optional[FPhi] = None,
+        fsigf: DataItem,
+        freer: DataItem,
+        phases: DataItem,
+        fphi: Optional[DataItem] = None,
         input_structure: Optional[gemmi.Structure] = None,
         known_structure: Optional[List[str]] = None,
         mr_structure: Optional[gemmi.Structure] = None,
@@ -37,7 +37,7 @@ class Buccaneer(Job):
         args += ["-mtzin", hklin]
         args += ["-colin-fo", fsigf.label()]
         args += ["-colin-free", freer.label()]
-        if isinstance(phases, ABCD):
+        if phases.types == "AAAA":
             args += ["-colin-hl", phases.label()]
         else:
             args += ["-colin-phifom", phases.label()]

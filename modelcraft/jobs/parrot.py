@@ -1,7 +1,7 @@
-from typing import Optional, Union
+from typing import Optional
 import gemmi
 from ..contents import AsuContents, PolymerType
-from ..reflections import FsigF, FreeRFlag, ABCD, PhiFom, FPhi, write_mtz
+from ..reflections import DataItem, write_mtz
 from ..structure import write_mmcif
 from .job import Job
 
@@ -10,10 +10,10 @@ class Parrot(Job):
     def __init__(
         self,
         contents: AsuContents,
-        fsigf: FsigF,
-        freer: FreeRFlag,
-        phases: Union[ABCD, PhiFom],
-        fphi: Optional[FPhi] = None,
+        fsigf: DataItem,
+        freer: DataItem,
+        phases: DataItem,
+        fphi: Optional[DataItem] = None,
         structure: Optional[gemmi.Structure] = None,
     ):
         super().__init__()
@@ -28,7 +28,7 @@ class Parrot(Job):
         args += ["-mtzin", hklin]
         args += ["-colin-fo", fsigf.label()]
         args += ["-colin-free", freer.label()]
-        if isinstance(phases, ABCD):
+        if phases.types == "AAAA":
             args += ["-colin-hl", phases.label()]
         else:
             args += ["-colin-phifom", phases.label()]
@@ -49,7 +49,7 @@ class Parrot(Job):
         self.run("cparrot", args)
 
         mtz = gemmi.read_mtz_file(hklout)
-        self.abcd = ABCD(mtz, "parrot.ABCD")
-        self.fphi = FPhi(mtz, "parrot.F_phi")
+        self.abcd = DataItem(mtz, "parrot.ABCD")
+        self.fphi = DataItem(mtz, "parrot.F_phi")
 
         self.finish()
