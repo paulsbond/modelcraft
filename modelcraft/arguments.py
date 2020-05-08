@@ -13,17 +13,16 @@ _.add_argument("--hklin", metavar="FILE", required=True)
 _.add_argument("--seqin", metavar="FILE", required=True)
 
 _ = _PARSER.add_argument_group("Optional arguments")
-_.add_argument("--amplitude-columns", metavar="COLS", required=True)
+_.add_argument("--amplitudes", metavar="COLS")
 _.add_argument("--cycles", metavar="N", default=25, type=int)
-_.add_argument("--freerflag-column", metavar="COL", required=True)
-_.add_argument("--freerflag", metavar="N", default="0")  # TODO: Implement this option
+_.add_argument("--freerflag", metavar="COL")
 _.add_argument("--help", action="help")
 _.add_argument("--keep-intermediate-files", action="store_true")
 _.add_argument("--known-structure", nargs="+", metavar="SELECTION", default=[])
 _.add_argument("--mr-mode", metavar="CHOICE", type=int, choices=range(1, 7), default=6)
 _.add_argument("--mr-model", metavar="FILE")
 _.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
-_.add_argument("--phases-columns", metavar="COLS")
+_.add_argument("--phases", metavar="COLS")
 _.add_argument("--semet", action="store_true")
 _.add_argument("--twinned", action="store_true")
 _.add_argument("--unbiased", action="store_true")
@@ -54,39 +53,31 @@ def _basic_check(args: argparse.Namespace):
         if path is not None and not os.path.exists(path):
             _PARSER.error("File not found: %s" % path)
 
-    if args.phases is None and args.mr_model is None:
-        _PARSER.error("Neither phases nor an MR model were provided")
-
 
 def _parse_data_items(args: argparse.Namespace):
     mtz = gemmi.read_mtz_file(args.hklin)
-    args.fsigf = _parse_data_item(
-        mtz, args.amplitude_columns, ["FQ"], "--amplitude-columns"
-    )
-    args.freer = _parse_data_item(
-        mtz, args.freerflag_column, ["I"], "--freerflag-column"
-    )
-    if args.phases_columns is not None or args.mr_model is None:
-        args.phases = _parse_data_item(
-            mtz, args.phases_columns, ["PW", "AAAA"], "--phases-columns"
-        )
+    args.fsigf = _parse_data_item(mtz, args.amplitudes, ["FQ"], "amplitudes")
+    args.freer = _parse_data_item(mtz, args.freerflag, ["I"], "free-R flag")
+    if args.phases is not None or args.mr_model is None:
+        args.phases = _parse_data_item(mtz, args.phases, ["PW", "AAAA"], "phases")
 
 
 def _parse_data_item(
-    mtz: gemmi.Mtz, label: Optional[str], accepted_types: List[str], argument: str
+    mtz: gemmi.Mtz, label: Optional[str], accepted_types: List[str], name: str
 ) -> DataItem:
     if label is None:
         options = []
         for types in accepted_types:
             options.extend(DataItem.search(mtz, types))
         if len(options) == 1:
-            print(f"Using {argument} {options[0].label()}")
+            print(f"Using {options[0].label()} for the {name}")
             return options[0]
         if len(options) > 1:
-            message = "Multiple possible columns found. Choose one of the following:"
+            message = f"Multiple possible columns found for the {name}:"
             for option in options:
-                message += f"\n {argument} {option.label()}"
-        _PARSER.error(f"No suitable columns found for {argument}")
+                message += f"\n{option.label()}"
+            _PARSER.error(message)
+        _PARSER.error(f"No suitable columns found for the {name}")
     else:
         item = DataItem(mtz, label)
         if item.types in accepted_types:
