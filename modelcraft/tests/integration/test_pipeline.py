@@ -1,10 +1,10 @@
-from modelcraft.__main__ import main
-from modelcraft.tests import data_path
 import json
 import os
-import pytest
 import shutil
 import uuid
+import pytest
+from modelcraft.__main__ import main
+from modelcraft.tests import data_path
 
 
 def _test_pipeline(argument_list):
@@ -13,9 +13,10 @@ def _test_pipeline(argument_list):
     os.chdir(tmp_dir)
     with pytest.raises(SystemExit):
         main(argument_list)
-    with open("modelcraft.json") as f:
-        report = json.load(f)
+    with open("modelcraft.json") as report_file:
+        report = json.load(report_file)
     assert report["real_time"]["total"] > 0
+    assert report["termination_reason"] == "Normal"
     os.chdir("..")
     shutil.rmtree(tmp_dir)
 

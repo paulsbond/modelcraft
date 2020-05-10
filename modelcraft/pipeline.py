@@ -1,11 +1,10 @@
 import distutils.spawn
 import json
-import os
-import shutil
 import sys
 import time
-from modelcraft.arguments import parse
-from modelcraft.jobs import (
+import gemmi
+from .arguments import parse
+from .jobs import (
     Buccaneer,
     FindWaters,
     FixSideChains,
@@ -14,6 +13,8 @@ from modelcraft.jobs import (
     Refmac,
     Sheetbend,
 )
+from .reflections import write_mtz
+from .structure import ModelStats, write_mmcif
 
 
 class Pipeline:
@@ -22,16 +23,23 @@ class Pipeline:
         print("Arguments:")
         print(" %s\n" % " ".join(argument_list).replace(" --", "\n --"))
         self.args = parse(argument_list)
-        self.resolution = self.args.fsigf
+        self.resolution = self.args.fsigf.resolution  # TODO: Change after gemmi update
+        # self.resolution = self.args.fsigf.resolution_high()  # To this
         self.cycle = 0
-        self.current_hkl = self.args.hklin
-        self.current_xyz = self.args.xyzin
-        self.best_refmac: Refmac = None
-        self.cycles_without_improvement = 0
+        self.current_structure = self.args.xyzin
+        self.current_phases = self.args.phases
+        self.current_fphi_best = None
+        self.current_fphi_diff = None
+        self.current_fphi_calc = None
+        self.current_rwork = None
+        self.current_rfree = None
+        self.best_refmac = None
+        self.best_refmac_cycle = 0
         self.start_time = time.time()
         self.report = {
             "real_time": {"total": 0},
             "cycles": {},
+            "termination_reason": "Unknown",
         }
         self.run()
 
@@ -39,195 +47,180 @@ class Pipeline:
         args = self.args
         if args.phases is None and args.mr_model is not None:
             print("\n## Preparations\n")
-    #         self.get_phases_from_mr_model()
-    #     for self.cycle in range(1, args.cycles + 1):
-    #         print("\n## Cycle %d\n" % self.cycle)
-    #         self.run_cycle()
-    #         self.process_cycle_output()
-    #         if args.auto_stop and self.cycles_without_improvement == 4:
-    #             break
-    #     if self.min_rwork < 30 and self.resolution < 2.5:
-    #         print("\n## Finalisations\n")
-    #         self.cycle += 1
-    #         self.current_xyz = self.best_xyz
-    #         self.current_hkl = self.best_hkl
-    #         self.fixsidechains()
-    #         self.process_cycle_output()
-    #     self.finish()
+            self.get_phases_from_mr_model()
+        for self.cycle in range(1, args.cycles + 1):
+            print("\n## Cycle %d\n" % self.cycle)
+            self.run_cycle()
+            self.process_cycle_output()
+            if args.auto_stop and self.cycle - self.best_refmac_cycle == 4:
+                break
+        if self.best_refmac.rwork < 30 and self.resolution < 2.5:
+            print("\n## Finalisations\n")
+            self.cycle += 1
+            self.update_current_from_refmac_job(self.best_refmac)
+            self.fixsidechains()
+            self.process_cycle_output()
+        self.terminate(reason="Normal")
 
-    # def run_cycle(self):
-    #     if self.cycle > 1 and self.resolution < 2.3:
-    #         self.prune()
-    #         self.refmac(cycles=5)
-    #     if self.resolution > 2.4:
-    #         self.parrot()
-    #     self.buccaneer()
-    #     self.refmac(cycles=10)
-    #     self.prune(chains_only=True)
-    #     self.refmac(cycles=5)
-    #     if self.min_rwork < 40:
-    #         self.findwaters()
+    def run_cycle(self):
+        if self.cycle > 1 and self.resolution < 2.3:
+            self.prune()
+        if self.resolution > 2.4:
+            self.parrot()
+        self.buccaneer()
+        self.prune(chains_only=True)
+        if self.best_refmac.rwork < 40:
+            self.findwaters()
 
-    # def finish(self):
-    #     self.write_report()
-    #     print("\n--- Normal termination ---")
-    #     sys.exit()
+    def terminate(self, reason: str):
+        print(f"\n--- Termination: {reason} ---")
+        self.report["termination_reason"] = reason
+        self.write_report()
+        sys.exit()
 
-    # def add_job(self, job):
-    #     if job.name not in self.report["real_time"]:
-    #         self.report["real_time"][job.name] = 0
-    #     self.report["real_time"][job.name] += job.finish_time - job.start_time
-    #     self.write_report()
+    def add_job(self, job):
+        if job.name not in self.report["real_time"]:
+            self.report["real_time"][job.name] = 0
+        self.report["real_time"][job.name] += job.finish_time - job.start_time
+        self.write_report()
 
-    # def get_phases_from_mr_model(self):
-    #     xyzin = self.args.mr_model
-    #     if distutils.spawn.find_executable("csheetbend") is not None:
-    #         sheetbend_job = Sheetbend(self.args, self.args.mr_model)
-    #         self.add_job(sheetbend_job)
-    #         xyzin = sheetbend_job.xyzout
-    #     refmac_job = Refmac(self.args, xyzin, cycles=10)
-    #     self.add_job(refmac_job)
-    #     self.current_hkl = refmac_job.hklout
+    def get_phases_from_mr_model(self):
+        structure = self.args.mr_model
+        if distutils.spawn.find_executable("csheetbend") is not None:
+            print("Sheetbend")
+            sheetbend = Sheetbend(self.args.fsigf, self.args.freer, structure)
+            self.add_job(sheetbend)
+            structure = sheetbend.structure
+        self.refmac(structure, cycles=10, auto_accept=True)
 
-    # def buccaneer(self):
-    #     cycles = 3 if self.cycle == 1 else 2
-    #     job = Buccaneer(self.args, self.current_hkl, self.current_xyz, cycles)
-    #     self.add_job(job)
-    #     if not job.xyzout.exists or job.xyzout.residues == 0:
-    #         print("Stopping the pipeline because buccaneer did not build any residues")
-    #         self.report["cycles"][self.cycle] = {
-    #             "r_work": None,
-    #             "r_free": None,
-    #             "residues": 0,
-    #             "residues_sequenced": 0,
-    #             "waters": 0,
-    #         }
-    #         self.finish()
-    #     self.current_xyz = job.xyzout
+    def buccaneer(self):
+        print("Buccaneer")
+        job = Buccaneer(
+            contents=self.args.contents,
+            fsigf=self.args.fsigf,
+            freer=self.args.freer,
+            phases=self.current_phases,
+            fphi=self.current_fphi_best,
+            input_structure=self.current_structure,
+            known_structure=self.args.known_structure,
+            mr_structure=self.args.mr_model if self.args.mr_mode > 1 else None,
+            use_mr=self.args.mr_mode > 2,
+            filter_mr=self.args.mr_mode in (4, 6),
+            seed_mr=self.args.mr_mode > 4,
+            cycles=3 if self.cycle == 1 else 2,
+            semet=self.args.semet,
+            program=self.args.buccaneer,
+        )
+        self.add_job(job)
+        stats = ModelStats(job.structure)
+        if stats.residues == 0:
+            self.terminate(reason="Buccaneer did not build any residues")
+        self.refmac(job.structure, cycles=10, auto_accept=True)
 
-    # def refmac(self, cycles):
-    #     use_phases = self.args.unbiased and self.min_rwork > 35
-    #     job = Refmac(self.args, self.current_xyz, cycles, use_phases)
-    #     self.add_job(job)
-    #     self.current_hkl = job.hklout
-    #     self.current_xyz = job.xyzout
+    def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
+        print("REFMAC")
+        use_phases = self.args.unbiased and (
+            self.best_refmac is None or self.best_refmac.rwork > 35
+        )
+        job = Refmac(
+            structure=structure,
+            fsigf=self.args.fsigf,
+            freer=self.args.freer,
+            cycles=cycles,
+            phases=self.args.phases if use_phases else None,
+            twinned=self.args.twinned,
+        )
+        self.add_job(job)
+        if auto_accept or job.rfree < self.current_rfree:
+            self.update_current_from_refmac_job(job)
+            if self.best_refmac is None or job.rfree < self.best_refmac.rfree:
+                self.best_refmac = job
+                self.best_refmac_cycle = self.cycle
+                write_mmcif("modelcraft.cif", job.structure)
+                write_mtz(
+                    "modelcraft.mtz",
+                    [
+                        self.args.fsigf,
+                        self.args.freer,
+                        job.abcd,
+                        job.fphi_best,
+                        job.fphi_diff,
+                        job.fphi_calc,
+                    ],
+                )
+                self.report["final"] = self.current_stats()
+                self.write_report()
 
-    # def parrot(self):
-    #     job = Parrot(self.args, self.current_hkl, self.current_xyz)
-    #     self.add_job(job)
-    #     self.current_hkl = job.hklout
+    def update_current_from_refmac_job(self, job):
+        self.current_structure = job.structure
+        self.current_phases = job.abcd
+        self.current_fphi_best = job.fphi_best
+        self.current_fphi_diff = job.fphi_diff
+        self.current_fphi_calc = job.fphi_calc
+        self.current_rwork = job.rwork
+        self.current_rfree = job.rfree
 
-    # def prune(self, chains_only=False):
-    #     job = Prune(self.current_xyz, self.current_hkl, chains_only)
-    #     self.add_job(job)
-    #     self.current_xyz = job.xyzout
+    def parrot(self):
+        print("Parrot")
+        job = Parrot(
+            contents=self.args.contents,
+            fsigf=self.args.fsigf,
+            freer=self.args.freer,
+            phases=self.current_phases,
+            fphi=self.current_fphi_best,
+            structure=self.current_structure,
+        )
+        self.add_job(job)
+        self.current_phases = job.abcd
+        self.current_fphi_best = job.fphi
 
-    # def fixsidechains(self):
-    #     sidechains_job = FixSidechains(self.current_xyz, self.current_hkl)
-    #     self.add_job(sidechains_job)
-    #     refmac_job = Refmac(self.args, refmac_dir, sidechains_job.xyzout, 5)
-    #     self.add_job(refmac_job)
-    #     if refmac_job.xyzout.rfree < self.current_xyz.rfree:
-    #         self.current_hkl = refmac_job.hklout
-    #         self.current_xyz = refmac_job.xyzout
+    def prune(self, chains_only=False):
+        print("Pruning chains" if chains_only else "Pruning model")
+        job = Prune(
+            structure=self.current_structure,
+            fphi_best=self.current_fphi_best,
+            fphi_diff=self.current_fphi_diff,
+            chains_only=chains_only,
+        )
+        self.add_job(job)
+        self.refmac(job.structure, cycles=5, auto_accept=True)
 
-    # def findwaters(self, dummy=False):
-    #     waters_job = FindWaters(self.current_xyz, self.current_hkl, dummy)
-    #     self.add_job(waters_job)
-    #     refmac_job = Refmac(self.args, waters_job.xyzout, 10)
-    #     self.add_job(refmac_job)
-    #     if refmac_job.xyzout.rfree < self.current_xyz.rfree:
-    #         self.current_hkl = refmac_job.hklout
-    #         self.current_xyz = refmac_job.xyzout
+    def fixsidechains(self):
+        print("Fixing side chains")
+        job = FixSideChains(
+            structure=self.current_structure,
+            fphi_best=self.current_fphi_best,
+            fphi_diff=self.current_fphi_diff,
+        )
+        self.add_job(job)
+        self.refmac(job.structure, cycles=5, auto_accept=False)
 
-    # def improved(self):
-    #     xyz = self.current_xyz
-    #     required_improvement = 0.02
-    #     improvement = (self.min_rwork - xyz.rwork) / self.min_rwork
-    #     if improvement > required_improvement:
-    #         return True
-    #     improvement = (xyz.residues - self.max_residues_built) / float(
-    #         self.max_residues_built
-    #     )
-    #     if improvement > required_improvement:
-    #         return True
-    #     improvement = (xyz.sequenced_residues - self.max_residues_sequenced) / float(
-    #         self.max_residues_sequenced
-    #     )
-    #     if improvement > required_improvement:
-    #         return True
-    #     improvement = (self.min_fragments_built - xyz.fragments) / float(
-    #         self.min_fragments_built
-    #     )
-    #     if improvement > required_improvement:
-    #         return True
-    #     improvement = (xyz.longest_fragment - self.max_longest_fragment) / float(
-    #         self.max_longest_fragment
-    #     )
-    #     if improvement > required_improvement:
-    #         return True
-    #     return False
+    def findwaters(self, dummy=False):
+        print("Adding dummy atoms" if dummy else "Adding waters")
+        job = FindWaters(
+            structure=self.current_structure, fphi=self.current_fphi_best, dummy=dummy
+        )
+        self.add_job(job)
+        self.refmac(job.structure, cycles=10, auto_accept=False)
 
-    # def process_cycle_output(self):
-    #     print("")
-    #     print("R-work: %.3f" % self.current_xyz.rwork)
-    #     print("R-free: %.3f" % self.current_xyz.rfree)
-    #     print("Residues: %d" % self.current_xyz.residues)
-    #     print("Sequenced residues: %d" % self.current_xyz.sequenced_residues)
-    #     print("Waters: %d" % self.current_xyz.waters)
-    #     self.add_cycle_stats()
+    def process_cycle_output(self):
+        self.report["cycles"][self.cycle] = self.current_stats()
+        self.write_report()
 
-    #     if self.improved():
-    #         self.cycles_without_improvement = 0
-    #     else:
-    #         self.cycles_without_improvement += 1
-    #         print(
-    #             "\nNo significant improvement for %d cycle(s)"
-    #             % self.cycles_without_improvement
-    #         )
+    def current_stats(self):
+        stats = ModelStats(self.current_structure)
+        return {
+            "r_work": self.current_rwork,
+            "r_free": self.current_rfree,
+            "residues": stats.residues,
+            "sequenced_residues": stats.sequenced_residues,
+            "fragments": stats.fragments,
+            "longest_fragment": stats.longest_fragment,
+            "waters": stats.waters,
+            "dummy_atoms": stats.dummy_atoms,
+        }
 
-    #     if self.current_xyz.rfree < self.min_rfree:
-    #         self.min_rfree = self.current_xyz.rfree
-    #         print("Copying files to output because R-free has improved")
-    #         shutil.copyfile(str(self.current_xyz.path), "modelcraft.pdb")
-    #         shutil.copyfile(str(self.current_hkl.path), "modelcraft.mtz")
-    #         self.best_xyz = self.current_xyz
-    #         self.best_hkl = self.current_hkl
-    #         self.best_xyz.path = os.path.abspath("modelcraft.pdb")
-    #         self.best_hkl.path = os.path.abspath("modelcraft.mtz")
-    #         self.add_final_stats()
-    #     self.min_rwork = min(self.min_rwork, self.current_xyz.rwork)
-    #     self.max_residues_built = max(
-    #         self.max_residues_built, self.current_xyz.residues
-    #     )
-    #     self.max_residues_sequenced = max(
-    #         self.max_residues_sequenced, self.current_xyz.sequenced_residues
-    #     )
-    #     self.min_fragments_built = min(
-    #         self.min_fragments_built, self.current_xyz.fragments
-    #     )
-    #     self.max_longest_fragment = max(
-    #         self.max_longest_fragment, self.current_xyz.longest_fragment
-    #     )
-
-    # def add_cycle_stats(self):
-    #     self.report["cycles"][self.cycle] = self.current_stats()
-    #     self.write_report()
-
-    # def add_final_stats(self):
-    #     self.report["final"] = self.current_stats()
-    #     self.write_report()
-
-    # def current_stats(self):
-    #     return {
-    #         "r_work": self.current_xyz.rwork,
-    #         "r_free": self.current_xyz.rfree,
-    #         "residues": self.current_xyz.residues,
-    #         "residues_sequenced": self.current_xyz.sequenced_residues,
-    #         "waters": self.current_xyz.waters,
-    #     }
-
-    # def write_report(self):
-    #     self.report["real_time"]["total"] = round(time.time() - self.start_time)
-    #     with open("modelcraft.json", "w") as f:
-    #         json.dump(self.report, f, indent=4)
+    def write_report(self):
+        self.report["real_time"]["total"] = time.time() - self.start_time
+        with open("modelcraft.json", "w") as report_file:
+            json.dump(self.report, report_file, indent=4)
