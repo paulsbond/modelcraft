@@ -22,6 +22,10 @@ class Job:
         self.start_time = time.time()
         self.finish_time = None
 
+    @property
+    def name(self) -> str:
+        return type(self).__name__
+
     def path(self, *paths: str) -> str:
         return os.path.join(self._directory, *paths)
 
