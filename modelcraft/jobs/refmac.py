@@ -76,7 +76,9 @@ class Refmac(Job):
         xml = ET.parse(path).getroot()
         rworks = list(xml.iter("r_factor"))
         rfrees = list(xml.iter("r_free"))
-        self.initial_rwork = float(rworks[0].text) * 100
-        self.initial_rfree = float(rfrees[0].text) * 100
-        self.final_rwork = float(rworks[-1].text) * 100
-        self.final_rfree = float(rfrees[-1].text) * 100
+        self.rwork = float(rworks[-1].text) * 100
+        self.rfree = float(rfrees[-1].text) * 100
+        initial_rwork = float(rworks[0].text) * 100
+        initial_rfree = float(rfrees[0].text) * 100
+        self.rwork_change = self.rwork - initial_rwork
+        self.rfree_change = self.rfree - initial_rfree

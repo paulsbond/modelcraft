@@ -15,4 +15,4 @@ def test_1kv9():
     assert refmac.fphi_best.nreflections == mtz.nreflections
     assert refmac.fphi_diff.nreflections == mtz.nreflections
     assert refmac.fphi_calc.nreflections == mtz.nreflections
-    assert refmac.initial_rwork > refmac.final_rwork
+    assert refmac.rwork_change < 0
