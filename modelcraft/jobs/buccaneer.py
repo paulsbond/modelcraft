@@ -60,12 +60,12 @@ class Buccaneer(Job):
             xyzmr = self.path("xyzmr.cif")
             args += ["-pdbin-mr", xyzmr]
             if use_mr:
-                args += ["mr-model"]
+                args += ["-mr-model"]
                 if filter_mr:
-                    args += ["mr-model-filter"]
-                    args += ["mr-model-filter-sigma 2.0"]
+                    args += ["-mr-model-filter"]
+                    args += ["-mr-model-filter-sigma", "2.0"]
                 if seed_mr:
-                    args += ["mr-model-seed"]
+                    args += ["-mr-model-seed"]
             write_mmcif(xyzmr, mr_structure)
 
         args += ["-cycles", str(cycles)]
