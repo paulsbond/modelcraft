@@ -43,6 +43,12 @@ def test_invalid_1kv9_columns(columns: str):
         DataItem(mtz, columns)
 
 
+def test_1kv9_resolution():
+    mtz = gemmi.read_mtz_file(data_path("1kv9_data.mtz"))
+    item = DataItem(mtz, "FP,SIGFP")
+    assert item.resolution == pytest.approx(1.8, abs=0.001)
+
+
 @pytest.mark.parametrize(
     "label,expanded",
     [
