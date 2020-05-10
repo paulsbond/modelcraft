@@ -1,5 +1,5 @@
 import gemmi
-from modelcraft.structure import _KNOWN_PROTEIN_RESIDUES, model_stats
+from modelcraft.structure import _KNOWN_PROTEIN_RESIDUES, ModelStats
 from modelcraft.tests import data_path
 
 
@@ -14,7 +14,7 @@ def test_unk_is_known():
 def test_model_stats():
     path = data_path("1kv9_model.pdb")
     structure = gemmi.read_structure(path)
-    stats = model_stats(structure)
+    stats = ModelStats(structure)
     assert stats.residues == 651
     assert stats.sequenced_residues == 651
     assert stats.fragments == 12  # TODO: Check using Coot

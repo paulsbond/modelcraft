@@ -2,7 +2,7 @@ import gemmi
 from modelcraft.jobs import Buccaneer
 from modelcraft.contents import AsuContents
 from modelcraft.reflections import DataItem
-from modelcraft.structure import model_stats
+from modelcraft.structure import ModelStats
 from modelcraft.tests import data_path
 
 
@@ -15,5 +15,5 @@ def test_1kv9():
     buccaneer = Buccaneer(
         contents=contents, fsigf=fsigf, freer=freer, phases=phases, cycles=1
     )
-    stats = model_stats(buccaneer.structure)
+    stats = ModelStats(buccaneer.structure)
     assert stats.residues > 0

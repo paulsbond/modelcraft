@@ -54,39 +54,36 @@ def write_mmcif(path: str, structure: gemmi.Structure) -> None:
 
 @dataclass
 class ModelStats:
-    residues: int = 0
-    sequenced_residues: int = 0
-    fragments: int = 0
-    longest_fragment: int = 0
-    waters: int = 0
-    dummy_atoms: int = 0
+    def __init__(self, structure: gemmi.Structure):
+        self.residues: int = 0
+        self.sequenced_residues: int = 0
+        self.fragments: int = 0
+        self.longest_fragment: int = 0
+        self.waters: int = 0
+        self.dummy_atoms: int = 0
 
-
-def model_stats(structure: gemmi.Structure) -> ModelStats:
-    stats = ModelStats()
-    current_fragment_length = 0
-    model = structure[0]
-    for chain in model:
-        for i, residue in enumerate(chain):
-            if residue.name == "HOH":
-                stats.waters += 1
-            elif residue.name == "DUM":
-                stats.dummy_atoms += 1
-            elif _is_protein(residue):
-                stats.residues += 1
-                current_fragment_length += 1
-                if residue.name != "UNK":
-                    stats.sequenced_residues += 1
-                if i + 1 < len(chain):
-                    next_residue = chain[i + 1]
-                    if (
-                        _is_protein(next_residue)
-                        and _min_distance(residue["C"], next_residue["N"]) < 1.7
-                    ):
-                        continue
-                stats.fragments += 1
-                stats.longest_fragment = max(
-                    stats.longest_fragment, current_fragment_length
-                )
-                current_fragment_length = 0
-    return stats
+        current_fragment_length = 0
+        model = structure[0]
+        for chain in model:
+            for i, residue in enumerate(chain):
+                if residue.name == "HOH":
+                    self.waters += 1
+                elif residue.name == "DUM":
+                    self.dummy_atoms += 1
+                elif _is_protein(residue):
+                    self.residues += 1
+                    current_fragment_length += 1
+                    if residue.name != "UNK":
+                        self.sequenced_residues += 1
+                    if i + 1 < len(chain):
+                        next_residue = chain[i + 1]
+                        if (
+                            _is_protein(next_residue)
+                            and _min_distance(residue["C"], next_residue["N"]) < 1.7
+                        ):
+                            continue
+                    self.fragments += 1
+                    self.longest_fragment = max(
+                        self.longest_fragment, current_fragment_length
+                    )
+                    current_fragment_length = 0

@@ -1,7 +1,7 @@
 import gemmi
 from modelcraft.reflections import DataItem
 from modelcraft.jobs import Sheetbend
-from modelcraft.structure import model_stats
+from modelcraft.structure import ModelStats
 from modelcraft.tests import data_path
 
 
@@ -11,4 +11,4 @@ def test_1kv9():
     freer = DataItem(mtz, "FREE")
     structure = gemmi.read_structure(data_path("1kv9_model.pdb"))
     sheetbend = Sheetbend(fsigf, freer, structure)
-    assert model_stats(structure) == model_stats(sheetbend.structure)
+    assert ModelStats(structure) == ModelStats(sheetbend.structure)
