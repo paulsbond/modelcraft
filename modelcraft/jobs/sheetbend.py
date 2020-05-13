@@ -1,7 +1,7 @@
 import gemmi
 from .job import Job
 from ..reflections import DataItem, write_mtz
-from ..structure import write_mmcif
+from ..structure import read_mmcif, write_mmcif
 
 
 class Sheetbend(Job):
@@ -27,6 +27,6 @@ class Sheetbend(Job):
 
         self.run("csheetbend", args)
 
-        self.structure = gemmi.read_structure(xyzout)
+        self.structure = read_mmcif(xyzout)
 
         self.finish()

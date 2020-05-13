@@ -2,7 +2,7 @@ from typing import Optional
 import xml.etree.ElementTree as ET
 import gemmi
 from ..reflections import DataItem, write_mtz
-from ..structure import write_mmcif
+from ..structure import read_mmcif, write_mmcif
 from .job import Job
 
 
@@ -62,7 +62,7 @@ class Refmac(Job):
 
         self._set_rfactors(xmlout)
 
-        self.structure = gemmi.read_structure(xyzout)
+        self.structure = read_mmcif(xyzout)
         mtz = gemmi.read_mtz_file(hklout)
         self.fsigf = DataItem(mtz, fsigf.label())
         self.abcd = DataItem(mtz, "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB")
