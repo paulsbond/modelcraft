@@ -1,8 +1,7 @@
 import os
-import shutil
 import gemmi
 from ..reflections import DataItem, write_mtz
-from ..structure import read_structure
+from ..structure import read_structure, write_mmcif
 from .job import Job
 
 
@@ -15,23 +14,33 @@ class Coot(Job):
         script: str,
     ):
         super().__init__()
-        xyzin = self.path("xyzin.pdb")  # TODO: Change to CIF
+        xyzin = self.path("xyzin.cif")
         hklin = self.path("hklin.mtz")
         script_path = self.path("script.py")
-        xyzout = self.path("xyzout.pdb")  # TODO: Change to CIF
-        script = (
-            f"read_pdb('{xyzin}')\n"
-            f"make_and_draw_map('{hklin}', '{fphi_best.label(0)}', '{fphi_best.label(1)}', '', 0, 0)\n"
-            f"make_and_draw_map('{hklin}', '{fphi_diff.label(0)}', '{fphi_diff.label(1)}', '', 0, 1)\n"
-            f"{script}\n"
-            f"write_pdb_file(0, '{xyzout}')\n"  # TODO: write_cif_file
-            "exit()\n"
-        )
+        xyzout = self.path("xyzout.cif")
+        script_lines = [
+            f"handle_read_draw_molecule('{xyzin}')\n",
+            f"make_and_draw_map('{hklin}',",
+            f"    '{fphi_best.label(0)}', '{fphi_best.label(1)}', '', 0, 0)\n",
+            f"make_and_draw_map('{hklin}',",
+            f"    '{fphi_diff.label(0)}', '{fphi_diff.label(1)}', '', 0, 1)\n",
+            "turn_off_backup(0)\n",
+            "try:\n",
+        ]
+        for line in script.split("\n"):
+            script_lines.append("    %s\n" % line)
+        script_lines += [
+            f"    write_cif_file(0, '{xyzout}')\n",
+            "except:\n",
+            "    import traceback\n",
+            "    traceback.print_exc()\n",
+            "    coot_real_exit(1)\n",
+            "coot_real_exit(0)\n",
+        ]
 
         with open(script_path, "w") as script_file:
-            script_file.write(script)
-        structure.write_pdb(xyzin)  # TODO: Change to CIF
-        # write_mmcif(xyzin, structure)
+            script_file.writelines(script_lines)
+        write_mmcif(xyzin, structure)
         write_mtz(hklin, [fphi_best, fphi_diff])
 
         args = []
@@ -41,8 +50,6 @@ class Coot(Job):
         args += ["--script", script_path]
         self.run("coot", args)
         self.structure = read_structure(xyzout)
-        shutil.rmtree("coot-backup", ignore_errors=True)
-        shutil.rmtree("coot-download", ignore_errors=True)
         self.finish()
 
 
