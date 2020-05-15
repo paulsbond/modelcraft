@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import os
+import uuid
 import gemmi
 
 _KNOWN_PROTEIN_RESIDUES = {
@@ -46,6 +48,15 @@ def _is_protein(residue: gemmi.Residue) -> bool:
     return residue.name in _KNOWN_PROTEIN_RESIDUES and all(
         atom in residue for atom in ("N", "CA", "C")
     )
+
+
+def copy_structure(structure: gemmi.Structure) -> gemmi.Structure:
+    # https://github.com/project-gemmi/gemmi/issues/31
+    path = "%s.cif" % uuid.uuid4()
+    write_mmcif(path, structure)
+    copy = read_structure(path)
+    os.remove(path)
+    return copy
 
 
 def read_structure(path: str) -> gemmi.Structure:
