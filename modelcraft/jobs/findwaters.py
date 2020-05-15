@@ -1,6 +1,6 @@
 import gemmi
 from ..reflections import DataItem, write_mtz
-from ..structure import read_structure, write_mmcif
+from ..structure import copy_structure, read_structure, write_mmcif
 from .job import Job
 
 
@@ -10,8 +10,7 @@ class FindWaters(Job):
 
         xyzin = self.path("xyzin.cif")
         hklin = self.path("hklin.mtz")
-        waters = self.path("waters.pdb")  # In PDB format even with a cif extension
-        xyzout = self.path("xyzout.cif")
+        water = self.path("water.pdb")  # In PDB format even with a cif extension
 
         write_mmcif(xyzin, structure)
         write_mtz(hklin, [fphi])
@@ -22,19 +21,18 @@ class FindWaters(Job):
         args += ["--f", fphi.label(0)]
         args += ["--phi", fphi.label(1)]
         if dummy:
-            # May be a bug in the minimum distance between the dummy atoms an structure
             args += ["--flood"]
-        args += ["--pdbout", waters]
+        args += ["--pdbout", water]
         self.run("findwaters", args)
 
-        # TODO: Remove reliance on pdb_merge using gemmi
-        args = []
-        args += ["xyzin1", xyzin]
-        args += ["xyzin2", waters]
-        args += ["xyzout", xyzout]
-        stdin = ["NOMERGE", "OUTPUT CIF", "END"]
-        self.run("pdb_merge", args, stdin)
-
-        self.structure = read_structure(xyzout)
+        self.structure = copy_structure(structure)
+        model = self.structure[0]
+        chain = "dummy" if dummy else "water"
+        if chain not in model:
+            model.add_chain(chain)
+        water_structure = read_structure(water)
+        for water_chain in water_structure[0]:
+            for water_residue in water_chain:
+                model[chain].add_residue(water_residue)
 
         self.finish()
