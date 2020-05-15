@@ -2,6 +2,7 @@ import os
 import shutil
 import gemmi
 from ..reflections import DataItem, write_mtz
+from ..structure import read_structure
 from .job import Job
 
 
@@ -39,7 +40,7 @@ class Coot(Job):
         args += ["--no-state-script"]
         args += ["--script", script_path]
         self.run("coot", args)
-        self.structure = gemmi.read_structure(xyzout)
+        self.structure = read_structure(xyzout)
         shutil.rmtree("coot-backup", ignore_errors=True)
         shutil.rmtree("coot-download", ignore_errors=True)
         self.finish()

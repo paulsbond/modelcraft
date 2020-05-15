@@ -4,7 +4,7 @@ import gemmi
 from ..contents import AsuContents, PolymerType
 from .job import Job
 from ..reflections import DataItem, write_mtz
-from ..structure import read_mmcif, write_mmcif
+from ..structure import read_structure, write_mmcif
 
 
 class Buccaneer(Job):
@@ -83,5 +83,5 @@ class Buccaneer(Job):
         self.run(program, args)
         if not os.path.exists(xyzout):
             raise RuntimeError("Buccaneer did not produce an output structure")
-        self.structure = read_mmcif(xyzout)
+        self.structure = read_structure(xyzout)
         self.finish()

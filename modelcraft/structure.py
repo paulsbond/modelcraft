@@ -48,10 +48,17 @@ def _is_protein(residue: gemmi.Residue) -> bool:
     )
 
 
-def read_mmcif(path: str) -> gemmi.Structure:
-    document = gemmi.cif.read(path)
-    block = document[0]  # Assume the first block is the structure
-    return gemmi.make_structure_from_block(block)
+def read_structure(path: str) -> gemmi.Structure:
+    if (
+        path[-4:] == ".cif"
+        or path[-7:] == ".cif.gz"
+        or path[-6:] == ".mmcif"
+        or path[-9:] == ".mmcif.gz"
+    ):
+        document = gemmi.cif.read(path)
+        block = document[0]  # Assume the first block is the structure
+        return gemmi.make_structure_from_block(block)
+    return gemmi.read_structure(path)
 
 
 def write_mmcif(path: str, structure: gemmi.Structure) -> None:

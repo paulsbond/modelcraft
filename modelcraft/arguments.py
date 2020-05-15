@@ -4,6 +4,7 @@ import os
 import gemmi
 from modelcraft.contents import AsuContents
 from modelcraft.reflections import DataItem
+from modelcraft.structure import read_structure
 
 
 _PARSER = argparse.ArgumentParser(add_help=False)
@@ -37,9 +38,9 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     _parse_data_items(args)
     args.contents = AsuContents(args.seqin)
     if args.xyzin is not None:
-        args.xyzin = gemmi.read_structure(args.xyzin)
+        args.xyzin = read_structure(args.xyzin)
     if args.mr_model is not None:
-        args.mr_model = gemmi.read_structure(args.mr_model)
+        args.mr_model = read_structure(args.mr_model)
     return args
 
 

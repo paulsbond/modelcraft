@@ -1,6 +1,6 @@
 import gemmi
 from ..reflections import DataItem, write_mtz
-from ..structure import read_mmcif, write_mmcif
+from ..structure import read_structure, write_mmcif
 from .job import Job
 
 
@@ -35,6 +35,6 @@ class FindWaters(Job):
         stdin = ["NOMERGE", "OUTPUT CIF", "END"]
         self.run("pdb_merge", args, stdin)
 
-        self.structure = read_mmcif(xyzout)
+        self.structure = read_structure(xyzout)
 
         self.finish()
