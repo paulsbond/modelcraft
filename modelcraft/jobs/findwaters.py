@@ -25,14 +25,19 @@ class FindWaters(Job):
         args += ["--pdbout", water]
         self.run("findwaters", args)
 
-        self.structure = copy_structure(structure)
-        model = self.structure[0]
-        chain = "dummy" if dummy else "water"
-        if chain not in model:
-            model.add_chain(chain)
+        water_residues = []
         water_structure = read_structure(water)
         for water_chain in water_structure[0]:
             for water_residue in water_chain:
-                model[chain].add_residue(water_residue)
+                water_residues.append(water_residue)
+
+        self.structure = copy_structure(structure)
+        if len(water_residues) > 0:
+            model = self.structure[0]
+            chain = "dummy" if dummy else "water"
+            if chain not in model:
+                model.add_chain(chain)
+            for residue in water_residues:
+                model[chain].add_residue(residue)
 
         self.finish()
