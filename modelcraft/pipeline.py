@@ -95,9 +95,6 @@ class Pipeline:
 
     def buccaneer(self):
         print("Buccaneer")
-        use_mr_model = self.args.mr_mode > 1 and (
-            self.best_refmac is None or self.best_refmac.rwork > 35
-        )
         job = Buccaneer(
             contents=self.args.contents,
             fsigf=self.args.fsigf,
@@ -106,7 +103,7 @@ class Pipeline:
             fphi=self.current_fphi_best,
             input_structure=self.current_structure,
             known_structure=self.args.known_structure,
-            mr_structure=self.args.mr_model if use_mr_model else None,
+            mr_structure=self.args.mr_model if self.args.mr_mode > 1 else None,
             use_mr=self.args.mr_mode > 2,
             filter_mr=self.args.mr_mode in (4, 6),
             seed_mr=self.args.mr_mode > 4,
