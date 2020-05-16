@@ -67,6 +67,8 @@ class Pipeline:
             self.prune()
         if self.resolution > 2.4:
             self.parrot()
+        if self.current_structure is not None and self.current_fphi_best is not None:
+            self.findwaters(dummy=True)
         self.buccaneer()
         self.prune(chains_only=True)
         if self.best_refmac.rwork < 40:
