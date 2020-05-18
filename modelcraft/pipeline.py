@@ -65,8 +65,7 @@ class Pipeline:
     def run_cycle(self):
         if self.cycle > 1 and self.resolution < 2.3:
             self.prune()
-        if self.resolution > 2.4:
-            self.parrot()
+        self.parrot()
         if self.current_structure is not None and self.current_fphi_best is not None:
             self.findwaters(dummy=True)
         self.buccaneer()
