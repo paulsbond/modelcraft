@@ -31,8 +31,7 @@ class Pipeline:
         self.current_fphi_best = None
         self.current_fphi_diff = None
         self.current_fphi_calc = None
-        self.current_rwork = None
-        self.current_rfree = None
+        self.last_refmac = None
         self.best_refmac = None
         self.best_refmac_cycle = 0
         self.start_time = time.time()
@@ -52,7 +51,7 @@ class Pipeline:
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
             self.process_cycle_output()
-            if args.auto_stop and self.cycle - self.best_refmac_cycle == 4:
+            if args.auto_stop and (self.cycle - self.best_refmac_cycle) == 4:
                 break
         if self.best_refmac.rwork < 30 and self.resolution < 2.5:
             print("\n## Finalisations\n")
@@ -66,11 +65,11 @@ class Pipeline:
         if self.cycle > 1:
             self.prune()
         self.parrot()
-        if self.current_structure is not None and self.current_fphi_best is not None:
+        if self.current_structure is not None:
             self.findwaters(dummy=True)
         self.buccaneer()
         self.prune(chains_only=True)
-        if self.best_refmac.rwork < 40:
+        if self.last_refmac.rwork < 40:
             self.findwaters()
 
     def terminate(self, reason: str):
@@ -132,25 +131,8 @@ class Pipeline:
             twinned=self.args.twinned,
         )
         self.add_job(job)
-        if auto_accept or job.rfree < self.current_rfree:
+        if auto_accept or job.rfree < self.last_refmac.rfree:
             self.update_current_from_refmac_job(job)
-            if self.best_refmac is None or job.rfree < self.best_refmac.rfree:
-                self.best_refmac = job
-                self.best_refmac_cycle = self.cycle
-                write_mmcif("modelcraft.cif", job.structure)
-                write_mtz(
-                    "modelcraft.mtz",
-                    [
-                        self.args.fsigf,
-                        self.args.freer,
-                        job.abcd,
-                        job.fphi_best,
-                        job.fphi_diff,
-                        job.fphi_calc,
-                    ],
-                )
-                self.report["final"] = self.current_stats()
-                self.write_report()
 
     def update_current_from_refmac_job(self, job):
         self.current_structure = job.structure
@@ -158,8 +140,7 @@ class Pipeline:
         self.current_fphi_best = job.fphi_best
         self.current_fphi_diff = job.fphi_diff
         self.current_fphi_calc = job.fphi_calc
-        self.current_rwork = job.rwork
-        self.current_rfree = job.rfree
+        self.last_refmac = job
 
     def parrot(self):
         print("Parrot")
@@ -205,21 +186,35 @@ class Pipeline:
         self.refmac(job.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self):
-        self.report["cycles"][self.cycle] = self.current_stats()
-        self.write_report()
-
-    def current_stats(self):
-        stats = ModelStats(self.current_structure)
-        return {
-            "r_work": self.current_rwork,
-            "r_free": self.current_rfree,
-            "residues": stats.residues,
-            "sequenced_residues": stats.sequenced_residues,
-            "fragments": stats.fragments,
-            "longest_fragment": stats.longest_fragment,
-            "waters": stats.waters,
-            "dummy_atoms": stats.dummy_atoms,
+        model_stats = ModelStats(self.last_refmac.structure)
+        stats = {
+            "r_work": self.last_refmac.rwork,
+            "r_free": self.last_refmac.rfree,
+            "residues": model_stats.residues,
+            "sequenced_residues": model_stats.sequenced_residues,
+            "fragments": model_stats.fragments,
+            "longest_fragment": model_stats.longest_fragment,
+            "waters": model_stats.waters,
+            "dummy_atoms": model_stats.dummy_atoms,
         }
+        self.report["cycles"][self.cycle] = stats
+        if self.best_refmac is None or self.last_refmac.rfree < self.best_refmac.rfree:
+            self.best_refmac = self.last_refmac
+            self.best_refmac_cycle = self.cycle
+            write_mmcif("modelcraft.cif", self.last_refmac.structure)
+            write_mtz(
+                "modelcraft.mtz",
+                [
+                    self.args.fsigf,
+                    self.args.freer,
+                    self.last_refmac.abcd,
+                    self.last_refmac.fphi_best,
+                    self.last_refmac.fphi_diff,
+                    self.last_refmac.fphi_calc,
+                ],
+            )
+            self.report["final"] = stats
+        self.write_report()
 
     def write_report(self):
         self.report["real_time"]["total"] = time.time() - self.start_time
