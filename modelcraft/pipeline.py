@@ -1,4 +1,3 @@
-import distutils.spawn
 import json
 import sys
 import time
@@ -86,11 +85,10 @@ class Pipeline:
 
     def get_phases_from_mr_model(self):
         structure = self.args.mr_model
-        if distutils.spawn.find_executable("csheetbend") is not None:
-            print("Sheetbend")
-            sheetbend = Sheetbend(self.args.fsigf, self.args.freer, structure)
-            self.add_job(sheetbend)
-            structure = sheetbend.structure
+        print("Sheetbend")
+        sheetbend = Sheetbend(self.args.fsigf, self.args.freer, structure)
+        self.add_job(sheetbend)
+        structure = sheetbend.structure
         self.refmac(structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
