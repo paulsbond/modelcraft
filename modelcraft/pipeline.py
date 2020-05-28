@@ -68,8 +68,7 @@ class Pipeline:
             self.findwaters(dummy=True)
         self.buccaneer()
         self.prune(chains_only=True)
-        if self.last_refmac.rwork < 40:
-            self.findwaters()
+        self.findwaters()
 
     def terminate(self, reason: str):
         print(f"\n--- Termination: {reason} ---")
