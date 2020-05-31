@@ -2,7 +2,7 @@
 
 import os
 import sys
-from modelcraft.reflections import DataFile
+import gemmi
 from PySide2.QtWidgets import (
     QApplication,
     QComboBox,
@@ -14,6 +14,7 @@ from PySide2.QtWidgets import (
     QPushButton,
     QVBoxLayout,
 )
+from modelcraft.reflections import DataItem
 
 
 class ReflectionGroupBox(QGroupBox):
@@ -69,32 +70,51 @@ class ReflectionGroupBox(QGroupBox):
         )
         if path != "":
             self.file_label.setText(os.path.basename(path))
-            hklin = DataFile(path)
+            mtz = gemmi.read_mtz_file(path)
             self.cell_label.setText(
                 "Cell: %.3f  %.3f  %.3f  %.2f  %.2f  %.2f"
-                % (hklin.cell.a, hklin.cell.b, hklin.cell.c, hklin.cell.alpha, hklin.cell.beta, hklin.cell.gamma)
+                % (
+                    mtz.cell.a,
+                    mtz.cell.b,
+                    mtz.cell.c,
+                    mtz.cell.alpha,
+                    mtz.cell.beta,
+                    mtz.cell.gamma,
+                )
             )
-            self.spacegroup_label.setText("Spacegroup: " + hklin.spacegroup.hm)
+            self.spacegroup_label.setText("Spacegroup: " + mtz.spacegroup.hm)
             self.volume_label.setText(
-                u"ASU Volume: %.0f Å<sup>3</sup>" % (hklin.cell.volume / len(hklin.spacegroup.operations()))
+                u"ASU Volume: %.0f Å<sup>3</sup>"
+                % (mtz.cell.volume / len(mtz.spacegroup.operations()))
             )
             self.resolution_label.setText(
-                u"Resolution limits: %.2f – %.2f Å" % (hklin.resolution_high, hklin.resolution_low)
+                u"Resolution limits: %.2f – %.2f Å"
+                % (mtz.resolution_high(), mtz.resolution_low())
             )
-            self.reflection_label.setText("Number of Reflections: %d" % hklin.num_reflections)
+            self.reflection_label.setText(
+                "Number of Reflections: %d" % mtz.nreflections
+            )
             self.colin_fo_combo.clear()
-            self.colin_fo_combo.addItems(hklin.fsigfs)
+            self.colin_fo_combo.addItems(
+                [item.label() for item in DataItem.search(mtz, "FQ")]
+            )
             self.colin_free_combo.clear()
-            self.colin_free_combo.addItems(hklin.frees)
+            self.colin_free_combo.addItems(
+                [item.label() for item in DataItem.search(mtz, "I")]
+            )
             self.phases_combo.clear()
             self.phases_combo.addItem("None - create phases from an MR model")
-            self.phases_combo.addItems(hklin.abcds)
-            self.phases_combo.addItems(hklin.phifoms)
+            self.phases_combo.addItems(
+                [item.label() for item in DataItem.search(mtz, "AAAA")]
+            )
+            self.phases_combo.addItems(
+                [item.label() for item in DataItem.search(mtz, "PW")]
+            )
 
 
-class AsuContentsGroupBox(QGroupBox):
+class SequenceGroupBox(QGroupBox):
     def __init__(self):
-        super().__init__("ASU Contents")
+        super().__init__("Sequence")
 
 
 class PhasesGroupBox(QGroupBox):
@@ -114,7 +134,7 @@ class Window(QDialog):
         layout = QVBoxLayout()
         self.setLayout(layout)
         layout.addWidget(ReflectionGroupBox())
-        layout.addWidget(AsuContentsGroupBox())
+        layout.addWidget(SequenceGroupBox())
         layout.addWidget(PhasesGroupBox())
         layout.addWidget(OptionsGroupBox())
 
