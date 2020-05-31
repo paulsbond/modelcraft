@@ -56,8 +56,11 @@ class Job:
         script = "#!/usr/bin/env bash\n\n"
         script += executable
         if arguments is not None:
-            script += " " + " ".join(arguments)
-        script += f" > {self._stdout} 2> {self._stderr}"
+            for argument in arguments:
+                if self._directory + "/" in argument:
+                    argument = argument.split(self._directory + "/")[-1]
+                script += " " + argument
+        script += " \\\n> stdout.txt 2> stderr.txt"
         if stdin is not None:
             script += " << EOF\n"
             for line in stdin:
