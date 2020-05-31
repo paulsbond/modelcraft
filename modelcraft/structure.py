@@ -51,7 +51,7 @@ def _is_protein(residue: gemmi.Residue) -> bool:
 
 
 def copy_structure(structure: gemmi.Structure) -> gemmi.Structure:
-    # https://github.com/project-gemmi/gemmi/issues/31
+    # TODO: https://github.com/project-gemmi/gemmi/issues/31
     path = "%s.cif" % uuid.uuid4()
     write_mmcif(path, structure)
     copy = read_structure(path)
@@ -68,8 +68,13 @@ def read_structure(path: str) -> gemmi.Structure:
     ):
         document = gemmi.cif.read(path)
         block = document[0]  # Assume the first block is the structure
-        return gemmi.make_structure_from_block(block)
-    return gemmi.read_structure(path)
+        structure = gemmi.make_structure_from_block(block)
+    else:
+        structure = gemmi.read_structure(path)
+    structure.remove_empty_chains()
+    structure.remove_hydrogens()
+    structure.remove_alternative_conformations()
+    return structure
 
 
 def write_mmcif(path: str, structure: gemmi.Structure) -> None:
