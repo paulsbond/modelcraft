@@ -7,7 +7,7 @@
 [![LGTM Grade](https://img.shields.io/lgtm/grade/python/github/paulsbond/modelcraft)](https://lgtm.com/projects/g/paulsbond/modelcraft)
 [![LGTM Alerts](https://img.shields.io/lgtm/alerts/github/paulsbond/modelcraft)](https://lgtm.com/projects/g/paulsbond/modelcraft)
 [![GitHub issues](https://img.shields.io/github/issues/paulsbond/modelcraft)](https://github.com/paulsbond/modelcraft/issues)  
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/modelcraft)](https://pypi.org/project/modelcraft/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/modelcraft)](https://pypistats.org/packages/modelcraft)
 [![GitHub repo size](https://img.shields.io/github/repo-size/paulsbond/modelcraft)](https://github.com/paulsbond/modelcraft/releases)
 
 Automated model building pipeline for X-ray crystallography.
