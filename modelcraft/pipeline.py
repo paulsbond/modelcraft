@@ -61,6 +61,8 @@ class Pipeline:
         self.terminate(reason="Normal")
 
     def run_cycle(self):
+        if self.cycle > 1 and self.resolution < 2.3:
+            self.prune()
         self.parrot()
         if self.current_structure is not None:
             self.findwaters(dummy=True)
