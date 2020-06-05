@@ -1,28 +1,25 @@
 {
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
-  "editor.rulers": [
-    88
-  ],
+  "editor.rulers": [88],
   "editor.tabSize": 4,
   "files.autoSave": "afterDelay",
   "files.exclude": {
     ".pytest_cache": true,
     "**/__pycache__": true,
-    "**/*.pyc": true,
+    "**/*.pyc": true
   },
   "python.formatting.provider": "black",
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
   "python.linting.pylintArgs": [
-    "--extension-pkg-whitelist=gemmi,PySide2",
     "--disable=bad-continuation",
     "--disable=missing-module-docstring",
     "--disable=missing-class-docstring",
     "--disable=missing-function-docstring",
     "--disable=not-an-iterable", // Problem with gemmi.Mtz.columns inheritance
-    "--disable=unsubscriptable-object", // Problem with gemmi.Mtz.columns inheritance
+    "--disable=unsubscriptable-object" // Problem with gemmi.Mtz.columns inheritance
   ],
   "python.linting.pylintCategorySeverity.refactor": "Information",
-  "python.linting.pylintUseMinimalCheckers": false,
+  "python.linting.pylintUseMinimalCheckers": false
 }

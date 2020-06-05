@@ -20,11 +20,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
-    install_requires=["dataclasses", "gemmi>=0.3.2", "pandas", "pyside2"],
-    entry_points={
-        "console_scripts": [
-            "modelcraft = modelcraft.__main__:main",
-            "modelcraft-gui = modelcraft.gui.__main__:main",
-        ]
-    },
+    install_requires=["dataclasses", "gemmi>=0.3.2", "pandas"],
+    entry_points={"console_scripts": ["modelcraft = modelcraft.__main__:main"]},
 )

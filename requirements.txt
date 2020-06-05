@@ -1,4 +1,3 @@
 dataclasses
 gemmi>=0.3.2
 pandas
-pyside2
