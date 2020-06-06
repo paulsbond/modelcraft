@@ -1,17 +1,22 @@
 from typing import Iterator, Iterable, List, Optional, Union
-from dataclasses import dataclass
 import itertools
 import gemmi
 import numpy
 import pandas
 
 
-@dataclass
 class ColumnRef:
-    label: str
-    dataset: str = ""
-    crystal: str = ""
-    project: str = ""
+    def __init__(
+        self,
+        label: str,
+        dataset: Optional[str] = "",
+        crystal: Optional[str] = "",
+        project: Optional[str] = "",
+    ):
+        self.label = label
+        self.dataset = dataset
+        self.crystal = crystal
+        self.project = project
 
     def matching_columns(self, mtz: gemmi.Mtz) -> Iterator[gemmi.Mtz.Column]:
         for column in mtz.columns:

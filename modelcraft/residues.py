@@ -1,12 +1,7 @@
-from dataclasses import dataclass
+from collections import namedtuple
 
 
-@dataclass
-class Residue:
-    code1: str
-    code3: str
-    name: str
-
+Residue = namedtuple("Residue", ["code1", "code3", "name"])
 
 PROTEIN = [
     Residue("A", "ALA", "Alanine"),

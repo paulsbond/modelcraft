@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import os
 import uuid
 import gemmi
@@ -81,7 +80,6 @@ def write_mmcif(path: str, structure: gemmi.Structure) -> None:
     structure.make_mmcif_document().write_file(path)
 
 
-@dataclass
 class ModelStats:
     def __init__(self, structure: gemmi.Structure):
         self.residues: int = 0
@@ -116,3 +114,19 @@ class ModelStats:
                         self.longest_fragment, current_fragment_length
                     )
                     current_fragment_length = 0
+
+    def __eq__(self, other):
+        if isinstance(other, ModelStats):
+            return (
+                self.residues == other.residues
+                and self.sequenced_residues == other.sequenced_residues
+                and self.fragments == other.fragments
+                and self.longest_fragment == other.longest_fragment
+                and self.waters == other.waters
+                and self.dummy_atoms == other.dummy_atoms
+            )
+        return NotImplemented
+
+    def __ne__(self, other):
+        equal = self.__eq__(other)
+        return NotImplemented if equal is not NotImplemented else not equal

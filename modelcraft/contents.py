@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from enum import Enum
 from typing import Iterator, List, Optional
 import modelcraft.residues as residues
@@ -69,10 +68,10 @@ class Polymer:
             yield Polymer(sequence=sequence, label=label, polymer_type=polymer_type)
 
 
-@dataclass
 class Ligand:
-    code: str
-    copies: Optional[int] = None
+    def __init__(self, code: str, copies: Optional[int] = None):
+        self.code = code
+        self.copies = copies
 
 
 class AsuContents:
