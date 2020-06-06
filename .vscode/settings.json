@@ -13,6 +13,7 @@
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
   "python.linting.pylintArgs": [
+    "--extension-pkg-whitelist=gemmi",
     "--disable=bad-continuation",
     "--disable=missing-module-docstring",
     "--disable=missing-class-docstring",
