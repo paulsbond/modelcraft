@@ -34,7 +34,7 @@ class FindWaters(Job):
         self.structure = copy_structure(structure)
         if len(water_residues) > 0:
             model = self.structure[0]
-            chain = "dummy" if dummy else "water"
+            chain = "DUM" if dummy else "WAT"
             if chain not in model:
                 model.add_chain(chain)
             for residue in water_residues:
