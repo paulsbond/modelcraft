@@ -15,11 +15,13 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     include_package_data=True,
     classifiers=[
-        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.6, <=3.8",
     install_requires=["gemmi>=0.3.2", "pandas"],
     entry_points={"console_scripts": ["modelcraft = modelcraft.__main__:main"]},
 )
