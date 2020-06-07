@@ -1,3 +1,4 @@
+.cc_token
 *.pyc
 /*.egg-info
 /build/
