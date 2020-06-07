@@ -14,6 +14,7 @@ setuptools.setup(
     url="https://github.com/paulsbond/modelcraft",
     packages=setuptools.find_packages(),
     include_package_data=True,
+    license="LGPL-2.1",
     classifiers=[
         "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
         "Operating System :: OS Independent",
