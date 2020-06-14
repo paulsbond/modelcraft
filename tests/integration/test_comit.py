@@ -1,7 +1,10 @@
 from modelcraft.jobs import Comit
-from tests.integration import insulin_refmac
+from tests.integration import insulin_fsigf, insulin_refmac
 
 
 def test_insulin():
+    fsigf = insulin_fsigf()
     refmac = insulin_refmac()
-    Comit(refmac.fsigf, refmac.fphi_best)
+    comit = Comit(fsigf, refmac.fphi_best)
+    assert comit.abcd.nreflections == fsigf.nreflections
+    assert comit.fphi.nreflections == fsigf.nreflections
