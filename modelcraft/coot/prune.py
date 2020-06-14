@@ -191,7 +191,7 @@ atoms = {
 }
 
 bonded = {
-    " C  ": {" CA ", " O  "},
+    " C  ": {" CA ", " O  ", " OXT"},
     " CA ": {" C  ", " CB ", " N  "},
     " CB ": {" CA ", " CG ", " CG1", " CG2", " OG ", " OG1", " SG "},
     " CD ": {" CE ", " CG ", " NE ", " NE2", " OE1", " OE2"},
@@ -225,6 +225,7 @@ bonded = {
     " OG ": {" CB "},
     " OG1": {" CB "},
     " OH ": {" CZ "},
+    " OXT": {" C  "},
     " SD ": {" CE ", " CG "},
     " SG ": {" CB "},
     "SE  ": {" CE ", " CG "},
