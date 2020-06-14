@@ -72,7 +72,7 @@ def read_structure(path: str) -> gemmi.Structure:
         structure = gemmi.read_structure(path)
     structure.remove_empty_chains()
     structure.remove_hydrogens()
-    structure.remove_alternative_conformations()
+    # structure.remove_alternative_conformations()
     return structure
 
 
