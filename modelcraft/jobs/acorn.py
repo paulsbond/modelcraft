@@ -1,10 +1,10 @@
-from .job import Job
+# from .job import Job
 
 
-class Acorn(Job):
-    def __init__(self):
-        super().__init__()
-        self.finish()
+# class Acorn(Job):
+#     def __init__(self):
+#         super().__init__()
+#         self.finish()
 
 
 # /home/paul/Programs/ccp4-7.0/bin/mtzdump \
