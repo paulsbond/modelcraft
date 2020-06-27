@@ -5,7 +5,7 @@ from .job import Job
 
 class Comit(Job):
     def __init__(self, fsigf: DataItem, fphi: DataItem):
-        super().__init__()
+        super().__init__("comit")
         args = []
 
         hklin = self.path("hklin.mtz")

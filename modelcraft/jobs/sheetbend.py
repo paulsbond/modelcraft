@@ -6,7 +6,7 @@ from ..structure import read_structure, write_mmcif
 
 class Sheetbend(Job):
     def __init__(self, fsigf: DataItem, freer: DataItem, structure: gemmi.Structure):
-        super().__init__()
+        super().__init__("sheetbend")
         args = []
 
         hklin = self.path("hklin.mtz")

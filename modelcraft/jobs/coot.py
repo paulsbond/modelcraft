@@ -8,12 +8,13 @@ from .job import Job
 class Coot(Job):
     def __init__(
         self,
+        name: str,
         structure: gemmi.Structure,
         fphi_best: DataItem,
         fphi_diff: DataItem,
         script: str,
     ):
-        super().__init__()
+        super().__init__(name)
         xyzin = self.path("xyzin.cif")
         hklin = self.path("hklin.mtz")
         script_path = self.path("script.py")
@@ -65,10 +66,12 @@ class Prune(Coot):
         with open(path) as script_file:
             script = script_file.read()
         if chains_only:
+            name = "prune_chains"
             script += "prune(0, 1, 2, residues=False, sidechains=False)\n"
         else:
+            name = "prune"
             script += "prune(0, 1, 2)\n"
-        super().__init__(structure, fphi_best, fphi_diff, script)
+        super().__init__(name, structure, fphi_best, fphi_diff, script)
 
 
 class FixSideChains(Coot):
@@ -82,4 +85,4 @@ class FixSideChains(Coot):
         with open(path) as script_file:
             script += "\n\n%s\n" % script_file.read()
         script += "fix_side_chains(0, 1, 2)\n"
-        super().__init__(structure, fphi_best, fphi_diff, script)
+        super().__init__("fix_side_chains", structure, fphi_best, fphi_diff, script)

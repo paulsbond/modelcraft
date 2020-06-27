@@ -83,13 +83,6 @@ class Pipeline:
             self.report["real_time"][job.name] = 0
         self.report["real_time"][job.name] += job.finish_time - job.start_time
         self.write_report()
-        os.makedirs("modelcraft-logs", exist_ok=True)
-        with open(os.path.join("modelcraft-logs", "%s_log.txt" % job.id), "w") as f:
-            f.write(job.stdout)
-        with open(os.path.join("modelcraft-logs", "%s_err.txt" % job.id), "w") as f:
-            f.write(job.stderr)
-        with open(os.path.join("modelcraft-logs", "%s_com.txt" % job.id), "w") as f:
-            f.write(job.comtxt)
 
     def get_phases_from_mr_model(self):
         structure = self.args.mr_model

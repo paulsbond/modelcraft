@@ -6,7 +6,8 @@ from .job import Job
 
 class FindWaters(Job):
     def __init__(self, structure: gemmi.Structure, fphi: DataItem, dummy: bool = False):
-        super().__init__()
+        name = "find_dummy" if dummy else "find_water"
+        super().__init__(name)
 
         xyzin = self.path("xyzin.cif")
         hklin = self.path("hklin.mtz")

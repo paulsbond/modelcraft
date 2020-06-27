@@ -16,7 +16,7 @@ class Parrot(Job):
         fphi: Optional[DataItem] = None,
         structure: Optional[gemmi.Structure] = None,
     ):
-        super().__init__()
+        super().__init__("parrot")
         args = []
 
         seqin = self.path("seqin.seq")

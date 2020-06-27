@@ -16,7 +16,7 @@ class Refmac(Job):
         phases: Optional[DataItem] = None,
         twinned: bool = False,
     ):
-        super().__init__()
+        super().__init__("refmac")
 
         hklin = self.path("hklin.mtz")
         xyzin = self.path("xyzin.cif")

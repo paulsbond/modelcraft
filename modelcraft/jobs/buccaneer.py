@@ -25,7 +25,7 @@ class Buccaneer(Job):
         semet: bool = False,
         program: str = "cbuccaneer",
     ):
-        super().__init__()
+        super().__init__("buccaneer")
         args = []
 
         seqin = self.path("seqin.seq")

@@ -1,28 +1,21 @@
 from typing import List
 import distutils.spawn
+import itertools
 import os
-import random
 import shutil
-import string
 import subprocess
 import time
 
 
-def _generate_id():
-    chars = string.ascii_lowercase + string.digits
-    return "".join(random.choice(chars) for _ in range(8))
-
-
 class Job:
-    def __init__(self):
-        self.id = _generate_id()
+    _ids = itertools.count(1)
+
+    def __init__(self, name: str):
+        self.id = "%03d_%s" % (next(self._ids), name)
         self._directory = os.path.abspath("job_%s" % self.id)
-        self._stdout_path = self.path("stdout.txt")
-        self._stderr_path = self.path("stderr.txt")
-        self._comtxt_path = self.path("com.txt")
-        self.stdout: str = ""
-        self.stderr: str = ""
-        self.comtxt: str = ""
+        self._stdout = self.path("stdout.txt")
+        self._stderr = self.path("stderr.txt")
+        self._comtxt = self.path("com.txt")
 
         os.mkdir(self._directory)
         self.start_time = time.time()
@@ -44,8 +37,8 @@ class Job:
         process = subprocess.Popen(
             args=[executable] if arguments is None else ([executable] + arguments),
             stdin=None if stdin is None else subprocess.PIPE,
-            stdout=open(self._stdout_path, "a"),
-            stderr=open(self._stderr_path, "a"),
+            stdout=open(self._stdout, "a"),
+            stderr=open(self._stderr, "a"),
             encoding="utf8",
         )
         if stdin is not None:
@@ -73,16 +66,15 @@ class Job:
             script += "EOF\n"
         else:
             script += "\n"
-        with open(self._comtxt_path, "w") as script_file:
+        with open(self._comtxt, "w") as script_file:
             script_file.write(script)
-        os.chmod(self._comtxt_path, 0o755)
+        os.chmod(self._comtxt, 0o755)
 
     def finish(self) -> None:
         self.finish_time = time.time()
-        with open(self._stdout_path) as f:
-            self.stdout = f.read()
-        with open(self._stderr_path) as f:
-            self.stderr = f.read()
-        with open(self._comtxt_path) as f:
-            self.comtxt = f.read()
+        logs_dir = "modelcraft-logs"
+        os.makedirs(logs_dir, exist_ok=True)
+        shutil.copy(self._stdout, os.path.join(logs_dir, "%s.log.txt" % self.id))
+        shutil.copy(self._stderr, os.path.join(logs_dir, "%s.err.txt" % self.id))
+        shutil.copy(self._comtxt, os.path.join(logs_dir, "%s.com.txt" % self.id))
         shutil.rmtree(self._directory, ignore_errors=True)
