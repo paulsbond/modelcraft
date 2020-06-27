@@ -1,5 +1,6 @@
 from modelcraft.jobs import Parrot
 from tests.integration import (
+    remove_logs,
     insulin_fsigf,
     insulin_freer,
     insulin_refmac,
@@ -15,3 +16,4 @@ def test_insulin():
     parrot = Parrot(contents, fsigf, freer, refmac.abcd)
     assert parrot.abcd.nreflections == fsigf.nreflections
     assert parrot.fphi.nreflections == fsigf.nreflections
+    remove_logs()

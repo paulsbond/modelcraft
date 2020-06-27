@@ -1,5 +1,6 @@
 import functools
 import os
+import shutil
 import gemmi
 from modelcraft.contents import AsuContents, Polymer, PolymerType
 from modelcraft.jobs import Refmac
@@ -11,6 +12,10 @@ def ccp4_path(*paths: str) -> str:
     if "CCP4" not in os.environ:
         raise EnvironmentError("CCP4 environment not set")
     return os.path.join(os.environ["CCP4"], *paths)
+
+
+def remove_logs():
+    shutil.rmtree("modelcraft-logs", ignore_errors=True)
 
 
 @functools.lru_cache(maxsize=None)
