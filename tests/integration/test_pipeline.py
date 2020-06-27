@@ -54,6 +54,8 @@ def test_1rxf_from_model():
     contents.write_sequence_file("1rxf.fasta", polymer_type=PolymerType.PROTEIN)
     args = []
     args += ["--hklin", hklin]
+    args += ["--amplitudes", "F,SIGF"]
+    args += ["--freerflag", "FreeR_flag"]
     args += ["--seqin", "1rxf.fasta"]
     args += ["--mr-model", "model.pdb"]
     args += ["--xyzin", "model.pdb"]
