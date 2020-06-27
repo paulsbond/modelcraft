@@ -34,7 +34,7 @@ class Pipeline:
         self.current_fphi_calc = None
         self.last_refmac = None
         self.best_refmac = None
-        self.best_refmac_cycle = 0
+        self.cycles_without_improvement = 0
         self.start_time = time.time()
         self.report = {
             "real_time": {"total": 0},
@@ -52,7 +52,7 @@ class Pipeline:
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
             self.process_cycle_output()
-            if args.auto_stop and (self.cycle - self.best_refmac_cycle) == 4:
+            if args.auto_stop and self.cycles_without_improvement == 3:
                 break
         if self.best_refmac.rwork < 30 and self.resolution < 2.5:
             print("\n## Finalisations\n")
@@ -198,8 +198,13 @@ class Pipeline:
         }
         self.report["cycles"][self.cycle] = stats
         if self.best_refmac is None or self.last_refmac.rfree < self.best_refmac.rfree:
+            if self.best_refmac is not None:
+                diff = self.best_refmac.rfree - self.last_refmac.rfree
+                if diff > 0.2:
+                    self.cycles_without_improvement = 0
+                else:
+                    self.cycles_without_improvement += 1
             self.best_refmac = self.last_refmac
-            self.best_refmac_cycle = self.cycle
             write_mmcif("modelcraft.cif", self.last_refmac.structure)
             write_mtz(
                 "modelcraft.mtz",
