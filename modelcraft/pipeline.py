@@ -197,13 +197,13 @@ class Pipeline:
             "dummy_atoms": model_stats.dummy_atoms,
         }
         self.report["cycles"][self.cycle] = stats
+        if self.best_refmac is not None:
+            diff = self.best_refmac.rfree - self.last_refmac.rfree
+            if diff > 0.2:
+                self.cycles_without_improvement = 0
+            else:
+                self.cycles_without_improvement += 1
         if self.best_refmac is None or self.last_refmac.rfree < self.best_refmac.rfree:
-            if self.best_refmac is not None:
-                diff = self.best_refmac.rfree - self.last_refmac.rfree
-                if diff > 0.2:
-                    self.cycles_without_improvement = 0
-                else:
-                    self.cycles_without_improvement += 1
             self.best_refmac = self.last_refmac
             write_mmcif("modelcraft.cif", self.last_refmac.structure)
             write_mtz(
