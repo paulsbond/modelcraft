@@ -24,8 +24,7 @@ class Pipeline:
         print("Arguments:")
         print(" %s\n" % " ".join(argument_list).replace(" --", "\n --"))
         self.args = parse(argument_list)
-        self.resolution = self.args.fsigf.resolution  # TODO: Change after gemmi update
-        # self.resolution = self.args.fsigf.resolution_high()  # To this
+        self.resolution = self.args.fsigf.resolution_high()
         self.cycle = 0
         self.current_structure = self.args.xyzin
         self.current_phases = self.args.phases

@@ -1,6 +1,6 @@
 import gemmi
 from ..reflections import DataItem, write_mtz
-from ..structure import copy_structure, read_structure, write_mmcif
+from ..structure import read_structure, write_mmcif
 from .job import Job
 
 
@@ -32,7 +32,7 @@ class FindWaters(Job):
             for water_residue in water_chain:
                 water_residues.append(water_residue)
 
-        self.structure = copy_structure(structure)
+        self.structure = structure.clone()
         if len(water_residues) > 0:
             model = self.structure[0]
             chain = "DUM" if dummy else "WAT"

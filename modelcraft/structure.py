@@ -49,15 +49,6 @@ def _is_protein(residue: gemmi.Residue) -> bool:
     )
 
 
-def copy_structure(structure: gemmi.Structure) -> gemmi.Structure:
-    # TODO: https://github.com/project-gemmi/gemmi/issues/31
-    path = "%s.cif" % uuid.uuid4()
-    write_mmcif(path, structure)
-    copy = read_structure(path)
-    os.remove(path)
-    return copy
-
-
 def read_structure(path: str) -> gemmi.Structure:
     if (
         path[-4:] == ".cif"
@@ -72,7 +63,9 @@ def read_structure(path: str) -> gemmi.Structure:
         structure = gemmi.read_structure(path)
     structure.remove_empty_chains()
     structure.remove_hydrogens()
-    # structure.remove_alternative_conformations()
+    # TODO: Currently altconfs appear in CIF auth_atom_id after sheetbend
+    # TODO: Keep alternative conformations after problem is fixed
+    structure.remove_alternative_conformations()
     return structure
 
 

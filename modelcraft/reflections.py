@@ -77,9 +77,7 @@ class DataItem(gemmi.Mtz):
             self.add_column(column.label, column.type)
         data = numpy.stack(columns, axis=1)
         self.set_data(data)
-        # TODO: Change after gemmi update
-        self.resolution = min(self.make_d_array()) if self.nreflections > 0 else None
-        # self.update_reso()
+        self.update_reso()
 
     def label(self, index: Optional[int] = None) -> str:
         if index is None:
