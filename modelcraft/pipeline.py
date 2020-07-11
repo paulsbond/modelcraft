@@ -1,6 +1,4 @@
 import json
-import os
-import shutil
 import sys
 import time
 import gemmi
@@ -51,7 +49,10 @@ class Pipeline:
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
             self.process_cycle_output()
-            if args.auto_stop and self.cycles_without_improvement == 3:
+            if (
+                args.auto_stop
+                and self.cycles_without_improvement == args.convergence_cycles
+            ):
                 break
         if self.best_refmac.rwork < 30 and self.resolution < 2.5:
             print("\n## Finalisations\n")
@@ -198,7 +199,7 @@ class Pipeline:
         self.report["cycles"][self.cycle] = stats
         if self.best_refmac is not None:
             diff = self.best_refmac.rfree - self.last_refmac.rfree
-            if diff > 0.2:
+            if diff >= self.args.convergence_tolerance:
                 self.cycles_without_improvement = 0
             else:
                 self.cycles_without_improvement += 1

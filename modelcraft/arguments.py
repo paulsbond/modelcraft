@@ -15,6 +15,8 @@ _.add_argument("--seqin", metavar="FILE", required=True)
 
 _ = _PARSER.add_argument_group("Optional arguments")
 _.add_argument("--amplitudes", metavar="COLS")
+_.add_argument("--convergence-cycles", metavar="N", default=4, type=int)
+_.add_argument("--convergence-tolerance", metavar="X", default=0.1, type=float)
 _.add_argument("--cycles", metavar="N", default=25, type=int)
 _.add_argument("--freerflag", metavar="COL")
 _.add_argument("--help", action="help")
@@ -47,6 +49,12 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
 def _basic_check(args: argparse.Namespace):
     if args.cycles < 1:
         _PARSER.error("The maximum number of cycles must be greater than 0")
+
+    if args.convergence_cycles < 1:
+        _PARSER.error("The number of convergence cycles must be greater than 0")
+
+    if args.convergence_tolerance < 0.1:
+        _PARSER.error("The convergence tolerance must be 0.1 or higher")
 
     for arg in "hklin", "seqin", "xyzin", "mr_model":
         path = getattr(args, arg)

@@ -50,6 +50,22 @@
             Column labels for the observed amplitudes.
         </p>
         <p>
+            <code>--convergence-cycles N</code> default: <code>4</code><br>
+            Number of cycles without improvement
+            needed to stop the pipeline automatically.
+            <code>--convergence-tolerance</code> is used to determine whether
+            a cycle gave an improvement.
+        </p>
+        <p>
+            <code>--convergence-tolerance</code> default: <code>0.1</code><br>
+            R-free difference needed to mark a cycle as an improvement.
+            If the model at the end of a cycle
+            has an R-free that is this much better than the previous best R-free
+            then the cycle is marked as an improvement.
+            <code>--convergence-cycles</code> states
+            how many cycles without improvement are needed to stop automatically.
+        </p>
+        <p>
             <code>--cycles N</code> default: <code>25</code><br>
             Maximum number of pipeline cycles.
         </p>
