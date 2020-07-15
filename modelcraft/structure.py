@@ -1,5 +1,3 @@
-import os
-import uuid
 import gemmi
 
 _KNOWN_PROTEIN_RESIDUES = {
