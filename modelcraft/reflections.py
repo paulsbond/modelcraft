@@ -7,11 +7,7 @@ import pandas
 
 class ColumnRef:
     def __init__(
-        self,
-        label: str,
-        dataset: Optional[str] = "",
-        crystal: Optional[str] = "",
-        project: Optional[str] = "",
+        self, label: str, dataset: str = "", crystal: str = "", project: str = "",
     ):
         self.label = label
         self.dataset = dataset
