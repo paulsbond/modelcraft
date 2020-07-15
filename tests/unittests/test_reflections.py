@@ -1,5 +1,5 @@
 import pytest
-from modelcraft.reflections import expand_label
+from modelcraft.reflections import column_refs, expand_label
 
 
 @pytest.mark.parametrize(
@@ -23,3 +23,61 @@ from modelcraft.reflections import expand_label
 )
 def test_expand_label(label: str, expanded: str):
     assert expand_label(label) == expanded
+
+
+@pytest.mark.parametrize(
+    "columns,project,crystal,dataset,label",
+    [
+        ("label", "", "", "", "label"),
+        ("/label", "", "", "", "label"),
+        ("/label/", "", "", "", "label"),
+        ("[label]", "", "", "", "label"),
+        ("[[label]]", "", "", "", "label"),
+        ("/*/*/*/*/*/*/*/*/*/[[label]]//", "", "", "", "label"),
+        ("dataset/label", "", "", "dataset", "label"),
+        ("crystal/dataset/label", "", "crystal", "dataset", "label"),
+        ("project/crystal/dataset/label", "project", "crystal", "dataset", "label"),
+    ],
+)
+def test_single_column_ref(
+    columns: str, project: str, crystal: str, dataset: str, label: str
+):
+    refs = column_refs(columns)
+    assert refs[0].project == project
+    assert refs[0].crystal == crystal
+    assert refs[0].dataset == dataset
+    assert refs[0].label == label
+
+
+@pytest.mark.parametrize(
+    "columns",
+    [
+        ("label1,label2"),
+        ("[label1,label2]"),
+        ("/*/*/*/label1,label2"),
+        ("/*/*/*/[label1,label2]"),
+    ],
+)
+def test_multiple_column_refs(columns: str):
+    refs = column_refs(columns)
+    for ref in refs:
+        assert ref.project == ""
+        assert ref.crystal == ""
+        assert ref.dataset == ""
+    assert refs[0].label == "label1"
+    assert refs[1].label == "label2"
+
+
+def test_duplicate_labels():
+    refs1 = column_refs("/xtal/peak/[F+,SIGF+,F-,SIGF-]")
+    refs2 = column_refs("/xtal/infl/[F+,SIGF+,F-,SIGF-]")
+    assert len(refs1) == 4
+    assert len(refs2) == 4
+    for i in range(4):
+        assert refs1[i].project == ""
+        assert refs2[i].project == ""
+        assert refs1[i].crystal == "xtal"
+        assert refs2[i].crystal == "xtal"
+        assert refs1[i].dataset == "peak"
+        assert refs2[i].dataset == "infl"
+        assert refs1[i].label == refs2[i].label

@@ -52,8 +52,11 @@ def expand_label(label: str) -> str:
 
 def column_refs(columns: str) -> List[ColumnRef]:
     columns = columns.replace("*", "")
+    columns = columns.rstrip("/")
     split = [""] * 3 + columns.split("/")
     project, crystal, dataset, label = split[-4:]
+    label = label.lstrip("[")
+    label = label.rstrip("]")
     if "," not in label:
         label = expand_label(label)
     return [ColumnRef(label, dataset, crystal, project) for label in label.split(",")]
