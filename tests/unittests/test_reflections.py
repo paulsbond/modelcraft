@@ -68,16 +68,18 @@ def test_multiple_column_refs(columns: str):
     assert refs[1].label == "label2"
 
 
-def test_duplicate_labels():
-    refs1 = column_refs("/xtal/peak/[F+,SIGF+,F-,SIGF-]")
-    refs2 = column_refs("/xtal/infl/[F+,SIGF+,F-,SIGF-]")
-    assert len(refs1) == 4
-    assert len(refs2) == 4
-    for i in range(4):
+def test_column_refs_with_duplicate_labels():
+    refs1 = column_refs("/xtal/peak/[F(+),SIGF(+),F(-),SIGF(-)]")
+    refs2 = column_refs("/xtal/infl/[F(+),SIGF(+),F(-),SIGF(-)]")
+    labels = ["F(+)", "SIGF(+)", "F(-)", "SIGF(-)"]
+    assert len(refs1) == len(labels)
+    assert len(refs2) == len(labels)
+    for i in range(len(labels)):
         assert refs1[i].project == ""
         assert refs2[i].project == ""
         assert refs1[i].crystal == "xtal"
         assert refs2[i].crystal == "xtal"
         assert refs1[i].dataset == "peak"
         assert refs2[i].dataset == "infl"
-        assert refs1[i].label == refs2[i].label
+        assert refs1[i].label == labels[i]
+        assert refs2[i].label == labels[i]
