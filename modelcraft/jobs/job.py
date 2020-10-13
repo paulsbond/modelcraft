@@ -72,6 +72,8 @@ class Job:
 
     def finish(self) -> None:
         self.finish_time = time.time()
+
+    def remove(self) -> None:
         logs_dir = "modelcraft-logs"
         os.makedirs(logs_dir, exist_ok=True)
         shutil.copy(self._stdout, os.path.join(logs_dir, "%s.log.txt" % self.id))
