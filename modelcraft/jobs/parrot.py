@@ -37,7 +37,7 @@ class Parrot(Job):
 
         if structure is not None:
             xyzin = self.path("xyzin.cif")
-            args += ["-pdbin", xyzin]  # or pdbin-ha or pdbin-mr?
+            args += ["-pdbin-mr", xyzin]
             write_mmcif(xyzin, structure)
 
         args += ["-cycles", "5"]
