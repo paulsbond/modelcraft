@@ -102,13 +102,13 @@ class Pipeline:
             phases=self.current_phases,
             fphi=self.current_fphi_best,
             input_structure=self.current_structure,
-            known_structure=self.args.known_structure,
             mr_structure=self.args.model,
             use_mr=True,
             filter_mr=True,
             seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
             semet=self.args.semet,
+            remove_non_protein=self.args.remove_non_protein,
             program=self.args.buccaneer,
         )
         self.add_job(job)

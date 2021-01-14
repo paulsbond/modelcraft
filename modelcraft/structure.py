@@ -67,6 +67,15 @@ def read_structure(path: str) -> gemmi.Structure:
     return structure
 
 
+def contains_residue(structure: gemmi.Structure, name: str) -> bool:
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                if residue.name == name:
+                    return True
+    return False
+
+
 def write_mmcif(path: str, structure: gemmi.Structure) -> None:
     structure.make_mmcif_document().write_file(path)
 

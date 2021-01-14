@@ -6,7 +6,7 @@ import uuid
 from modelcraft.__main__ import main
 from modelcraft.contents import PolymerType
 from modelcraft.reflections import write_mtz
-from modelcraft.structure import read_structure
+from modelcraft.structure import contains_residue, read_structure
 from tests.integration import (
     ccp4_path,
     insulin_contents,
@@ -58,7 +58,6 @@ def test_1rxf_from_model():
     args += ["--freerflag", "FreeR_flag"]
     args += ["--seqin", "1rxf.fasta"]
     args += ["--model", "model.pdb"]
-    args += ["--known-structure", "/*/*/FE  /:2.0"]
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):
         main(args)
@@ -66,5 +65,7 @@ def test_1rxf_from_model():
         report = json.load(report_file)
     assert report["real_time"]["total"] > 0
     assert report["termination_reason"] == "Normal"
+    structure = read_structure("modelcraft.cif")
+    assert contains_residue(structure, "FE")
     os.chdir("..")
     shutil.rmtree(tmp_dir)
