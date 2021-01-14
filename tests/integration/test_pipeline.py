@@ -57,8 +57,7 @@ def test_1rxf_from_model():
     args += ["--amplitudes", "F,SIGF"]
     args += ["--freerflag", "FreeR_flag"]
     args += ["--seqin", "1rxf.fasta"]
-    args += ["--mr-model", "model.pdb"]
-    args += ["--xyzin", "model.pdb"]
+    args += ["--model", "model.pdb"]
     args += ["--known-structure", "/*/*/FE  /:2.0"]
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):

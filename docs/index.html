@@ -95,21 +95,10 @@
             will avoid building within 3&angst; of zinc atoms.
         </p>
         <p>
-            <code>--mr-mode CHOICE</code> default: <code>6</code><br>
-            Determine how the molecular replacement model is used:<br>
-            1 - Phasing<br>
-            2 - Phasing, placing/naming chains<br>
-            3 - Phasing, placing/naming chains, copy every residue<br>
-            4 - Phasing, placing/naming chains, copy every filtered residue<br>
-            5 - Phasing, placing/naming chains, copy every 3rd residue<br>
-            6 - Phasing, placing/naming chains, copy every 3rd filtered residue<br>
-            The MR model will not be used for phasing
-            if input phases are provided using <code>--phases</code>.
-        </p>
-        <p>
-            <code>--mr-model FILE</code><br>
-            Input placed molecular replacement model.
-            If input phases are not specified this will be refined.
+            <code>--model FILE</code><br>
+            Starting model.
+            If input phases are not specified this will be refined
+            using Sheetbend followed by REFMAC.
         </p>
         <p>
             <code>--no-auto-stop</code><br>

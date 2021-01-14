@@ -24,7 +24,7 @@ class Pipeline:
         self.args = parse(argument_list)
         self.resolution = self.args.fsigf.resolution_high()
         self.cycle = 0
-        self.current_structure = self.args.xyzin
+        self.current_structure = self.args.model
         self.current_phases = self.args.phases
         self.current_fphi_best = None
         self.current_fphi_diff = None
@@ -42,9 +42,10 @@ class Pipeline:
 
     def run(self):
         args = self.args
-        if args.phases is None and args.mr_model is not None:
-            print("\n## Preparations\n")
-            self.get_phases_from_mr_model()
+        if args.phases is None and args.model is not None:
+            print("\n## Refining Input Model\n")
+            self.sheetbend()
+            args.model = self.current_structure
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
@@ -86,13 +87,11 @@ class Pipeline:
         self.report["real_time"][job.name] += job.finish_time - job.start_time
         self.write_report()
 
-    def get_phases_from_mr_model(self):
-        structure = self.args.mr_model
+    def sheetbend(self):
         print("Sheetbend")
-        sheetbend = Sheetbend(self.args.fsigf, self.args.freer, structure)
-        self.add_job(sheetbend)
-        structure = sheetbend.structure
-        self.refmac(structure, cycles=10, auto_accept=True)
+        job = Sheetbend(self.args.fsigf, self.args.freer, self.current_structure)
+        self.add_job(job)
+        self.refmac(job.structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
         print("Buccaneer")
@@ -104,10 +103,10 @@ class Pipeline:
             fphi=self.current_fphi_best,
             input_structure=self.current_structure,
             known_structure=self.args.known_structure,
-            mr_structure=self.args.mr_model if self.args.mr_mode > 1 else None,
-            use_mr=self.args.mr_mode > 2,
-            filter_mr=self.args.mr_mode in (4, 6),
-            seed_mr=self.args.mr_mode > 4,
+            mr_structure=self.args.model,
+            use_mr=True,
+            filter_mr=True,
+            seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
             semet=self.args.semet,
             program=self.args.buccaneer,
