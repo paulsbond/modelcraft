@@ -36,7 +36,6 @@ class Pipeline:
         self.report = {
             "real_time": {"total": 0},
             "cycles": {},
-            "termination_reason": "Unknown",
         }
         self.run()
 
