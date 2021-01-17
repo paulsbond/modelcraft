@@ -21,15 +21,13 @@ _.add_argument("--cycles", metavar="N", default=25, type=int)
 _.add_argument("--freerflag", metavar="COL")
 _.add_argument("--help", action="help")
 _.add_argument("--keep-jobs", action="store_true")
-_.add_argument("--known-structure", nargs="+", metavar="SELECTION", default=[])
-_.add_argument("--mr-mode", metavar="CHOICE", type=int, choices=range(1, 7), default=6)
-_.add_argument("--mr-model", metavar="FILE")
+_.add_argument("--model", metavar="FILE")
 _.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
+_.add_argument("--remove-non-protein", action="store_true")
 _.add_argument("--phases", metavar="COLS")
 _.add_argument("--semet", action="store_true")
 _.add_argument("--twinned", action="store_true")
 _.add_argument("--unbiased", action="store_true")
-_.add_argument("--xyzin", metavar="FILE")
 
 _ = _PARSER.add_argument_group("Developer arguments")
 _.add_argument("--buccaneer", metavar="FILE", default="cbuccaneer")
@@ -40,10 +38,8 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     _basic_check(args)
     _parse_data_items(args)
     args.contents = AsuContents(args.seqin)
-    if args.xyzin is not None:
-        args.xyzin = read_structure(args.xyzin)
-    if args.mr_model is not None:
-        args.mr_model = read_structure(args.mr_model)
+    if args.model is not None:
+        args.model = read_structure(args.model)
     return args
 
 
@@ -57,7 +53,7 @@ def _basic_check(args: argparse.Namespace):
     if args.convergence_tolerance < 0.1:
         _PARSER.error("The convergence tolerance must be 0.1 or higher")
 
-    for arg in "hklin", "seqin", "xyzin", "mr_model":
+    for arg in "hklin", "seqin", "model":
         path = getattr(args, arg)
         if path is not None and not os.path.exists(path):
             _PARSER.error("File not found: %s" % path)
@@ -67,7 +63,7 @@ def _parse_data_items(args: argparse.Namespace):
     mtz = gemmi.read_mtz_file(args.hklin)
     args.fsigf = _parse_data_item(mtz, args.amplitudes, ["FQ"], "amplitudes")
     args.freer = _parse_data_item(mtz, args.freerflag, ["I"], "free-R flag")
-    if args.phases is not None or args.mr_model is None:
+    if args.phases is not None or args.model is None:
         args.phases = _parse_data_item(mtz, args.phases, ["PW", "AAAA"], "phases")
 
 

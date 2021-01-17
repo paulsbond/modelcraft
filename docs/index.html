@@ -83,33 +83,10 @@
             This can lead to large directory sizes.
         </p>
         <p>
-            <code>--known-structure SELECTION [SELECTION ...]</code><br>
-            Known structure selections from the input coordinates.
-            Buccaneer will avoid building into these selections
-            and they will be copied into the output coordinates.
-            Multiple selections can be specified.
-            The format is <code>/[chain]/[residue]/[atom]:[radius]</code>.
-            E.g. <code>/A/*/*/:2.0</code>
-            will avoid building within 2&angst; of the A chain
-            and <code>/*/*/ZN&nbsp;&nbsp;/:3.0</code>
-            will avoid building within 3&angst; of zinc atoms.
-        </p>
-        <p>
-            <code>--mr-mode CHOICE</code> default: <code>6</code><br>
-            Determine how the molecular replacement model is used:<br>
-            1 - Phasing<br>
-            2 - Phasing, placing/naming chains<br>
-            3 - Phasing, placing/naming chains, copy every residue<br>
-            4 - Phasing, placing/naming chains, copy every filtered residue<br>
-            5 - Phasing, placing/naming chains, copy every 3rd residue<br>
-            6 - Phasing, placing/naming chains, copy every 3rd filtered residue<br>
-            The MR model will not be used for phasing
-            if input phases are provided using <code>--phases</code>.
-        </p>
-        <p>
-            <code>--mr-model FILE</code><br>
-            Input placed molecular replacement model.
-            If input phases are not specified this will be refined.
+            <code>--model FILE</code><br>
+            Starting model.
+            If input phases are not specified this will be refined
+            using Sheetbend followed by REFMAC.
         </p>
         <p>
             <code>--no-auto-stop</code><br>
@@ -120,6 +97,13 @@
             e.g. <code>PHIB,FOM</code> or <code>HLA,HLB,HLC,HLD</code><br>
             Column labels for input phases as either
             a phase and figure of merit or Hendrickson-Lattman coefficients.
+        </p>
+        <p>
+            <code>--remove-non-protein</code>
+            Use this option to remove non-protein residues from the starting model.
+            By default, residues that are not protein or water
+            (i.e. do not have a CA atom and consist of more than a single oxygen atom)
+            will be kept and Buccaneer will avoid building within 2&angst; of them.
         </p>
         <p>
             <code>--semet</code><br>

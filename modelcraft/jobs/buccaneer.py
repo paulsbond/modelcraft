@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 import os
 import gemmi
 from ..contents import AsuContents, PolymerType
@@ -16,13 +16,13 @@ class Buccaneer(Job):
         phases: DataItem,
         fphi: Optional[DataItem] = None,
         input_structure: Optional[gemmi.Structure] = None,
-        known_structure: Optional[List[str]] = None,
         mr_structure: Optional[gemmi.Structure] = None,
         use_mr: bool = True,
         filter_mr: bool = True,
         seed_mr: bool = True,
         cycles: int = 2,
         semet: bool = False,
+        remove_non_protein: bool = False,
         program: str = "cbuccaneer",
     ):
         super().__init__("buccaneer")
@@ -51,9 +51,8 @@ class Buccaneer(Job):
             args += ["-pdbin", xyzin]
             args += ["-model-filter"]
             args += ["-model-filter-sigma", "1.0"]
-            if known_structure is not None:
-                for keyword in known_structure:
-                    args += ["-known-structure", keyword]
+            if not remove_non_protein:
+                args += ["-nonprotein-radius", "2.0"]
             write_mmcif(xyzin, input_structure)
 
         if mr_structure is not None:
