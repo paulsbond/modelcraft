@@ -7,7 +7,7 @@ import pandas
 
 class ColumnRef:
     def __init__(
-        self, label: str, dataset: str = "", crystal: str = "", project: str = "",
+        self, label: str, dataset: str = "", crystal: str = "", project: str = ""
     ):
         self.label = label
         self.dataset = dataset
@@ -75,6 +75,7 @@ class DataItem(gemmi.Mtz):
         for column in columns:
             self.add_column(column.label, column.type)
         data = numpy.stack(columns, axis=1)
+        data = data[~numpy.isnan(data).any(axis=1)]
         self.set_data(data)
         self.update_reso()
 
