@@ -24,7 +24,7 @@ class FindWaters(Job):
         if dummy:
             args += ["--flood"]
         args += ["--pdbout", water]
-        self.run("findwaters", args)
+        self.run("findwaters", args, environ={"COOT_N_THREADS": "1"})
 
         water_residues = []
         water_structure = read_structure(water)

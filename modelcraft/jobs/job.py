@@ -29,17 +29,24 @@ class Job:
         return os.path.join(self._directory, *paths)
 
     def run(
-        self, executable: str, arguments: List[str] = None, stdin: List[str] = None
+        self,
+        executable: str,
+        arguments: List[str] = None,
+        stdin: List[str] = None,
+        environ: dict = None,
     ) -> None:
         if distutils.spawn.find_executable(executable) is None:
             raise ValueError("Executable '%s' not found" % executable)
-        self._write_cmd_script(executable, arguments, stdin)
+        self._write_cmd_script(executable, arguments, stdin, environ)
+        if environ is not None:
+            environ = {**os.environ, **environ}
         process = subprocess.Popen(
             args=[executable] if arguments is None else ([executable] + arguments),
             stdin=None if stdin is None else subprocess.PIPE,
             stdout=open(self._stdout, "a"),
             stderr=open(self._stderr, "a"),
             encoding="utf8",
+            env=environ,
         )
         if stdin is not None:
             for line in stdin:
@@ -49,9 +56,17 @@ class Job:
         process.wait()
 
     def _write_cmd_script(
-        self, executable: str, arguments: List[str] = None, stdin: List[str] = None
+        self,
+        executable: str,
+        arguments: List[str] = None,
+        stdin: List[str] = None,
+        environ: dict = None,
     ) -> None:
         script = "#!/usr/bin/env bash\n\n"
+        if environ is not None:
+            for variable, value in environ.items():
+                script += f"export {variable}={value}\n"
+            script += "\n"
         script += executable
         if arguments is not None:
             for argument in arguments:
