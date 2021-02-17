@@ -12,10 +12,13 @@ class PolymerType(Enum):
 
     @classmethod
     def parse(cls, s: str) -> "PolymerType":
-        try:
-            return cls[s.upper()] if s is not None else None
-        except KeyError:
-            raise KeyError(f"Unknown polymer type: '{s}'")
+        if s.lower() in ("protein", "polypeptide(l)"):
+            return cls.PROTEIN
+        if s.lower() in ("rna"):
+            return cls.RNA
+        if s.lower() in ("dna"):
+            return cls.DNA
+        raise ValueError(f"Unknown polymer type: '{s}'")
 
     @classmethod
     def from_sequence(cls, sequence: str) -> "PolymerType":
@@ -35,18 +38,22 @@ class PolymerType(Enum):
         return cls.RNA
 
 
+def modifications_in_pdbe_molecule_dict(mol: dict) -> List[str]:
+    pass
+
+
 class Polymer:
     def __init__(
         self,
         sequence: str,
-        start: int = 1,
+        start: Optional[int] = None,
         label: Optional[str] = None,
         copies: Optional[int] = None,
         polymer_type: Optional[PolymerType] = None,
         modifications: Optional[List[str]] = None,
     ):
         self.sequence = sequence.upper()
-        self.start = start
+        self.start = start or 1
         self.label = label
         self.copies = copies
         if polymer_type is None:
@@ -76,6 +83,17 @@ class Polymer:
         )
 
     @classmethod
+    def from_pdbe_molecule_dict(cls, mol: dict) -> "Polymer":
+        return Polymer(
+            sequence=mol["sequence"],
+            start=mol["source"][0]["mappings"][0]["start"]["residue_number"],
+            label=mol["molecule_name"][0],
+            copies=mol["number_of_copies"],
+            polymer_type=PolymerType.parse(mol["molecule_type"]),
+            modifications=None,
+        )
+
+    @classmethod
     def from_sequence_file(
         cls, path: str, polymer_type: Optional[PolymerType] = None
     ) -> Iterator["Polymer"]:
@@ -100,7 +118,7 @@ class Polymer:
             "sequence": self.sequence,
             "label": self.label,
             "copies": self.copies,
-            "type": str(self.type),
+            "type": self.type.value,
             "modifications": self.modifications,
         }
 
@@ -156,8 +174,11 @@ class AsuContents:
                     self.ligands.append(ligand)
 
     def add_from_pdbid(self, pdbid: str) -> None:
-        molecules = pdbe.molecules(pdbid)
-        pass
+        for mol in pdbe.molecules(pdbid):
+            if "sequence" in mol:
+                polymer = Polymer.from_pdbe_molecule_dict(mol)
+                if polymer not in self.polymers:
+                    self.polymers.append(polymer)
 
     def write_sequence_file(
         self,
@@ -168,7 +189,7 @@ class AsuContents:
         with open(path, "w") as stream:
             for polymer in self.polymers:
                 if polymer_type is None or polymer.type == polymer_type:
-                    stream.write(f"> {polymer.label or polymer.type}\n")
+                    stream.write(f">{polymer.label or polymer.type}\n")
                     for i in range(0, len(polymer.sequence), line_length):
                         stream.write(polymer.sequence[i : i + line_length] + "\n")
 
@@ -178,3 +199,45 @@ class AsuContents:
         components = polymers + ligands
         with open(path, "w") as stream:
             json.dump(components, stream, indent=2)
+
+
+{
+    "entity_id": 1,
+    "weight": 10924.471,
+    "sequence": "SETRKTEVPSDKLELLLDIPLKVTVELGRTRMTLKRVLEMIHGSIIELDKLTGEPVDILVNGKLIARGEVVVIDENFGVRITEIVSPKERLELLNE",
+    "pdb_sequence": "SETRKTEVPSDKLELLLDIPLKVTVELGRTR(MSE)TLKRVLE(MSE)IHGSIIELDKLTGEPVDILVNGKLIARGEVVVIDENFGVRITEIVSPKERLELLNE",
+    "molecule_type": "polypeptide(L)",
+    "source": [
+        {
+            "mappings": [
+                {"start": {"residue_number": 1}, "end": {"residue_number": 96}}
+            ],
+            "expression_host_scientific_name": "Escherichia coli",
+            "expression_host_tax_id": 562,
+            "organism_scientific_name": "Thermotoga maritima",
+            "tax_id": 2336,
+        }
+    ],
+    "ca_p_only": False,
+    "in_chains": ["A", "B"],
+    "pdb_sequence_indices_with_multiple_residues": {
+        "40": {
+            "three_letter_code": "MSE",
+            "parent_chem_comp_ids": ["MET"],
+            "one_letter_code": "M",
+        },
+        "32": {
+            "three_letter_code": "MSE",
+            "parent_chem_comp_ids": ["MET"],
+            "one_letter_code": "M",
+        },
+    },
+    "synonym": "putative flagellar motor switch protein FliN",
+    "mutation_flag": None,
+    "in_struct_asyms": ["A", "B"],
+    "molecule_name": ["putative flagellar motor switch protein FliN"],
+    "length": 96,
+    "sample_preparation": "Genetically manipulated",
+    "gene_name": None,
+    "number_of_copies": 2,
+}

@@ -24,6 +24,15 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8",
     ],
     python_requires=">=3.6",
-    install_requires=["gemmi >=0.4.0", "pandas", "requests"],
-    entry_points={"console_scripts": ["modelcraft = modelcraft.__main__:main"]},
+    install_requires=[
+        "gemmi >=0.4.0",
+        "pandas",
+        "requests",
+    ],
+    entry_points={
+        "console_scripts": [
+            "modelcraft = modelcraft.scripts.modelcraft:main",
+            "modelcraft-contents = modelcraft.scripts.contents:main",
+        ]
+    },
 )

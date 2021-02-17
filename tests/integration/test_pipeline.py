@@ -3,7 +3,7 @@ import os
 import pytest
 import shutil
 import uuid
-from modelcraft.__main__ import main
+from modelcraft.scripts.modelcraft import main
 from modelcraft.contents import PolymerType
 from modelcraft.reflections import write_mtz
 from modelcraft.structure import contains_residue, read_structure

@@ -1,6 +1,6 @@
 import os
 import sys
-from modelcraft.pipeline import Pipeline
+from ..pipeline import Pipeline
 
 
 def main(argument_list=None):
