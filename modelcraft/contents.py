@@ -86,7 +86,7 @@ class Polymer:
 
     @classmethod
     def from_component_json(cls, component: dict) -> "Polymer":
-        return Polymer(
+        return cls(
             sequence=component["sequence"],
             start=component.get("start"),
             copies=component.get("copies"),
@@ -96,7 +96,7 @@ class Polymer:
 
     @classmethod
     def from_pdbe_molecule_dict(cls, mol: dict) -> "Polymer":
-        return Polymer(
+        return cls(
             sequence=mol["sequence"],
             start=mol["source"][0]["mappings"][0]["start"]["residue_number"],
             copies=mol["number_of_copies"],
@@ -113,12 +113,12 @@ class Polymer:
             for line in stream:
                 if line[0] == ">":
                     if len(sequence) > 0:
-                        yield Polymer(sequence=sequence, polymer_type=polymer_type)
+                        yield cls(sequence=sequence, polymer_type=polymer_type)
                     sequence = ""
                 elif line[0] != ";":
                     sequence += "".join(c for c in line if c.isalpha())
         if len(sequence) > 0:
-            yield Polymer(sequence=sequence, polymer_type=polymer_type)
+            yield cls(sequence=sequence, polymer_type=polymer_type)
 
     def to_component_json(self) -> dict:
         return {
@@ -127,6 +127,44 @@ class Polymer:
             "start": self.start,
             "copies": self.copies,
             "modifications": self.modifications,
+        }
+
+
+class Oligo:
+    def __init__(
+        self,
+        codes: List[str],
+        length: Optional[int] = None,
+        copies: Optional[int] = None,
+    ):
+        self.codes = set(codes)
+        self.length = length
+        self.copies = copies
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Ligand):
+            return self.codes == other.codes and self.length == other.length
+        return NotImplemented
+
+    @classmethod
+    def from_component_json(cls, component: dict) -> "Oligo":
+        return cls(
+            codes=component["codes"],
+            length=component.get("length"),
+            copies=component.get("copies"),
+        )
+
+    @classmethod
+    def from_pdbe_molecule_dict(cls, mol: dict) -> "Oligo":
+        copies = len(mol["in_chains"])
+        length = mol["number_of_copies"] // copies
+        return cls(codes=mol["chem_comp_ids"], length=length, copies=copies)
+
+    def to_component_json(self) -> dict:
+        return {
+            "codes": sorted(self.codes),
+            "length": self.length,
+            "copies": self.copies,
         }
 
 
@@ -142,11 +180,11 @@ class Ligand:
 
     @classmethod
     def from_component_json(cls, component: dict) -> "Ligand":
-        return Ligand(code=component["code"], copies=component.get("copies"))
+        return cls(code=component["code"], copies=component.get("copies"))
 
     @classmethod
     def from_pdbe_molecule_dict(cls, mol: dict) -> "Ligand":
-        return Ligand(code=mol["chem_comp_ids"][0], copies=mol["number_of_copies"])
+        return cls(code=mol["chem_comp_ids"][0], copies=mol["number_of_copies"])
 
     def to_component_json(self) -> dict:
         return {"code": self.code, "copies": self.copies}
@@ -155,14 +193,14 @@ class Ligand:
 class AsuContents:
     def __init__(self):
         self.polymers: List[Polymer] = []
+        self.oligos: List[Polymer] = []
         self.ligands: List[Ligand] = []
 
     def add_from_sequence_file(
         self, path: str, polymer_type: Optional[PolymerType] = None
     ) -> None:
         for polymer in Polymer.from_sequence_file(path, polymer_type):
-            if polymer not in self.polymers:
-                self.polymers.append(polymer)
+            self.polymers.append(polymer)
 
     def add_from_json_file(self, path: str) -> None:
         with open(path) as stream:
@@ -170,28 +208,32 @@ class AsuContents:
         for component in components:
             if "sequence" in component:
                 polymer = Polymer.from_component_json(component)
-                if polymer not in self.polymers:
-                    self.polymers.append(polymer)
+                self.polymers.append(polymer)
+            elif "codes" in component:
+                oligo = Oligo.from_component_json(component)
+                self.oligos.append(oligo)
             elif "code" in component:
                 ligand = Ligand.from_component_json(component)
-                if ligand not in self.ligands:
-                    self.ligands.append(ligand)
+                self.ligands.append(ligand)
 
     def add_from_pdbid(self, pdbid: str) -> None:
         for mol in pdbe.molecules(pdbid):
             if "sequence" in mol:
                 polymer = Polymer.from_pdbe_molecule_dict(mol)
-                if polymer not in self.polymers:
-                    self.polymers.append(polymer)
+                self.polymers.append(polymer)
+            if mol["molecule_type"] == "carbohydrate polymer":
+                oligo = Oligo.from_pdbe_molecule_dict(mol)
+                self.oligos.append(oligo)
             if mol["molecule_type"] == "bound":
                 ligand = Ligand.from_pdbe_molecule_dict(mol)
-                if ligand not in self.ligands:
+                if ligand.code not in ("UNL", "UNX"):
                     self.ligands.append(ligand)
 
     def components_json(self) -> list:
         polymers = [polymer.to_component_json() for polymer in self.polymers]
+        oligos = [oligo.to_component_json() for oligo in self.oligos]
         ligands = [ligand.to_component_json() for ligand in self.ligands]
-        return polymers + ligands
+        return polymers + oligos + ligands
 
     def write_sequence_file(
         self,

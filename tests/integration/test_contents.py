@@ -1,6 +1,13 @@
 from modelcraft.contents import AsuContents
 
 
+def _test_contents(pdbid: str, expected: list):
+    contents = AsuContents()
+    contents.add_from_pdbid(pdbid)
+    actual = contents.components_json()
+    assert actual == expected
+
+
 def test_1o6a():
     expected = [
         {
@@ -11,10 +18,7 @@ def test_1o6a():
             "modifications": ["MSE"],
         }
     ]
-    contents = AsuContents()
-    contents.add_from_pdbid("1o6a")
-    actual = contents.components_json()
-    assert actual == expected
+    _test_contents("1o6a", expected)
 
 
 def test_4gxy():
@@ -30,10 +34,7 @@ def test_4gxy():
         {"code": "IRI", "copies": 7},
         {"code": "MG", "copies": 2},
     ]
-    contents = AsuContents()
-    contents.add_from_pdbid("4gxy")
-    actual = contents.components_json()
-    assert actual == expected
+    _test_contents("4gxy", expected)
 
 
 def test_6as7():
@@ -63,7 +64,27 @@ def test_6as7():
         {"code": "MG", "copies": 2},
         {"code": "CO", "copies": 2},
     ]
-    contents = AsuContents()
-    contents.add_from_pdbid("6as7")
-    actual = contents.components_json()
-    assert actual == expected
+    _test_contents("6as7", expected)
+
+
+def test_4aqd():
+    expected = [
+        {
+            "sequence": "RSEDDIIIATKNGKVRGMNLTVFGGTVTAFLGIPYAQPPLGRLRFKKPQSLTKWSDIWNATKYANSCCQNIDQSFPGFHGSEMWNPNTDLSEDCLYLNVWIPAPKPKNATVLIWIYGGGFQTGTSSLHVYDGKFLARVERVIVVSMNYRVGALGFLALPGNPEAPGNMGLFDQQLALQWVQKNIAAFGGNPKSVTLFGESAGAASVSLHLLSPGSHSLFTRAILQSGSFNAPWAVTSLYEARNRTLNLAKLTGCSRENETEIIKCLRNKDPQEILLNEAFVVPYGTPLSVNFGPTVDGDFLTDMPDILLELGQFKKTQILVGVNKDEGTAFLVYGAPGFSKDNNSIITRKEFQEGLKIFFPGVSEFGKESILFHYTDWVDDQRPENYREALGDVVGDYNFICPALEFTKKFSEWGNNAFFYYFEHRSSKLPWPEWMGVMHGYEIEFVFGLPLERRDNYTKAEEILSRSIVKRWANFAKYGNPNETQNNSTSWPVFKSTEQKYLTLNTESTRIMTKLRAQQCRFWTSFFPKV",
+            "type": "PROTEIN",
+            "start": 1,
+            "copies": 2,
+            "modifications": [],
+        },
+        {"codes": ["NAG"], "length": 2, "copies": 2},
+        {"codes": ["FUL", "NAG"], "length": 3, "copies": 6},
+        {"codes": ["MAN", "NAG"], "length": 3, "copies": 1},
+        {"code": "BAL", "copies": 2},
+        {"code": "NAG", "copies": 6},
+        {"code": "PG4", "copies": 2},
+        {"code": "EDO", "copies": 19},
+        {"code": "CL", "copies": 7},
+        {"code": "GLY", "copies": 2},
+        {"code": "PEG", "copies": 2},
+    ]
+    _test_contents("4aqd", expected)
