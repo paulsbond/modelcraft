@@ -14,7 +14,7 @@ class PolymerType(Enum):
     def parse(cls, s: str) -> "PolymerType":
         if s.lower() in ("protein", "polypeptide(l)"):
             return cls.PROTEIN
-        if s.lower() in ("rna"):
+        if s.lower() in ("rna", "polyribonucleotide"):
             return cls.RNA
         if s.lower() in ("dna"):
             return cls.DNA
@@ -47,7 +47,7 @@ def modifications_in_pdbe_molecule_dict(mol: dict) -> List[str]:
         indices.setdefault(key, []).append(index)
     modifications = []
     for key in indices:
-        code1, code2 = key
+        code1, code3 = key
         total = mol["sequence"].count(code1)
         if len(indices[key]) == total:
             modifications.append(code3)
@@ -61,14 +61,12 @@ class Polymer:
         self,
         sequence: str,
         start: Optional[int] = None,
-        label: Optional[str] = None,
         copies: Optional[int] = None,
         polymer_type: Optional[PolymerType] = None,
         modifications: Optional[List[str]] = None,
     ):
         self.sequence = sequence.upper()
         self.start = start or 1
-        self.label = label
         self.copies = copies
         if polymer_type is None:
             self.type = PolymerType.from_sequence(self.sequence)
@@ -90,7 +88,6 @@ class Polymer:
         return Polymer(
             sequence=component["sequence"],
             start=component.get("start"),
-            label=component.get("label"),
             copies=component.get("copies"),
             polymer_type=PolymerType.parse(component.get("type")),
             modifications=component.get("modifications"),
@@ -101,7 +98,6 @@ class Polymer:
         return Polymer(
             sequence=mol["sequence"],
             start=mol["source"][0]["mappings"][0]["start"]["residue_number"],
-            label=mol["molecule_name"][0],
             copies=mol["number_of_copies"],
             polymer_type=PolymerType.parse(mol["molecule_type"]),
             modifications=modifications_in_pdbe_molecule_dict(mol),
@@ -111,27 +107,22 @@ class Polymer:
     def from_sequence_file(
         cls, path: str, polymer_type: Optional[PolymerType] = None
     ) -> Iterator["Polymer"]:
-        label = None
         sequence = ""
         with open(path) as stream:
             for line in stream:
                 if line[0] == ">":
                     if len(sequence) > 0:
-                        yield Polymer(
-                            sequence=sequence, label=label, polymer_type=polymer_type
-                        )
-                    label = line[1:].strip() if line[1:].strip() else None
+                        yield Polymer(sequence=sequence, polymer_type=polymer_type)
                     sequence = ""
                 elif line[0] != ";":
                     sequence += "".join(c for c in line if c.isalpha())
         if len(sequence) > 0:
-            yield Polymer(sequence=sequence, label=label, polymer_type=polymer_type)
+            yield Polymer(sequence=sequence, polymer_type=polymer_type)
 
     def to_component_json(self) -> dict:
         return {
-            "label": self.label,
-            "type": self.type.value,
             "sequence": self.sequence,
+            "type": self.type.value,
             "start": self.start,
             "copies": self.copies,
             "modifications": self.modifications,
@@ -139,11 +130,8 @@ class Polymer:
 
 
 class Ligand:
-    def __init__(
-        self, code: str, label: Optional[str] = None, copies: Optional[int] = None
-    ):
+    def __init__(self, code: str, copies: Optional[int] = None):
         self.code = code
-        self.label = label
         self.copies = copies
 
     def __eq__(self, other) -> bool:
@@ -153,14 +141,14 @@ class Ligand:
 
     @classmethod
     def from_component_json(cls, component: dict) -> "Ligand":
-        return Ligand(
-            code=component["code"],
-            label=component.get("label"),
-            copies=component.get("copies"),
-        )
+        return Ligand(code=component["code"], copies=component.get("copies"))
+
+    @classmethod
+    def from_pdbe_molecule_dict(cls, mol: dict) -> "Ligand":
+        return Ligand(code=mol["chem_comp_ids"][0], copies=mol["number_of_copies"])
 
     def to_component_json(self) -> dict:
-        return {"code": self.code, "label": self.label, "copies": self.copies}
+        return {"code": self.code, "copies": self.copies}
 
 
 class AsuContents:
@@ -194,6 +182,15 @@ class AsuContents:
                 polymer = Polymer.from_pdbe_molecule_dict(mol)
                 if polymer not in self.polymers:
                     self.polymers.append(polymer)
+            if mol["molecule_type"] == "bound":
+                ligand = Ligand.from_pdbe_molecule_dict(mol)
+                if ligand not in self.ligands:
+                    self.ligands.append(ligand)
+
+    def components_json(self) -> list:
+        polymers = [polymer.to_component_json() for polymer in self.polymers]
+        ligands = [ligand.to_component_json() for ligand in self.ligands]
+        return polymers + ligands
 
     def write_sequence_file(
         self,
@@ -204,55 +201,10 @@ class AsuContents:
         with open(path, "w") as stream:
             for polymer in self.polymers:
                 if polymer_type is None or polymer.type == polymer_type:
-                    stream.write(f">{polymer.label or polymer.type}\n")
+                    stream.write(f">{polymer.type.value}\n")
                     for i in range(0, len(polymer.sequence), line_length):
                         stream.write(polymer.sequence[i : i + line_length] + "\n")
 
     def write_json_file(self, path: str) -> None:
-        polymers = [polymer.to_component_json() for polymer in self.polymers]
-        ligands = [ligand.to_component_json() for ligand in self.ligands]
-        components = polymers + ligands
         with open(path, "w") as stream:
-            json.dump(components, stream, indent=2)
-
-
-{
-    "entity_id": 1,
-    "weight": 10924.471,
-    "sequence": "SETRKTEVPSDKLELLLDIPLKVTVELGRTRMTLKRVLEMIHGSIIELDKLTGEPVDILVNGKLIARGEVVVIDENFGVRITEIVSPKERLELLNE",
-    "pdb_sequence": "SETRKTEVPSDKLELLLDIPLKVTVELGRTR(MSE)TLKRVLE(MSE)IHGSIIELDKLTGEPVDILVNGKLIARGEVVVIDENFGVRITEIVSPKERLELLNE",
-    "molecule_type": "polypeptide(L)",
-    "source": [
-        {
-            "mappings": [
-                {"start": {"residue_number": 1}, "end": {"residue_number": 96}}
-            ],
-            "expression_host_scientific_name": "Escherichia coli",
-            "expression_host_tax_id": 562,
-            "organism_scientific_name": "Thermotoga maritima",
-            "tax_id": 2336,
-        }
-    ],
-    "ca_p_only": False,
-    "in_chains": ["A", "B"],
-    "pdb_sequence_indices_with_multiple_residues": {
-        "40": {
-            "three_letter_code": "MSE",
-            "parent_chem_comp_ids": ["MET"],
-            "one_letter_code": "M",
-        },
-        "32": {
-            "three_letter_code": "MSE",
-            "parent_chem_comp_ids": ["MET"],
-            "one_letter_code": "M",
-        },
-    },
-    "synonym": "putative flagellar motor switch protein FliN",
-    "mutation_flag": None,
-    "in_struct_asyms": ["A", "B"],
-    "molecule_name": ["putative flagellar motor switch protein FliN"],
-    "length": 96,
-    "sample_preparation": "Genetically manipulated",
-    "gene_name": None,
-    "number_of_copies": 2,
-}
+            json.dump(self.components_json(), stream, indent=2)
