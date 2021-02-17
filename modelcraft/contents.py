@@ -39,7 +39,21 @@ class PolymerType(Enum):
 
 
 def modifications_in_pdbe_molecule_dict(mol: dict) -> List[str]:
-    pass
+    indices = {}
+    for index, mod in mol["pdb_sequence_indices_with_multiple_residues"].items():
+        code1 = mod["one_letter_code"]
+        code3 = mod["three_letter_code"]
+        key = code1, code3
+        indices.setdefault(key, []).append(index)
+    modifications = []
+    for key in indices:
+        code1, code2 = key
+        total = mol["sequence"].count(code1)
+        if len(indices[key]) == total:
+            modifications.append(code3)
+        else:
+            modifications.extend(code3 + index for index in indices[key])
+    return modifications
 
 
 class Polymer:
@@ -90,7 +104,7 @@ class Polymer:
             label=mol["molecule_name"][0],
             copies=mol["number_of_copies"],
             polymer_type=PolymerType.parse(mol["molecule_type"]),
-            modifications=None,
+            modifications=modifications_in_pdbe_molecule_dict(mol),
         )
 
     @classmethod
@@ -115,10 +129,11 @@ class Polymer:
 
     def to_component_json(self) -> dict:
         return {
-            "sequence": self.sequence,
             "label": self.label,
-            "copies": self.copies,
             "type": self.type.value,
+            "sequence": self.sequence,
+            "start": self.start,
+            "copies": self.copies,
             "modifications": self.modifications,
         }
 
