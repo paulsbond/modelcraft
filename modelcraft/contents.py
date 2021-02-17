@@ -16,7 +16,7 @@ class PolymerType(Enum):
             return cls.PROTEIN
         if s.lower() in ("rna", "polyribonucleotide"):
             return cls.RNA
-        if s.lower() in ("dna"):
+        if s.lower() in ("dna", "polydeoxyribonucleotide"):
             return cls.DNA
         raise ValueError(f"Unknown polymer type: '{s}'")
 
@@ -43,8 +43,9 @@ def modifications_in_pdbe_molecule_dict(mol: dict) -> List[str]:
     for index, mod in mol["pdb_sequence_indices_with_multiple_residues"].items():
         code1 = mod["one_letter_code"]
         code3 = mod["three_letter_code"]
-        key = code1, code3
-        indices.setdefault(key, []).append(index)
+        if code3 not in ("DA", "DC", "DG", "DT"):
+            key = code1, code3
+            indices.setdefault(key, []).append(index)
     modifications = []
     for key in indices:
         code1, code3 = key
