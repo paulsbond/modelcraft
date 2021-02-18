@@ -1,5 +1,5 @@
 import pytest
-from modelcraft.contents import PolymerType
+from modelcraft.polymer import PolymerType
 
 
 @pytest.mark.parametrize(

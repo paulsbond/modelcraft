@@ -1,6 +1,7 @@
 import argparse
 import sys
-from ..contents import AsuContents, PolymerType
+from ..contents import AsuContents
+from ..polymer import PolymerType
 
 
 def main(argument_list=None):

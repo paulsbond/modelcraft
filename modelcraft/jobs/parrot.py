@@ -1,6 +1,7 @@
 from typing import Optional
 import gemmi
-from ..contents import AsuContents, PolymerType
+from ..contents import AsuContents
+from ..polymer import PolymerType
 from ..reflections import DataItem, write_mtz
 from ..structure import write_mmcif
 from .job import Job

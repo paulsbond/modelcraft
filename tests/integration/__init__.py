@@ -2,8 +2,9 @@ import functools
 import os
 import shutil
 import gemmi
-from modelcraft.contents import AsuContents, Polymer, PolymerType
+from modelcraft.contents import AsuContents
 from modelcraft.jobs import Refmac
+from modelcraft.polymer import Polymer, PolymerType
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 
