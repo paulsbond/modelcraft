@@ -51,10 +51,12 @@ def modifications_in_pdbe_molecule_dict(mol: dict) -> List[str]:
     for key in indices:
         code1, code3 = key
         total = mol["sequence"].count(code1)
-        if len(indices[key]) == total:
-            modifications.append(code3)
+        if code1 == "M" and mol["sequence"][0] == "M":
+            total -= 1
+        if len(indices[key]) >= total:
+            modifications.append(f"{code1}->{code3}")
         else:
-            modifications.extend(code3 + index for index in indices[key])
+            modifications.extend(f"{index}->{code3}" for index in indices[key])
     return modifications
 
 

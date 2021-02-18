@@ -14,7 +14,7 @@ def test_1o6a():
             "type": "PROTEIN",
             "start": 1,
             "copies": 2,
-            "modifications": ["MSE"],
+            "modifications": ["M->MSE"],
         }
     ]
     _test_contents("1o6a", expected)
@@ -27,7 +27,7 @@ def test_4gxy():
             "type": "RNA",
             "start": 1,
             "copies": 1,
-            "modifications": ["GTP1", "CCC172"],
+            "modifications": ["1->GTP", "172->CCC"],
         },
         {"code": "B1Z", "copies": 2},
         {"code": "IRI", "copies": 7},
@@ -87,3 +87,18 @@ def test_4aqd():
         {"code": "PEG", "copies": 2},
     ]
     _test_contents("4aqd", expected)
+
+
+def test_1vjr():
+    expected = [
+        {
+            "sequence": "MGSDKIHHHHHHVLDKIELFILDMDGTFYLDDSLLPGSLEFLETLKEKNKRFVFFTNNSSLGAQDYVRKLRNMGVDVPDDAVVTSGEITAEHMLKRFGRCRIFLLGTPQLKKVFEAYGHVIDEENPDFVVLGFDKTLTYERLKKACILLRKGKFYIATHPDINCPSKEGPVPDAGSIMAAIEASTGRKPDLIAGKPNPLVVDVISEKFGVPKERMAMVGDRLYTDVKLGKNAGIVSILVLTGETTPEDLERAETKPDFVFKNLGELAKAVQ",
+            "type": "PROTEIN",
+            "start": 1,
+            "copies": 1,
+            "modifications": ["M->MSE"],
+        },
+        {"code": "NI", "copies": 1},
+        {"code": "CL", "copies": 2},
+    ]
+    _test_contents("1vjr", expected)
