@@ -99,7 +99,6 @@ class Polymer:
     def from_pdbe_molecule_dict(cls, mol: dict) -> "Polymer":
         return cls(
             sequence=mol["sequence"],
-            start=mol["source"][0]["mappings"][0]["start"]["residue_number"],
             copies=mol["number_of_copies"],
             polymer_type=PolymerType.parse(mol["molecule_type"]),
             modifications=modifications_in_pdbe_molecule_dict(mol),
