@@ -51,35 +51,13 @@ def insulin_contents():
     contents = AsuContents()
     a = Polymer(
         sequence="GIVEQCCASVCSLYQLENYCN",
-        label="A",
         copies=1,
         polymer_type=PolymerType.PROTEIN,
     )
     b = Polymer(
         sequence="FVNQHLCGSHLVEALYLVCGERGFFYTPKA",
-        label="B",
         copies=1,
         polymer_type=PolymerType.PROTEIN,
     )
     contents.polymers = [a, b]
-    return contents
-
-
-@functools.lru_cache(maxsize=None)
-def pdb1rxf_contents():
-    contents = AsuContents()
-    a = Polymer(
-        sequence=(
-            "MDTTVPTFSLAELQQGLHQDEFRRCLRDKGLFYLTDCGLTDTELKSAKDLVIDFFEHGSE"
-            "AEKRAVTSPVPTMRRGFTGLESESTAQITNTGSYSDYSMCYSMGTADNLFPSGDFERIWT"
-            "QYFDRQYTASRAVAREVLRATGTEPDGGVEAFLDCEPLLRFRYFPQVPEHRSAEEQPLRM"
-            "APHYDLSMVTLIQQTPCANGFVSLQAEVGGAFTDLPYRPDAVLVFCGAIATLVTGGQVKA"
-            "PRHHVAAPRRDQIAGSSRTSSVFFLRPNADFTFSVPLARECGFDVSLDGETATFQDWIGG"
-            "NYVNIRRTSKA"
-        ),
-        label="A",
-        copies=1,
-        polymer_type=PolymerType.PROTEIN,
-    )
-    contents.polymers = [a]
     return contents

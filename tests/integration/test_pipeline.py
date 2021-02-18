@@ -4,7 +4,6 @@ import pytest
 import shutil
 import uuid
 from modelcraft.scripts.modelcraft import main
-from modelcraft.contents import PolymerType
 from modelcraft.reflections import write_mtz
 from modelcraft.structure import contains_residue, read_structure
 from tests.integration import (
@@ -13,7 +12,6 @@ from tests.integration import (
     insulin_fsigf,
     insulin_freer,
     insulin_refmac,
-    pdb1rxf_contents,
 )
 
 
@@ -26,10 +24,10 @@ def test_insulin_from_phases():
     refmac = insulin_refmac()
     write_mtz("data.mtz", [fsigf, freer, refmac.abcd])
     contents = insulin_contents()
-    contents.write_sequence_file("sequence.fasta")
+    contents.write_json_file("contents.json")
     args = []
     args += ["--hklin", "data.mtz"]
-    args += ["--seqin", "sequence.fasta"]
+    args += ["--contents", "contents.json"]
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
         main(args)
@@ -50,13 +48,11 @@ def test_1rxf_from_model():
     structure = read_structure(xyzin)
     structure.remove_alternative_conformations()
     structure.write_minimal_pdb("model.pdb")
-    contents = pdb1rxf_contents()
-    contents.write_sequence_file("1rxf.fasta", polymer_type=PolymerType.PROTEIN)
     args = []
     args += ["--hklin", hklin]
     args += ["--amplitudes", "F,SIGF"]
     args += ["--freerflag", "FreeR_flag"]
-    args += ["--seqin", "1rxf.fasta"]
+    args += ["--contents", "1rxf"]
     args += ["--model", "model.pdb"]
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):

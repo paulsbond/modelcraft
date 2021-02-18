@@ -11,7 +11,7 @@ _PARSER = argparse.ArgumentParser(add_help=False)
 
 _req = _PARSER.add_argument_group("Required arguments")
 _req.add_argument("--hklin", metavar="FILE", required=True)
-_req.add_argument("--seqin", metavar="FILE", required=True)
+_req.add_argument("--contents", metavar="FILE_or_PDBID", required=True)
 
 _opt = _PARSER.add_argument_group("Optional arguments")
 _opt.add_argument("--amplitudes", metavar="COLS")
@@ -37,7 +37,7 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     args = _PARSER.parse_args(arguments)
     _basic_check(args)
     _parse_data_items(args)
-    args.contents = AsuContents(args.seqin)
+    args.contents = AsuContents(args.contents)
     if args.model is not None:
         args.model = read_structure(args.model)
     return args
@@ -53,8 +53,11 @@ def _basic_check(args: argparse.Namespace):
     if args.convergence_tolerance < 0.1:
         _PARSER.error("The convergence tolerance must be 0.1 or higher")
 
-    for arg in "hklin", "seqin", "model":
+    for arg in "hklin", "contents", "model":
         path = getattr(args, arg)
+        if arg == "contents" and len(path) == 4:
+            # Contents is a PDB ID and not a path
+            continue
         if path is not None and not os.path.exists(path):
             _PARSER.error("File not found: %s" % path)
 

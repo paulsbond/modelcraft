@@ -26,9 +26,10 @@
             The CCP4 environment needs to be set up for the pipeline to work.
             The simplest execution requires only
             a reflection data file in MTZ format
-            and a sequence file in FASTA format.
+            with amplitudes, a free-R flag and phases
+            and a description of the asymmetric unit contents.
         </p>
-        <pre><code>modelcraft --hklin reflections.mtz --seqin sequence.fasta</code></pre>
+        <pre><code>modelcraft --hklin reflections.mtz --contents contents.fasta</code></pre>
     </section>
 
     <section>
@@ -38,8 +39,13 @@
             Input reflection data in MTZ format.
         </p>
         <p>
-            <code>--seqin FILE</code><br>
-            Input protein sequence in FASTA format.
+            <code>--contents FILE_OR_PDBID</code><br>
+            A description of the assymetric unit contents, either as
+            a sequence file in FASTA format,
+            a contents file in JSON format,
+            or a four character PDB ID.
+            The <code>modelcraft-contents</code> script
+            can be used to produce an example JSON file for a PDB entry.
         </p>
     </section>
 

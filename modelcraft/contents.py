@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Dict, Iterator, List, Optional
 import json
+import os
 import modelcraft.residues as residues
 import modelcraft.pdbe as pdbe
 
@@ -178,10 +179,19 @@ class Ligand:
 
 
 class AsuContents:
-    def __init__(self):
+    def __init__(self, path_or_pdbid: Optional[str] = None):
         self.polymers: List[Polymer] = []
         self.carbs: List[Polymer] = []
         self.ligands: List[Ligand] = []
+        if path_or_pdbid is not None:
+            if len(path_or_pdbid) == 4:
+                self.add_from_pdbid(path_or_pdbid)
+            else:
+                _, ext = os.path.splitext(path_or_pdbid)
+                if ext == ".json":
+                    self.add_from_json_file(path_or_pdbid)
+                else:
+                    self.add_from_sequence_file(path_or_pdbid)
 
     def add_from_sequence_file(
         self, path: str, polymer_type: Optional[PolymerType] = None

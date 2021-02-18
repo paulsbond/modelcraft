@@ -2,8 +2,7 @@ from modelcraft.contents import AsuContents
 
 
 def _test_contents(pdbid: str, expected: list):
-    contents = AsuContents()
-    contents.add_from_pdbid(pdbid)
+    contents = AsuContents(pdbid)
     actual = contents.components_json()
     assert actual == expected
 

@@ -19,6 +19,7 @@ class Parrot(Job):
         super().__init__("parrot")
         args = []
 
+        # TODO: Calculate a more accurate solvent content using all components
         seqin = self.path("seqin.seq")
         args += ["-seqin", seqin]
         contents.write_sequence_file(seqin, PolymerType.PROTEIN)
