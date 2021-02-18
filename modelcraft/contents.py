@@ -130,7 +130,7 @@ class Polymer:
         }
 
 
-class Oligo:
+class Carb:
     def __init__(
         self,
         codes: List[str],
@@ -147,7 +147,7 @@ class Oligo:
         return NotImplemented
 
     @classmethod
-    def from_component_json(cls, component: dict) -> "Oligo":
+    def from_component_json(cls, component: dict) -> "Carb":
         return cls(
             codes=component["codes"],
             length=component.get("length"),
@@ -155,7 +155,7 @@ class Oligo:
         )
 
     @classmethod
-    def from_pdbe_molecule_dict(cls, mol: dict) -> "Oligo":
+    def from_pdbe_molecule_dict(cls, mol: dict) -> "Carb":
         copies = len(mol["in_chains"])
         length = mol["number_of_copies"] // copies
         return cls(codes=mol["chem_comp_ids"], length=length, copies=copies)
@@ -193,7 +193,7 @@ class Ligand:
 class AsuContents:
     def __init__(self):
         self.polymers: List[Polymer] = []
-        self.oligos: List[Polymer] = []
+        self.carbs: List[Polymer] = []
         self.ligands: List[Ligand] = []
 
     def add_from_sequence_file(
@@ -210,8 +210,8 @@ class AsuContents:
                 polymer = Polymer.from_component_json(component)
                 self.polymers.append(polymer)
             elif "codes" in component:
-                oligo = Oligo.from_component_json(component)
-                self.oligos.append(oligo)
+                carb = Carb.from_component_json(component)
+                self.carbs.append(carb)
             elif "code" in component:
                 ligand = Ligand.from_component_json(component)
                 self.ligands.append(ligand)
@@ -222,8 +222,8 @@ class AsuContents:
                 polymer = Polymer.from_pdbe_molecule_dict(mol)
                 self.polymers.append(polymer)
             if mol["molecule_type"] == "carbohydrate polymer":
-                oligo = Oligo.from_pdbe_molecule_dict(mol)
-                self.oligos.append(oligo)
+                carb = Carb.from_pdbe_molecule_dict(mol)
+                self.carbs.append(carb)
             if mol["molecule_type"] == "bound":
                 ligand = Ligand.from_pdbe_molecule_dict(mol)
                 if ligand.code not in ("UNL", "UNX"):
@@ -231,9 +231,9 @@ class AsuContents:
 
     def components_json(self) -> list:
         polymers = [polymer.to_component_json() for polymer in self.polymers]
-        oligos = [oligo.to_component_json() for oligo in self.oligos]
+        carbs = [carb.to_component_json() for carb in self.carbs]
         ligands = [ligand.to_component_json() for ligand in self.ligands]
-        return polymers + oligos + ligands
+        return polymers + carbs + ligands
 
     def write_sequence_file(
         self,
