@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Iterator, List, Optional
+from typing import Dict, Iterator, List, Optional
 import json
 import modelcraft.residues as residues
 import modelcraft.pdbe as pdbe
@@ -131,14 +131,8 @@ class Polymer:
 
 
 class Carb:
-    def __init__(
-        self,
-        codes: List[str],
-        length: Optional[int] = None,
-        copies: Optional[int] = None,
-    ):
-        self.codes = set(codes)
-        self.length = length
+    def __init__(self, codes: Dict[str, int], copies: Optional[int] = None):
+        self.codes = codes
         self.copies = copies
 
     def __eq__(self, other) -> bool:
@@ -148,24 +142,17 @@ class Carb:
 
     @classmethod
     def from_component_json(cls, component: dict) -> "Carb":
-        return cls(
-            codes=component["codes"],
-            length=component.get("length"),
-            copies=component.get("copies"),
-        )
+        return cls(codes=component["codes"], copies=component.get("copies"))
 
     @classmethod
     def from_pdbe_molecule_dict(cls, mol: dict) -> "Carb":
-        copies = len(mol["in_chains"])
-        length = mol["number_of_copies"] // copies
-        return cls(codes=mol["chem_comp_ids"], length=length, copies=copies)
+        codes = mol["carb_codes"]
+        length = sum(codes.values())
+        copies = mol["number_of_copies"] // length
+        return cls(codes=codes, copies=copies)
 
     def to_component_json(self) -> dict:
-        return {
-            "codes": sorted(self.codes),
-            "length": self.length,
-            "copies": self.copies,
-        }
+        return {"codes": self.codes, "copies": self.copies}
 
 
 class Ligand:
