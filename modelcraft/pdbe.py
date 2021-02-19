@@ -6,7 +6,7 @@ import time
 def molecules(pdbid: str) -> list:
     pdbid = pdbid.lower()
     url = "https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/" + pdbid
-    time.sleep(1)
+    time.sleep(2)
     print("Requesting PDBe molecule data for", pdbid)
     response = requests.get(url)
     if response.status_code != 200:
@@ -24,7 +24,7 @@ def carb_codes(pdbid: str) -> dict:
     query = "pdb_id:" + pdbid
     filter_list = "carb_compound_id_entity"
     request_data = {"q": query, "fl": filter_list, "wt": "json"}
-    time.sleep(1)
+    time.sleep(2)
     response = requests.post(url, data=request_data)
     if response.status_code != 200:
         raise ConnectionError(response.text)
