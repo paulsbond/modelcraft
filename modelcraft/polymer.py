@@ -107,6 +107,9 @@ class Polymer:
             "modifications": self.modifications,
         }
 
+    def is_selenomet(self) -> bool:
+        return "M->MSE" in self.modifications
+
 
 def _modifications_in_pdbe_molecule_dict(mol: dict) -> List[str]:
     indices = {}

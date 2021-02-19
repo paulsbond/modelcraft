@@ -53,6 +53,10 @@ class AsuContents:
                 if ligand.code not in ("UNL", "UNX"):
                     self.ligands.append(ligand)
 
+    def is_selenomet(self) -> bool:
+        proteins = [p for p in self.polymers if p.type == PolymerType.PROTEIN]
+        return len(proteins) > 0 and all(p.is_selenomet() for p in proteins)
+
     def components_json(self) -> list:
         polymers = [polymer.to_component_json() for polymer in self.polymers]
         carbs = [carb.to_component_json() for carb in self.carbs]

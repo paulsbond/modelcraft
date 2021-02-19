@@ -22,7 +22,6 @@ class Buccaneer(Job):
         filter_mr: bool = True,
         seed_mr: bool = True,
         cycles: int = 2,
-        semet: bool = False,
         remove_non_protein: bool = False,
         program: str = "cbuccaneer",
     ):
@@ -69,7 +68,7 @@ class Buccaneer(Job):
             write_mmcif(xyzmr, mr_structure)
 
         args += ["-cycles", str(cycles)]
-        if semet:
+        if contents.is_selenomet():
             args += ["-build-semet"]
         args += ["-fast"]
         args += ["-correlation-mode"]

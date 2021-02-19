@@ -1,10 +1,10 @@
 from modelcraft.contents import AsuContents
 
 
-def _test_contents(pdbid: str, expected: list):
+def _test_contents(pdbid: str, expected: list, selenomet: bool):
     contents = AsuContents(pdbid)
-    actual = contents.components_json()
-    assert actual == expected
+    assert contents.components_json() == expected
+    assert contents.is_selenomet() == selenomet
 
 
 def test_1o6a():
@@ -17,7 +17,7 @@ def test_1o6a():
             "modifications": ["M->MSE"],
         }
     ]
-    _test_contents("1o6a", expected)
+    _test_contents("1o6a", expected, selenomet=True)
 
 
 def test_4gxy():
@@ -33,7 +33,7 @@ def test_4gxy():
         {"code": "IRI", "copies": 7},
         {"code": "MG", "copies": 2},
     ]
-    _test_contents("4gxy", expected)
+    _test_contents("4gxy", expected, selenomet=False)
 
 
 def test_6as7():
@@ -63,7 +63,7 @@ def test_6as7():
         {"code": "MG", "copies": 2},
         {"code": "CO", "copies": 2},
     ]
-    _test_contents("6as7", expected)
+    _test_contents("6as7", expected, selenomet=False)
 
 
 def test_4aqd():
@@ -86,7 +86,7 @@ def test_4aqd():
         {"code": "GLY", "copies": 2},
         {"code": "PEG", "copies": 2},
     ]
-    _test_contents("4aqd", expected)
+    _test_contents("4aqd", expected, selenomet=False)
 
 
 def test_1vjr():
@@ -101,7 +101,7 @@ def test_1vjr():
         {"code": "NI", "copies": 1},
         {"code": "CL", "copies": 2},
     ]
-    _test_contents("1vjr", expected)
+    _test_contents("1vjr", expected, selenomet=True)
 
 
 def test_1cag():
@@ -126,4 +126,4 @@ def test_1cag():
         },
         {"code": "ACY", "copies": 6},
     ]
-    _test_contents("1cag", expected)
+    _test_contents("1cag", expected, selenomet=False)

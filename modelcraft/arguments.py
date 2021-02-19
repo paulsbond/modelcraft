@@ -25,7 +25,6 @@ _opt.add_argument("--model", metavar="FILE")
 _opt.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
 _opt.add_argument("--remove-non-protein", action="store_true")
 _opt.add_argument("--phases", metavar="COLS")
-_opt.add_argument("--semet", action="store_true")
 _opt.add_argument("--twinned", action="store_true")
 _opt.add_argument("--unbiased", action="store_true")
 
