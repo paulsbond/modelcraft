@@ -102,3 +102,28 @@ def test_1vjr():
         {"code": "CL", "copies": 2},
     ]
     _test_contents("1vjr", expected)
+
+
+def test_1cag():
+    expected = [
+        {
+            "sequence": "PPGPPGPPGPPGPPAPPGPPGPPGPPGPPG",
+            "type": "PROTEIN",
+            "start": 1,
+            "copies": 3,
+            "modifications": [
+                "2->HYP",
+                "5->HYP",
+                "8->HYP",
+                "11->HYP",
+                "14->HYP",
+                "17->HYP",
+                "20->HYP",
+                "23->HYP",
+                "26->HYP",
+                "29->HYP",
+            ],
+        },
+        {"code": "ACY", "copies": 6},
+    ]
+    _test_contents("1cag", expected)
