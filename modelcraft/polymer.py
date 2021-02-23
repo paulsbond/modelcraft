@@ -1,6 +1,6 @@
 from typing import Iterator, List, Optional
 import enum
-import modelcraft.residues as residues
+import gemmi
 
 
 class PolymerType(enum.Enum):
@@ -23,9 +23,7 @@ class PolymerType(enum.Enum):
         codes = set(sequence)
         if "U" in codes:
             return cls.RNA
-        protein_codes = {residue.code1 for residue in residues.PROTEIN}
-        unique_protein_codes = protein_codes - {"A", "C", "G", "T"}
-        if codes & unique_protein_codes:
+        if codes & set("DEFHIKLMNPQRSVWY"):
             return cls.PROTEIN
         if codes == {"A"}:
             return cls.PROTEIN
@@ -64,7 +62,7 @@ class Polymer:
         return NotImplemented
 
     @classmethod
-    def from_component_json(cls, component: dict) -> "Polymer":
+    def from_json(cls, component: dict) -> "Polymer":
         return cls(
             sequence=component["sequence"],
             start=component.get("start"),
@@ -98,14 +96,35 @@ class Polymer:
         if len(sequence) > 0:
             yield cls(sequence=sequence, polymer_type=polymer_type)
 
-    def to_component_json(self) -> dict:
+    def to_json(self) -> dict:
         return {
             "sequence": self.sequence,
-            "type": self.type.value,
             "start": self.start,
             "copies": self.copies,
             "modifications": self.modifications,
         }
+
+    def residue_codes(self, modified: bool = True) -> List[str]:
+        codes = [code1_to_code3(code1, self.type) for code1 in self.sequence]
+        if modified:
+            for mod in self.modifications:
+                source, code = mod.split("->")
+                if source[0].isdigit():
+                    index = int(source) - self.start
+                    codes[index] = code
+                else:
+                    for index, code1 in enumerate(self.sequence):
+                        if code1 == source:
+                            codes[index] = code
+        return codes
+
+    def volume(self) -> float:
+        codes = self.residue_codes(modified=False)
+        weight = gemmi.calculate_sequence_weight(codes)
+        if self.type == PolymerType.PROTEIN:
+            return weight / 0.74
+        else:
+            return weight / 0.50
 
     def is_selenomet(self) -> bool:
         return "M->MSE" in self.modifications
@@ -130,3 +149,33 @@ def _modifications_in_pdbe_molecule_dict(mol: dict) -> List[str]:
         else:
             modifications.extend(f"{index}->{code3}" for index in indices[key])
     return modifications
+
+
+def code1_to_code3(code1: str, polymer_type: PolymerType) -> str:
+    if polymer_type == PolymerType.PROTEIN:
+        return {
+            "A": "ALA",
+            "C": "CYS",
+            "D": "ASP",
+            "E": "GLU",
+            "F": "PHE",
+            "G": "GLY",
+            "H": "HIS",
+            "I": "ILE",
+            "K": "LYS",
+            "L": "LEU",
+            "M": "MET",
+            "N": "ASN",
+            "P": "PRO",
+            "Q": "GLN",
+            "R": "ARG",
+            "S": "SER",
+            "T": "THR",
+            "V": "VAL",
+            "W": "TRP",
+            "Y": "TYR",
+        }.get(code1)
+    if polymer_type == PolymerType.RNA:
+        return {"A": "A", "C": "C", "G": "G", "U": "U"}.get(code1)
+    if polymer_type == PolymerType.DNA:
+        return {"A": "DA", "C": "DC", "G": "DG", "T": "DT"}.get(code1)

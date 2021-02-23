@@ -12,7 +12,7 @@ class Carb:
         return NotImplemented
 
     @classmethod
-    def from_component_json(cls, component: dict) -> "Carb":
+    def from_json(cls, component: dict) -> "Carb":
         return cls(codes=component["codes"], copies=component.get("copies"))
 
     @classmethod
@@ -22,5 +22,5 @@ class Carb:
         copies = mol["number_of_copies"] // length
         return cls(codes=codes, copies=copies)
 
-    def to_component_json(self) -> dict:
+    def to_json(self) -> dict:
         return {"codes": self.codes, "copies": self.copies}
