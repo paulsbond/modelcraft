@@ -125,7 +125,7 @@ class Polymer:
 
     def volume(self) -> float:
         density = 1.35 if self.type == PolymerType.PROTEIN else 2.0
-        return self.weight() / (density * 6.02214)
+        return self.weight() / (density * 0.602214)
 
     def is_selenomet(self) -> bool:
         return "M->MSE" in self.modifications
