@@ -96,6 +96,12 @@ class AsuContents:
     def is_selenomet(self) -> bool:
         return len(self.proteins) > 0 and all(p.is_selenomet() for p in self.proteins)
 
+    def volume(self) -> float:
+        total = 0
+        for item in self.proteins + self.rnas + self.dnas + self.carbs + self.ligands:
+            total += item.volume()
+        return total * (self.copies or 1)
+
     def to_json(self) -> list:
         return {
             "copies": self.copies,
@@ -114,7 +120,7 @@ class AsuContents:
         line_length: int = 60,
     ) -> None:
         with open(path, "w") as stream:
-            for polymer in self.polymers:
+            for polymer in self.proteins + self.rnas + self.dnas:
                 if polymer_type is None or polymer.type == polymer_type:
                     stream.write(f">{polymer.type.value}\n")
                     for i in range(0, len(polymer.sequence), line_length):
