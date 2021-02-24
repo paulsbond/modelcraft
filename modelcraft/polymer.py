@@ -50,7 +50,7 @@ class Polymer:
             self.type = PolymerType.from_sequence(self.sequence)
         else:
             self.type = polymer_type
-        self.modifications = modifications
+        self.modifications = modifications or []
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Polymer):
@@ -67,7 +67,6 @@ class Polymer:
             sequence=component["sequence"],
             start=component.get("start"),
             copies=component.get("copies"),
-            polymer_type=PolymerType.parse(component.get("type")),
             modifications=component.get("modifications"),
         )
 
