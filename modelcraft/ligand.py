@@ -1,4 +1,5 @@
 from typing import Optional
+from .residues import vdw_volume
 
 
 class Ligand:
@@ -21,3 +22,6 @@ class Ligand:
 
     def to_json(self) -> dict:
         return {"code": self.code, "copies": self.copies}
+
+    def volume(self) -> float:
+        return vdw_volume(self.code)

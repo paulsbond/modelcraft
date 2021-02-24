@@ -1,4 +1,5 @@
 from typing import Dict, Optional
+from .residues import vdw_volume
 
 
 class Carb:
@@ -24,3 +25,12 @@ class Carb:
 
     def to_json(self) -> dict:
         return {"codes": self.codes, "copies": self.copies}
+
+    def volume(self) -> float:
+        length = 0
+        volume = 0
+        for code, copies in self.codes.items():
+            length += copies
+            volume += vdw_volume(code) * copies
+        volume -= vdw_volume("HOH") * length
+        return volume
