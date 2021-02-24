@@ -235,12 +235,12 @@ class Pipeline:
         print("| Copies | Solvent Fraction |")
         print("|--------|------------------|")
         if contents.copies is None:
-            for n in range(1, 50):
-                fraction = 1 - n * contents_volume / asu_volume
+            for copies in range(1, 50):
+                fraction = 1 - copies * contents_volume / asu_volume
                 if fraction < 0:
                     break
-                print(f"| {n:6d} | {fraction:16.3f} |")
-            if n == 1:
+                print(f"| {copies:6d} | {fraction:16.3f} |")
+            if copies == 1:
                 sys.exit("Contents are too big to fit into the asymmetric unit")
         else:
             fraction = 1 - contents.copies * contents_volume / asu_volume
