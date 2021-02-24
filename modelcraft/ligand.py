@@ -1,5 +1,5 @@
 from typing import Optional
-from .residues import vdw_volume
+from .residues import volume
 
 
 class Ligand:
@@ -24,4 +24,4 @@ class Ligand:
         return {"code": self.code, "copies": self.copies}
 
     def volume(self) -> float:
-        return vdw_volume(self.code)
+        return volume(self.code)

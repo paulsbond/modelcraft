@@ -1,5 +1,4 @@
 from functools import lru_cache
-from math import pi
 from typing import Set
 import os
 import gemmi
@@ -23,21 +22,14 @@ def _buffer_codes() -> Set[str]:
 
 
 @lru_cache(maxsize=None)
-def weight(name: str, include_hydrogens: bool = True) -> float:
-    weight = 0
-    for atom in _chemcomp(name).atoms:
-        if include_hydrogens or not atom.is_hydrogen():
-            weight += atom.el.weight
-    return weight
+def weight(name: str) -> float:
+    return sum(atom.el.weight for atom in _chemcomp(name).atoms)
 
 
 @lru_cache(maxsize=None)
-def vdw_volume(name: str, include_hydrogrens: bool = False) -> float:
-    volume = 0
-    for atom in _chemcomp(name).atoms:
-        if include_hydrogrens or not atom.is_hydrogen():
-            volume += 4 / 3 * pi * atom.el.vdw_r ** 3
-    return volume
+def volume(name: str) -> float:
+    "18 cubic Angstroms per non-hydrogen"
+    return sum(18 for atom in _chemcomp(name).atoms if not atom.is_hydrogen())
 
 
 @lru_cache(maxsize=None)

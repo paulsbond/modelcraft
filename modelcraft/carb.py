@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from .residues import vdw_volume
+from .residues import volume
 
 
 class Carb:
@@ -28,9 +28,9 @@ class Carb:
 
     def volume(self) -> float:
         length = 0
-        volume = 0
+        total = 0
         for code, copies in self.codes.items():
             length += copies
-            volume += vdw_volume(code) * copies
-        volume -= vdw_volume("HOH") * length
-        return volume
+            total += volume(code) * copies
+        total -= volume("HOH") * length
+        return total
