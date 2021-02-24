@@ -99,8 +99,8 @@ class AsuContents:
     def volume(self) -> float:
         total = 0
         for item in self.proteins + self.rnas + self.dnas + self.carbs + self.ligands:
-            total += item.volume()
-        return total * (self.copies or 1)
+            total += item.volume() * (item.copies or 1)
+        return total
 
     def to_json(self) -> list:
         return {
