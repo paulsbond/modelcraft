@@ -1,7 +1,6 @@
 from typing import Optional
 import gemmi
 from ..contents import AsuContents
-from ..polymer import PolymerType
 from ..reflections import DataItem, write_mtz
 from ..structure import write_mmcif
 from .job import Job
@@ -23,7 +22,7 @@ class Parrot(Job):
         # TODO: Calculate a more accurate solvent content using all components
         seqin = self.path("seqin.seq")
         args += ["-seqin", seqin]
-        contents.write_sequence_file(seqin, PolymerType.PROTEIN)
+        contents.write_sequence_file(seqin)
 
         hklin = self.path("hklin.mtz")
         write_mtz(hklin, [fsigf, freer, phases, fphi])
