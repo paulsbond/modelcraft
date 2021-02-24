@@ -23,13 +23,26 @@ def _buffer_codes() -> Set[str]:
 
 
 @lru_cache(maxsize=None)
+def weight(name: str, include_hydrogens: bool = True) -> float:
+    weight = 0
+    for atom in _chemcomp(name).atoms:
+        if include_hydrogens or not atom.is_hydrogen():
+            weight += atom.el.weight
+    return weight
+
+
+@lru_cache(maxsize=None)
 def vdw_volume(name: str, include_hydrogrens: bool = False) -> float:
-    filename = name.upper() + ".cif"
-    path = os.path.join(os.environ["CLIBD"], "monomers", name[0].lower(), filename)
-    block = gemmi.cif.read(path)[-1]
-    chemcomp = gemmi.make_chemcomp_from_block(block)
     volume = 0
-    for atom in chemcomp.atoms:
+    for atom in _chemcomp(name).atoms:
         if include_hydrogrens or not atom.is_hydrogen():
             volume += 4 / 3 * pi * atom.el.vdw_r ** 3
     return volume
+
+
+@lru_cache(maxsize=None)
+def _chemcomp(name: str) -> gemmi.ChemComp:
+    filename = name.upper() + ".cif"
+    path = os.path.join(os.environ["CLIBD"], "monomers", name[0].lower(), filename)
+    block = gemmi.cif.read(path)[-1]
+    return gemmi.make_chemcomp_from_block(block)

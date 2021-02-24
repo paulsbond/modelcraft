@@ -1,6 +1,6 @@
 from typing import Iterator, List, Optional
 import enum
-import gemmi
+from .residues import weight
 
 
 class PolymerType(enum.Enum):
@@ -117,13 +117,19 @@ class Polymer:
                             codes[index] = code
         return codes
 
+    def weight(self, modified=False) -> float:
+        codes = self.residue_codes(modified=modified)
+        total = sum(weight(code) for code in codes)
+        total -= weight("HOH") * (len(codes) - 1)
+        return total
+
     def volume(self) -> float:
-        codes = self.residue_codes(modified=False)
-        weight = gemmi.calculate_sequence_weight(codes)
+        copies = self.copies or 1
+        density = 1.35 if self.type == PolymerType.PROTEIN else 2.0
         if self.type == PolymerType.PROTEIN:
-            return weight / 0.74
+            return self.weight() * copies / (density * 6.02214)
         else:
-            return weight / 0.50
+            return self.weight() * copies / (density * 6.02214)
 
     def is_selenomet(self) -> bool:
         return "M->MSE" in self.modifications
