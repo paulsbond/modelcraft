@@ -40,11 +40,11 @@ def main(argument_list=None):
             copies = item.copies or 1
             assumed = "" if item.copies else "(assumed)"
             volume = item.volume() * copies
-            print("| %7s | %3d %9s | %8.0f |" % (kind, copies, assumed, volume))
+            print("| %7s | %9s %3d | %8.0f |" % (kind, assumed, copies, volume))
     print("")
 
     options = copies_options(contents, mtz)
-    print("\n## Copies\n")
+    print("## Copies\n")
     if len(options) == 0:
         print("Contents are too big to fit into the asymmetric unit")
     else:
