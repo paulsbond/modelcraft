@@ -40,7 +40,6 @@ class Pipeline:
         self.run()
 
     def run(self):
-        self.print_solvent_content()
         args = self.args
         if args.phases is None and args.model is not None:
             print("\n## Refining Input Model\n")
@@ -224,24 +223,3 @@ class Pipeline:
         self.report["real_time"]["total"] = time.time() - self.start_time
         with open("modelcraft.json", "w") as report_file:
             json.dump(self.report, report_file, indent=4)
-
-    def print_solvent_content(self):
-        contents = self.args.contents
-        cell = self.args.fsigf.cell
-        spacegroup = self.args.fsigf.spacegroup
-        asu_volume = cell.volume / len(spacegroup.operations())
-        contents_volume = contents.volume()
-        print("\n## Solvent Content\n")
-        print("| Copies | Solvent Fraction |")
-        print("|--------|------------------|")
-        if contents.copies is None:
-            for copies in range(1, 50):
-                fraction = 1 - copies * contents_volume / asu_volume
-                if fraction < 0:
-                    break
-                print(f"| {copies:6d} | {fraction:16.3f} |")
-            if copies == 1:
-                sys.exit("Contents are too big to fit into the asymmetric unit")
-        else:
-            fraction = 1 - contents.copies * contents_volume / asu_volume
-            print(f"| {contents.copies:6d} | {fraction:16.3f} |")

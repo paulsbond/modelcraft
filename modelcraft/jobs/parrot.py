@@ -2,6 +2,7 @@ from typing import Optional
 import gemmi
 from ..contents import AsuContents
 from ..reflections import DataItem, write_mtz
+from ..solvent import solvent_fraction
 from ..structure import write_mmcif
 from .job import Job
 
@@ -18,11 +19,6 @@ class Parrot(Job):
     ):
         super().__init__("parrot")
         args = []
-
-        # TODO: Calculate a more accurate solvent content using all components
-        seqin = self.path("seqin.seq")
-        args += ["-seqin", seqin]
-        contents.write_sequence_file(seqin)
 
         hklin = self.path("hklin.mtz")
         write_mtz(hklin, [fsigf, freer, phases, fphi])
@@ -43,6 +39,7 @@ class Parrot(Job):
 
         args += ["-cycles", "5"]
         args += ["-anisotropy-correction"]
+        args += ["-solvent-content", "%.3f" % solvent_fraction(contents, fsigf)]
 
         hklout = self.path("hklout.mtz")
         args += ["-mtzout", hklout]
