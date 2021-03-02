@@ -35,6 +35,7 @@ setuptools.setup(
         "console_scripts": [
             "modelcraft = modelcraft.scripts.modelcraft:main",
             "modelcraft-contents = modelcraft.scripts.contents:main",
+            "modelcraft-copies = modelcraft.scripts.copies:main",
         ]
     },
 )
