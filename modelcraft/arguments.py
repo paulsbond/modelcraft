@@ -10,7 +10,7 @@ from modelcraft.structure import read_structure
 _PARSER = argparse.ArgumentParser(add_help=False)
 
 _req = _PARSER.add_argument_group("Required arguments")
-_req.add_argument("--hklin", metavar="FILE", required=True)
+_req.add_argument("--data", metavar="FILE", required=True)
 _req.add_argument("--contents", metavar="FILE_or_PDBID", required=True)
 
 _opt = _PARSER.add_argument_group("Optional arguments")
@@ -53,7 +53,7 @@ def _basic_check(args: argparse.Namespace):
     if args.convergence_tolerance < 0.1:
         _PARSER.error("The convergence tolerance must be 0.1 or higher")
 
-    for arg in "hklin", "contents", "model":
+    for arg in "data", "contents", "model":
         path = getattr(args, arg)
         if arg == "contents" and len(path) == 4:
             # Contents is a PDB ID and not a path
@@ -63,7 +63,7 @@ def _basic_check(args: argparse.Namespace):
 
 
 def _parse_data_items(args: argparse.Namespace):
-    mtz = gemmi.read_mtz_file(args.hklin)
+    mtz = gemmi.read_mtz_file(args.data)
     args.fsigf = _parse_data_item(mtz, args.amplitudes, ["FQ"], "amplitudes")
     args.freer = _parse_data_item(mtz, args.freerflag, ["I"], "free-R flag")
     if args.phases is not None or args.model is None:
