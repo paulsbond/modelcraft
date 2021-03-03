@@ -83,7 +83,7 @@ class Pipeline:
 
     def add_job(self, job):
         if not self.args.keep_jobs:
-            job.remove()
+            job.remove_files(self.args.keep_logs)
         if job.name not in self.report["real_time"]:
             self.report["real_time"][job.name] = 0
         self.report["real_time"][job.name] += job.finish_time - job.start_time

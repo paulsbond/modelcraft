@@ -2,7 +2,7 @@ import gemmi
 from modelcraft.jobs import Sheetbend
 from modelcraft.reflections import DataItem
 from modelcraft.structure import ModelStats, read_structure
-from tests.integration import ccp4_path, remove_logs
+from tests.integration import ccp4_path
 
 
 def test_1rxf():
@@ -14,4 +14,4 @@ def test_1rxf():
     structure = read_structure(pdb_path)
     sheetbend = Sheetbend(fsigf, freer, structure)
     assert ModelStats(structure) == ModelStats(sheetbend.structure)
-    remove_logs()
+    sheetbend.remove_files()

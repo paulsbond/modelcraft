@@ -1,6 +1,5 @@
 import functools
 import os
-import shutil
 import gemmi
 from modelcraft.contents import AsuContents
 from modelcraft.jobs import Refmac
@@ -13,10 +12,6 @@ def ccp4_path(*paths: str) -> str:
     if "CCP4" not in os.environ:
         raise EnvironmentError("CCP4 environment not set")
     return os.path.join(os.environ["CCP4"], *paths)
-
-
-def remove_logs():
-    shutil.rmtree("modelcraft-logs", ignore_errors=True)
 
 
 @functools.lru_cache(maxsize=None)
@@ -44,7 +39,9 @@ def insulin_refmac():
     fsigf = insulin_fsigf()
     freer = insulin_freer()
     structure = insulin_structure()
-    return Refmac(structure, fsigf, freer, cycles=0)
+    refmac = Refmac(structure, fsigf, freer, cycles=0)
+    refmac.remove_files()
+    return refmac
 
 
 @functools.lru_cache(maxsize=None)

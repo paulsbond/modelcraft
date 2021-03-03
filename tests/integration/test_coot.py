@@ -1,6 +1,6 @@
 from modelcraft.jobs import Prune, FixSideChains
 from modelcraft.structure import ModelStats
-from tests.integration import remove_logs, insulin_refmac
+from tests.integration import insulin_refmac
 
 
 def test_insulin_prune():
@@ -10,7 +10,7 @@ def test_insulin_prune():
     stats_in = ModelStats(refmac.structure)
     stats_out = ModelStats(prune.structure)
     assert stats_out.residues < stats_in.residues
-    remove_logs()
+    prune.remove_files()
 
 
 def test_insulin_fix_side_chains():
@@ -20,4 +20,4 @@ def test_insulin_fix_side_chains():
     stats_in = ModelStats(refmac.structure)
     stats_out = ModelStats(sidechains.structure)
     assert stats_out.residues == stats_in.residues
-    remove_logs()
+    sidechains.remove_files()

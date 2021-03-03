@@ -88,10 +88,11 @@ class Job:
     def finish(self) -> None:
         self.finish_time = time.time()
 
-    def remove(self) -> None:
-        logs_dir = "modelcraft-logs"
-        os.makedirs(logs_dir, exist_ok=True)
-        shutil.copy(self._stdout, os.path.join(logs_dir, "%s.log.txt" % self.id))
-        shutil.copy(self._stderr, os.path.join(logs_dir, "%s.err.txt" % self.id))
-        shutil.copy(self._comtxt, os.path.join(logs_dir, "%s.com.txt" % self.id))
+    def remove_files(self, keep_logs: bool = False) -> None:
+        if keep_logs:
+            logs_dir = "modelcraft-logs"
+            os.makedirs(logs_dir, exist_ok=True)
+            shutil.copy(self._stdout, os.path.join(logs_dir, self.id + ".log.txt"))
+            shutil.copy(self._stderr, os.path.join(logs_dir, self.id + ".err.txt"))
+            shutil.copy(self._comtxt, os.path.join(logs_dir, self.id + ".com.txt"))
         shutil.rmtree(self._directory, ignore_errors=True)
