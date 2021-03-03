@@ -205,11 +205,7 @@ class Pipeline:
             "r_work": self.last_refmac.rwork,
             "r_free": self.last_refmac.rfree,
             "residues": model_stats.residues,
-            "sequenced_residues": model_stats.sequenced_residues,
-            "fragments": model_stats.fragments,
-            "longest_fragment": model_stats.longest_fragment,
             "waters": model_stats.waters,
-            "dummy_atoms": model_stats.dummy_atoms,
         }
         self.report["cycles"][self.cycle] = stats
         if self.best_refmac is not None:
