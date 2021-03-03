@@ -7,6 +7,7 @@ from .jobs import (
     Buccaneer,
     FindWaters,
     FixSideChains,
+    Nautilus,
     Parrot,
     Prune,
     Refmac,
@@ -70,6 +71,8 @@ class Pipeline:
             self.findwaters(dummy=True)
         self.buccaneer()
         self.prune(chains_only=True)
+        if len(self.args.contents.rnas + self.args.contents.dnas) > 0:
+            self.nautilus()
         self.findwaters()
 
     def terminate(self, reason: str):
@@ -114,6 +117,19 @@ class Pipeline:
         if stats.residues == 0:
             self.terminate(reason="Buccaneer did not build any residues")
         self.refmac(job.structure, cycles=10, auto_accept=True)
+
+    def nautilus(self):
+        print("Nautilus")
+        job = Nautilus(
+            contents=self.args.contents,
+            fsigf=self.args.fsigf,
+            freer=self.args.freer,
+            phases=self.current_phases,
+            fphi=self.current_fphi_best,
+            structure=self.current_structure,
+        )
+        self.add_job(job)
+        self.refmac(job.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
         print("REFMAC")

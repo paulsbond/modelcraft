@@ -116,12 +116,12 @@ class AsuContents:
     def write_sequence_file(
         self,
         path: str,
-        polymer_type: Optional[PolymerType] = None,
+        polymer_types: List[PolymerType] = None,
         line_length: int = 60,
     ) -> None:
         with open(path, "w") as stream:
             for polymer in self.proteins + self.rnas + self.dnas:
-                if polymer_type is None or polymer.type == polymer_type:
+                if polymer_types is None or polymer.type in polymer_types:
                     stream.write(f">{polymer.type.value}\n")
                     for i in range(0, len(polymer.sequence), line_length):
                         stream.write(polymer.sequence[i : i + line_length] + "\n")

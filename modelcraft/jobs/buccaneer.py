@@ -30,7 +30,7 @@ class Buccaneer(Job):
 
         seqin = self.path("seqin.seq")
         args += ["-seqin", seqin]
-        contents.write_sequence_file(seqin, PolymerType.PROTEIN)
+        contents.write_sequence_file(seqin, [PolymerType.PROTEIN])
 
         hklin = self.path("hklin.mtz")
         data_items = [fsigf, freer, phases]
