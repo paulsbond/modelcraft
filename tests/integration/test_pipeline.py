@@ -26,7 +26,7 @@ def test_insulin_from_phases():
     contents = insulin_contents()
     contents.write_json_file("contents.json")
     args = []
-    args += ["--hklin", "data.mtz"]
+    args += ["--data", "data.mtz"]
     args += ["--contents", "contents.json"]
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
@@ -49,7 +49,7 @@ def test_1rxf_from_model():
     structure.remove_alternative_conformations()
     structure.write_minimal_pdb("model.pdb")
     args = []
-    args += ["--hklin", hklin]
+    args += ["--data", hklin]
     args += ["--amplitudes", "F,SIGF"]
     args += ["--freerflag", "FreeR_flag"]
     args += ["--contents", "1rxf"]
