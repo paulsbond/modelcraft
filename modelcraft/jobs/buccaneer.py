@@ -22,7 +22,6 @@ class Buccaneer(Job):
         filter_mr: bool = True,
         seed_mr: bool = True,
         cycles: int = 2,
-        remove_non_protein: bool = False,
         program: str = "cbuccaneer",
     ):
         super().__init__("buccaneer")
@@ -51,8 +50,7 @@ class Buccaneer(Job):
             args += ["-pdbin", xyzin]
             args += ["-model-filter"]
             args += ["-model-filter-sigma", "1.0"]
-            if not remove_non_protein:
-                args += ["-nonprotein-radius", "2.0"]
+            args += ["-nonprotein-radius", "2.0"]
             write_mmcif(xyzin, input_structure)
 
         if mr_structure is not None:

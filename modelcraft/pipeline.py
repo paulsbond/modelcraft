@@ -109,7 +109,6 @@ class Pipeline:
             filter_mr=True,
             seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
-            remove_non_protein=self.args.remove_non_protein,
             program=self.args.buccaneer,
         )
         self.add_job(job)
