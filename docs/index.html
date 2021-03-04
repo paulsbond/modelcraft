@@ -17,39 +17,69 @@
     <h1>ModelCraft</h1>
     <h5>An automated model building pipeline for X-ray crystallography</h5>
 
-    <section>
+    <nav>
+        <ol>
+            <li><a href="#getting-started">Getting Started</a></li>
+            <li><a href="#required-arguments">Required Arguments</a></li>
+            <li><a href="#optional-arguments">Optional Arguments</a></li>
+            <li><a href="#developer-arguments">Developer Arguments</a></li>
+            <li><a href="#contents">ASU Contents Description</a></li>
+            <li><a href="#links">Links</a></li>
+            <li><a href="#references">References</a></li>
+        </ol>
+    </nav>
+
+    <section id="getting-started">
         <h2 class="heading">Getting Started</h2>
-        <p>ModelCraft can be installed using pip.</p>
+        <p>ModelCraft can be installed using pip, e.g.</p>
         <pre><code>python3 -m pip install --user modelcraft</code></pre>
         <p>
-            It also requires an installation of CCP4.
-            The CCP4 environment needs to be set up for the pipeline to work.
+            Refer to the
+            <a href="https://pip.pypa.io/en/stable/installing">pip documentation</a>
+            if pip is not installed.
+            ModelCraft also requires an installation of CCP4.
+            The CCP4 environment needs to be set up
+            so that programs such as Buccaneer and Refmac
+            can be called from the command line.
             The simplest execution requires only
             a reflection data file in MTZ format
-            with amplitudes, a free-R flag and phases
+            (with amplitudes, a free-R flag and starting phases)
             and a description of the asymmetric unit contents.
         </p>
-        <pre><code>modelcraft --data reflections.mtz --contents contents.fasta</code></pre>
+        <pre><code>modelcraft --data data.mtz --contents contents.json</code></pre>
+        <p>
+            Alternatively, a model can be provided (in PDB or mmCIF format),
+            which will be refined and used as a starting point
+            instead of starting from phases in the data file.
+        </p>
+        <pre><code>modelcraft --data data.mtz --contents contents.json --model model.cif</code></pre>
     </section>
 
-    <section>
+    <section id="required-arguments">
         <h2 class="heading">Required Arguments</h2>
         <p>
             <code>--data FILE</code><br>
             Input reflection data in MTZ format.
+            This must contain observed amplitudes and a free-R flag.
+            If a starting model has not been provided then it must also contain phases
+            as a phase and figure-of-merit or Hendrickson-Lattman coefficients.
+            An attempt will be made to automatically identify column labels
+            unless they are specified using the
+            <code>--amplitudes</code>,
+            <code>--phases</code> and
+            <code>--freerflag</code> arguments.
         </p>
         <p>
-            <code>--contents FILE_OR_PDBID</code><br>
+            <code>--contents FILE</code><br>
             A description of the assymetric unit contents, either as
-            a sequence file in FASTA format,
-            a contents file in JSON format,
-            or a four character PDB ID.
-            The <code>modelcraft-contents</code> script
-            can be used to produce an example JSON file for a PDB entry.
+            a sequence file in FASTA format or
+            a more detailed contents file in JSON format.
+            See the <a href="#contents">ASU Contents Description</a>
+            section of the documentation for more details.
         </p>
     </section>
 
-    <section>
+    <section id="optional-arguments">
         <h2 class="heading">Optional Arguments</h2>
         <p>
             <code>--amplitudes COLS</code> e.g. <code>FP,SIGFP</code><br>
@@ -90,13 +120,13 @@
         </p>
         <p>
             <code>--keep-logs</code><br>
-            Keep log files.
+            Keep log files if not using the full <code>--keep-jobs</code> argument.
         </p>
         <p>
             <code>--model FILE</code><br>
             Starting model.
             If input phases are not specified this will be refined
-            using Sheetbend followed by REFMAC.
+            using Sheetbend followed by Refmac.
         </p>
         <p>
             <code>--no-auto-stop</code><br>
@@ -122,11 +152,11 @@
         </p>
         <p>
             <code>--unbiased</code><br>
-            Pass input phases to REFMAC for MLHL refinement.
+            Pass input phases to Refmac for MLHL refinement.
         </p>
     </section>
 
-    <section>
+    <section id="developer-arguments">
         <h2 class="heading">Developer Arguments</h2>
         <p>
             <code>--buccaneer FILE</code><br>
@@ -134,12 +164,114 @@
         </p>
     </section>
 
-    <section>
+    <section id="contents">
+        <h2 class="heading">ASU Contents Description</h2>
+        <p>
+            A description of the expected contents of the asymmetric unit
+            must be provided as a FASTA sequence file or a JSON file
+            using the <code>--contents</code> argument.
+            A sequence file is simpler,
+            but the JSON format has the following advantages:
+        </p>
+        <ul>
+            <li>Number of copies and stoichiometry can be specified
+                for a more accurate calculation of the solvent fraction.</li>
+            <li>Carbohydrates, ligands and buffers may be specified
+                in addition to protein, RNA and DNA.</li>
+            <li>Molecule types do not need to be guessed from
+                sequences (which may be ambiguous).</li>
+        </ul>
+        <p>
+            In order to create a JSON file it may be helpful
+            to start from the contents for an existing PDB entry.
+            The <code>modelcraft-contents</code> script
+            creates a contents JSON file for a released PDB entry.
+        </p>
+        <p>An example JSON file is shown below:</p>
+        <pre><code>{
+    "copies": 2,
+    "proteins": [
+        {
+            "sequence": "LPGECSVNVIPKMNLDKAKFFSGTWYETHYLDMDPQATEKFCFSFAPRESGGTVMEALYHFNVDSKV",
+            "start": 1,
+            "copies": 1,
+            "modifications": ["M->MSE"]
+        },
+        {
+            "sequence": "GGG"
+        }
+    ],
+    "rnas": [
+        {
+            "sequence": "GGUAACUGUUACAGUUACC",
+            "start": 5,
+            "copies": 2,
+            "modifications": ["5->GTP", "23->CCC"]
+        }
+    ],
+    "dnas": [],
+    "carbs": [
+        { "codes": { "NAG": 2 }, "copies": 1 },
+        { "codes": { "MAN": 1, "NAG": 2 }, "copies": 1 }
+    ],
+    "ligands": [
+        { "code": "HEM", "copies": 1 }
+    ],
+    "buffers": ["GOL", "NA", "CL"]
+}</code></pre>
+        <p>
+            The file has a list of <code>proteins</code>, <code>rnas</code>,
+            <code>dnas</code>, <code>carbs</code>, <code>ligands</code>,
+            and <code>buffers</code> that are in the crystal.
+            The only mandatory items are that each 
+            protein, RNA or DNA chain must have a <code>sequence</code>,
+            each carbohydrate must have a dictionary of <code>codes</code>
+            to specify the number of each sugar,
+            and each ligand must have a single <code>code</code>.
+        </p>
+        <p>
+            Each component (other than buffers) has a
+            <code>copies</code> parameter to specify the stoichiometry.
+            In the example above there are 2 RNA chains for each protein chain.
+            If the stoichiometry is not specified it is assumed to be 1.
+            There is also a <code>copies</code> parameter for the whole file
+            to specify how many copies of the contents are in the asymmetric unit.
+            If this value is not known the most likely number will be estimated.
+            The <code>modelcraft-copies</code> script can be used to
+            view the solvent fraction and probability for each number of copies
+            given a contents file and an MTZ file.
+            It is assumed that the number of ordered buffer molecules is unknown
+            so they are not included in the solvent calculation.
+            In order to specify a number of copies
+            they can be included as ligand components.
+        </p>
+        <p>
+            Finally, protein, RNA and DNA chains may have
+            a list of <code>modifications</code>,
+            e.g. <code>M->MSE</code> to specify that
+            all methionine residues are actually selenomethionine
+            or <code>5->GTP</code> to specify that
+            the residue 5 is guanosine triphosphate.
+            The <code>start</code> property
+            changes the residue numbers in modifications,
+            e.g. residue 5 in the RNA chain is actually the first residue.
+        </p>
+        <p>
+            <b>Note:</b> ModelCraft does not yet build carbohydrates, ligands,
+            or modified residues (other than selenomethionine derivatives).
+            However, this is planned for the future
+            and inclusion of these components in the contents
+            allows for more accurate calculation of the solvent fraction
+            during density modification.
+        </p>
+    </section>
+
+    <section id="links">
         <h2 class="heading">Links</h2>
         <ul>
             <li>
                 <a href="https://github.com/paulsbond/modelcraft">
-                    Source (latest - may be unstable)
+                    Source (latest)
                 </a>
             </li>
             <li>
@@ -160,7 +292,7 @@
         </ul>
     </section>
 
-    <section>
+    <section id="references">
         <h2 class="heading">References</h2>
         <dl>
             <dt>ModelCraft</dt>
@@ -168,32 +300,38 @@
             <dt>Buccaneer</dt>
             <dd>
                 K Cowtan.
-                <i>Acta Cryst.</i> D<b>62</b> 1002-1011 (2006)
+                <i>Acta Cryst. D</i>, <b>62</b>, 1002 (2006)
                 <a href="https://doi.org/10.1107/S0907444906022116">DOI</a>
-            </dd>
-            <dt>REFMAC</dt>
-            <dd>
-                O Kovalevskiy, RA Nicholls, F Long, A Carlon, GN Murshudov.
-                <i>Acta Cryst.</i> D<b>74</b> 215-227 (2018)
-                <a href="https://doi.org/10.1107/S2059798318000979">DOI</a>
             </dd>
             <dt>Coot</dt>
             <dd>
                 P Emsley, B Lohkamp, WG Scott, K Cowtan.
-                <i>Acta Cryst.</i> D<b>66</b> 486-501 (2010)
+                <i>Acta Cryst. D</i>, <b>66</b>, 486 (2010)
                 <a href="https://doi.org/10.1107/S0907444910007493">DOI</a>
             </dd>
-            <dt>Sheetbend</dt>
+            <dt>Nautilus</dt>
             <dd>
-                K Cowtan, J Agirre.
-                <i>Acta Cryst.</i> D<b>74</b> 125-131 (2018)
-                <a href="https://doi.org/10.1107/S205979831701350X">DOI</a>
+                K Cowtan.
+                <i>IUCrJ</i>, <b>1</b>, 387 (2014)
+                <a href="https://doi.org/10.1107/S2052252514019290">DOI</a>
             </dd>
             <dt>Parrot</dt>
             <dd>
                 K Cowtan.
-                <i>Acta Cryst.</i> D<b>66</b> 470-478 (2010)
+                <i>Acta Cryst. D</i>, <b>66</b>, 470 (2010)
                 <a href="https://doi.org/10.1107/S090744490903947X">DOI</a>
+            </dd>
+            <dt>Refmac</dt>
+            <dd>
+                O Kovalevskiy, RA Nicholls, F Long, A Carlon, GN Murshudov.
+                <i>Acta Cryst. D</i>, <b>74</b>, 215 (2018)
+                <a href="https://doi.org/10.1107/S2059798318000979">DOI</a>
+            </dd>
+            <dt>Sheetbend</dt>
+            <dd>
+                K Cowtan, S Metcalfe, P Bond.
+                <i>Acta Cryst. D</i>, <b>76</b>, 1192 (2020)
+                <a href="https://doi.org/10.1107/S2059798320013170">DOI</a>
             </dd>
         </dl>
     </section>

@@ -11,7 +11,7 @@ _PARSER = argparse.ArgumentParser(add_help=False)
 
 _req = _PARSER.add_argument_group("Required arguments")
 _req.add_argument("--data", metavar="FILE", required=True)
-_req.add_argument("--contents", metavar="FILE_or_PDBID", required=True)
+_req.add_argument("--contents", metavar="FILE", required=True)
 
 _opt = _PARSER.add_argument_group("Optional arguments")
 _opt.add_argument("--amplitudes", metavar="COLS")
