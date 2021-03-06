@@ -156,6 +156,7 @@ def code1_to_code3(code1: str, polymer_type: PolymerType) -> str:
     if polymer_type == PolymerType.PROTEIN:
         return {
             "A": "ALA",
+            "B": "ASX",
             "C": "CYS",
             "D": "ASP",
             "E": "GLU",
@@ -167,16 +168,32 @@ def code1_to_code3(code1: str, polymer_type: PolymerType) -> str:
             "L": "LEU",
             "M": "MET",
             "N": "ASN",
+            "O": "PYL",
             "P": "PRO",
             "Q": "GLN",
             "R": "ARG",
             "S": "SER",
             "T": "THR",
+            "U": "SEC",
             "V": "VAL",
             "W": "TRP",
             "Y": "TYR",
-        }.get(code1)
+            "Z": "GLX",
+        }.get(code1) or "UNK"
     if polymer_type == PolymerType.RNA:
-        return {"A": "A", "C": "C", "G": "G", "U": "U"}.get(code1)
+        return {
+            "A": "A",
+            "C": "C",
+            "G": "G",
+            "I": "I",
+            "U": "U",
+        }.get(code1) or "N"
     if polymer_type == PolymerType.DNA:
-        return {"A": "DA", "C": "DC", "G": "DG", "T": "DT"}.get(code1)
+        return {
+            "A": "DA",
+            "C": "DC",
+            "G": "DG",
+            "I": "DI",
+            "T": "DT",
+            "U": "DU",
+        }.get(code1) or "DN"
