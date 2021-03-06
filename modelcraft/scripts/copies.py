@@ -19,11 +19,11 @@ def main(argument_list=None):
     asu_volume = cell.volume / len(mtz.spacegroup.operations())
     print("## Cell\n")
     print(
-        "Cell: %.3f  %.3f  %.3f  %.2f  %.2f  %.2f"
+        "Cell        %.3f  %.3f  %.3f  %.2f  %.2f  %.2f"
         % (cell.a, cell.b, cell.c, cell.alpha, cell.beta, cell.gamma)
     )
-    print("Spacegroup:", mtz.spacegroup.hm)
-    print("ASU Volume: %.0f" % asu_volume)
+    print("Spacegroup ", mtz.spacegroup.hm)
+    print("ASU Volume  %.0f" % asu_volume)
     print("")
 
     print("## Components\n")
@@ -41,6 +41,8 @@ def main(argument_list=None):
             assumed = "" if item.copies else "(assumed)"
             volume = item.volume() * copies
             print("| %7s | %9s %3d | %8.0f |" % (kind, assumed, copies, volume))
+    print("|---------|---------------|----------|")
+    print("|         |         Total | %8.0f |" % contents.volume())
     print("")
 
     options = copies_options(contents, mtz)
