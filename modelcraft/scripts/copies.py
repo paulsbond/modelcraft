@@ -2,10 +2,12 @@ import argparse
 import sys
 import gemmi
 from ..contents import AsuContents
+from ..environ import setup_environ
 from ..solvent import copies_options
 
 
 def main(argument_list=None):
+    setup_environ()
     if argument_list is None:
         argument_list = sys.argv[1:]
     parser = argparse.ArgumentParser()

@@ -49,7 +49,7 @@ class Coot(Job):
         args += ["--no-guano"]
         args += ["--no-state-script"]
         args += ["--script", script_path]
-        self.run("coot", args, environ={"COOT_N_THREADS": "1"})
+        self.run("coot", args)
         self.structure = read_structure(xyzout)
         self.finish()
 
