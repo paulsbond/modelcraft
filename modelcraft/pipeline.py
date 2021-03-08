@@ -42,10 +42,12 @@ class Pipeline:
 
     def run(self):
         args = self.args
-        if args.phases is None and args.model is not None:
+        if args.model is not None:
             print("\n## Refining Input Model\n")
             self.sheetbend()
             args.model = self.current_structure
+            if args.phases is not None:
+                self.current_phases = args.phases
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
