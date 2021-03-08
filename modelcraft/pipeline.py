@@ -58,7 +58,7 @@ class Pipeline:
                 and self.cycles_without_improvement == args.convergence_cycles
             ):
                 break
-        if self.best_refmac.rwork < 30 and self.resolution < 2.5:
+        if not args.basic and self.best_refmac.rwork < 30 and self.resolution < 2.5:
             print("\n## Finalisations\n")
             self.cycle += 1
             self.update_current_from_refmac_job(self.best_refmac)

@@ -15,7 +15,7 @@ _req.add_argument("--contents", metavar="FILE", required=True)
 
 _opt = _PARSER.add_argument_group("Optional arguments")
 _opt.add_argument("--amplitudes", metavar="COLS")
-_opt.add_argument("--basic", action="store true")
+_opt.add_argument("--basic", action="store_true")
 _opt.add_argument("--convergence-cycles", metavar="N", default=4, type=int)
 _opt.add_argument("--convergence-tolerance", metavar="X", default=0.1, type=float)
 _opt.add_argument("--cycles", metavar="N", default=25, type=int)
