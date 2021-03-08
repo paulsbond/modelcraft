@@ -67,16 +67,21 @@ class Pipeline:
         self.terminate(reason="Normal")
 
     def run_cycle(self):
-        if self.cycle > 1 and self.resolution < 2.3:
-            self.prune()
-        self.parrot()
-        if self.current_structure is not None:
-            self.findwaters(dummy=True)
-        self.buccaneer()
-        self.prune(chains_only=True)
-        if len(self.args.contents.rnas + self.args.contents.dnas) > 0:
-            self.nautilus()
-        self.findwaters()
+        if self.args.basic:
+            if self.cycle == 1:
+                self.parrot()
+            self.buccaneer()
+        else:
+            if self.cycle > 1 and self.resolution < 2.3:
+                self.prune()
+            self.parrot()
+            if self.current_structure is not None:
+                self.findwaters(dummy=True)
+            self.buccaneer()
+            self.prune(chains_only=True)
+            if len(self.args.contents.rnas + self.args.contents.dnas) > 0:
+                self.nautilus()
+            self.findwaters()
 
     def terminate(self, reason: str):
         print(f"\n--- Termination: {reason} ---")
