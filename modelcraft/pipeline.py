@@ -2,6 +2,7 @@ import json
 import sys
 import time
 import gemmi
+from . import __version__
 from .arguments import parse
 from .jobs import (
     Buccaneer,
@@ -19,7 +20,7 @@ from .structure import ModelStats, write_mmcif
 
 class Pipeline:
     def __init__(self, argument_list):
-        print("# ModelCraft\n")
+        print(f"# ModelCraft {__version__}\n")
         print("Arguments:")
         print(" %s\n" % " ".join(argument_list).replace(" --", "\n --"))
         self.args = parse(argument_list)
