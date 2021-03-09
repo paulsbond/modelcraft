@@ -6,4 +6,9 @@ def setup_environ():
         if variable not in os.environ:
             raise EnvironmentError(variable + " environment variable not set")
     os.environ["COOT_N_THREADS"] = "1"
+    os.environ["GOTO_NUM_THREADS"] = "1"
+    os.environ["MKL_NUM_THREADS"] = "1"
+    os.environ["NUMEXPR_NUM_THREADS"] = "1"
+    os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
