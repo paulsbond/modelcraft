@@ -1,3 +1,4 @@
+from .acedrg import Acedrg
 from .buccaneer import Buccaneer
 from .comit import Comit
 from .coot import FixSideChains, Prune
@@ -8,6 +9,7 @@ from .refmac import Refmac
 from .sheetbend import Sheetbend
 
 __all__ = [
+    "Acedrg",
     "Buccaneer",
     "Comit",
     "FindWaters",
