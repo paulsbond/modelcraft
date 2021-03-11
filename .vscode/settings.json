@@ -12,6 +12,7 @@
   "python.formatting.provider": "black",
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": true,
+  "python.linting.pylintEnabled": true,
   "python.linting.pylintArgs": [
     "--extension-pkg-whitelist=gemmi",
     "--disable=bad-continuation",
@@ -19,7 +20,8 @@
     "--disable=missing-class-docstring",
     "--disable=missing-function-docstring",
     "--disable=not-an-iterable", // Problem with gemmi.Mtz.columns inheritance
-    "--disable=unsubscriptable-object" // Problem with gemmi.Mtz.columns inheritance
+    "--disable=unsubscriptable-object", // Problem with gemmi.Mtz.columns inheritance
+    "--generated-members=gemmi.*"
   ],
   "python.linting.pylintCategorySeverity.refactor": "Information",
   "python.linting.pylintUseMinimalCheckers": false

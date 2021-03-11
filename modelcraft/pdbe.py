@@ -1,6 +1,6 @@
-import requests
 import re
 import time
+import requests
 
 
 def molecules(pdbid: str) -> list:

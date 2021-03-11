@@ -1,32 +1,31 @@
 import gemmi
-from .job import Job
-from ..reflections import DataItem, write_mtz
-from ..structure import read_structure, write_mmcif
+from ..job import Job
+from ..pipeline import Pipeline
+from ..reflections import DataItem
+
+
+class SheetbendResult:
+    def __init__(self, structure: gemmi.Structure):
+        self.structure = structure
 
 
 class Sheetbend(Job):
     def __init__(self, fsigf: DataItem, freer: DataItem, structure: gemmi.Structure):
-        super().__init__("sheetbend")
-        args = []
+        super().__init__("csheetbend")
 
-        hklin = self.path("hklin.mtz")
-        args += ["-mtzin", hklin]
-        args += ["-colin-fo", fsigf.label()]
-        args += ["-colin-free", freer.label()]
-        write_mtz(hklin, [fsigf, freer])
+        self._hklins["hklin.mtz"] = [fsigf, freer]
+        self._xyzins["xyzin.cif"] = structure
 
-        xyzin = self.path("xyzin.cif")
-        args += ["-pdbin", xyzin]
-        write_mmcif(xyzin, structure)
+        self._args += ["-mtzin", "hklin.mtz"]
+        self._args += ["-colin-fo", fsigf.label()]
+        self._args += ["-colin-free", freer.label()]
+        self._args += ["-pdbin", "xyzin.cif"]
+        self._args += ["-pdbout", "xyzout.cif"]
+        self._args += ["-cycles", "12"]
+        self._args += ["-resolution-by-cycle", "6,3"]
 
-        args += ["-cycles", "12"]
-        args += ["-resolution-by-cycle", "6,6,3"]
+        self._xyzouts["xyzout.cif"] = None
 
-        xyzout = self.path("xyzout.cif")
-        args += ["-pdbout", xyzout]
-
-        self.run("csheetbend", args)
-
-        self.structure = read_structure(xyzout)
-
-        self.finish()
+    def run(self, pipeline: Pipeline = None) -> SheetbendResult:
+        super().run(pipeline)
+        return SheetbendResult(structure=self._xyzouts["xyzout.cif"])
