@@ -6,7 +6,7 @@ import modelcraft.pdbe as pdbe
 from .carb import Carb
 from .ligand import Ligand
 from .polymer import Polymer, PolymerType
-from .residues import is_buffer
+from .monomers import is_buffer
 
 
 class AsuContents:

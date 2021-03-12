@@ -1,6 +1,6 @@
 import gemmi
+from ..job import Job
 from ..reflections import DataItem, write_mtz
-from .job import Job
 
 
 class Comit(Job):

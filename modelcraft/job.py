@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import time
 import uuid
+import gemmi
 from .pipeline import Pipeline
 from .reflections import write_mtz
 from .structure import read_structure, write_mmcif
@@ -16,8 +17,10 @@ class Job(abc.ABC):
         self._args = []
         self._stdin = []
         self._environ = {}
+        self._cifins = {}
         self._hklins = {}
         self._xyzins = {}
+        self._cifouts = {}
         self._xyzouts = {}
         self._directory = None
         self._seconds = None
@@ -42,17 +45,19 @@ class Job(abc.ABC):
 
     def _write_files(self, pipeline: Pipeline = None) -> str:
         if pipeline is None:
-            self._directory = uuid.uuid4()
+            self._directory = str(uuid.uuid4())
         else:
             self._directory = pipeline.directory(self._executable)
         os.mkdir(self._directory)
         with open(self._path("script.sh"), "w") as stream:
             stream.write(self._script())
         os.chmod(self._path("script.sh"), 0o755)
-        for filename, structure in self._hklins:
-            write_mmcif(self._path(filename), structure)
-        for filename, items in self._xyzins:
+        for filename, items in self._hklins.items():
             write_mtz(self._path(filename), items)
+        for filename, structure in self._xyzins.items():
+            write_mmcif(self._path(filename), structure)
+        for filename, document in self._cifins.items():
+            document.write_file(self._path(filename))
 
     def _run_subprocess(self):
         start_time = time.time()
@@ -77,6 +82,8 @@ class Job(abc.ABC):
     def _read_files(self):
         for filename in self._xyzouts:
             self._xyzouts[filename] = read_structure(self._path(filename))
+        for filename in self._cifouts:
+            self._cifouts[filename] = gemmi.cif.read(self._path(filename))
 
     def _script(self) -> str:
         script = "#!/usr/bin/env bash\n\n"

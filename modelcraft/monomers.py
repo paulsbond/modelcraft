@@ -6,7 +6,7 @@ import gemmi
 class Monomers:
     def __init__(self, library: str = None):
         self._chemcomps = {}
-        self._library = library or os.path.join(os.environ("CLIBD"), "monomers")
+        self._library = library or os.path.join(os.environ["CLIBD"], "monomers")
 
     def add(self, code: str, chemcomp: gemmi.ChemComp):
         self._chemcomps[code.upper()] = chemcomp

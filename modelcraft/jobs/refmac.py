@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import gemmi
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
-from .job import Job
+from ..job import Job
 
 
 class Refmac(Job):

@@ -1,5 +1,5 @@
 from typing import Optional
-from .residues import volume
+from .monomers import Monomers
 
 
 class Ligand:
@@ -23,5 +23,5 @@ class Ligand:
     def to_json(self) -> dict:
         return {"code": self.code, "copies": self.copies}
 
-    def volume(self) -> float:
-        return volume(self.code)
+    def volume(self, monomers: Monomers) -> float:
+        return monomers.volume(self.code)

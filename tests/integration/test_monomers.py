@@ -1,6 +1,9 @@
-from math import isclose
+import math
 import pytest
-from modelcraft.residues import is_buffer, volume, weight
+from modelcraft.monomers import is_buffer, Monomers
+
+
+_monomers = Monomers()
 
 
 @pytest.mark.parametrize(
@@ -15,7 +18,7 @@ def test_is_buffer(name: str, expected: bool):
 
 
 def test_volume():
-    assert volume("HOH") == 18
+    assert _monomers.volume("HOH") == 18
 
 
 @pytest.mark.parametrize(
@@ -29,4 +32,5 @@ def test_volume():
     ],
 )
 def test_weight(name: str, expected: float):
-    assert isclose(weight(name), expected, abs_tol=0.01)
+    actual = _monomers.weight(name)
+    assert math.isclose(actual, expected, abs_tol=0.01)

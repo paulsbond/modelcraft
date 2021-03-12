@@ -1,32 +1,25 @@
-from typing import Optional
+import collections
 import gemmi
-from .job import Job
+from ..job import Job
+from ..pipeline import Pipeline
+
+
+AcedrgResult = collections.namedtuple("AcedrgResult", ["chemcomp"])
 
 
 class Acedrg(Job):
-    def __init__(
-        self,
-        code: str,
-        cif: Optional[gemmi.cif.Document] = None,
-        smiles: Optional[str] = None,
-    ):
+    def __init__(self, code: str, cif: gemmi.cif.Document = None, smiles: str = None):
         super().__init__("acedrg")
-
-        code = code.upper()
-        args = ["-r", code]
-
+        self._args += ["-r", code.upper()]
+        self._args += ["-o", "output"]
         if cif is not None:
-            cif.write_file(self.path("input.cif"))
-            args += ["-c", self.path("input.cif")]
-
+            self._cifins["input.cif"] = cif
+            self._args += ["-c", "input.cif"]
         if smiles is not None:
-            args += ["-i", smiles]
+            self._args += ["-i", smiles]
+        self._cifouts["output.cif"] = None
 
-        args += ["-o", self.path("acedrg")]
-        self.run("acedrg", args)
-
-        acedrg_cif = self.path("acedrg.cif")
-        block = gemmi.cif.read(acedrg_cif)[-1]
-        self.chemcomp = gemmi.make_chemcomp_from_block(block)
-
-        self.finish()
+    def run(self, pipeline: Pipeline = None) -> AcedrgResult:
+        super().run(pipeline)
+        block = self._cifouts["output.cif"][-1]
+        return AcedrgResult(chemcomp=gemmi.make_chemcomp_from_block(block))

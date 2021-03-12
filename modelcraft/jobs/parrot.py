@@ -1,10 +1,10 @@
 from typing import Optional
 import gemmi
 from ..contents import AsuContents
+from ..job import Job
 from ..reflections import DataItem, write_mtz
 from ..solvent import solvent_fraction
 from ..structure import write_mmcif
-from .job import Job
 
 
 class Parrot(Job):

@@ -1,6 +1,5 @@
-from typing import Iterator, List, Optional
 import enum
-from .residues import weight
+from .monomers import Monomers
 
 
 class PolymerType(enum.Enum):
@@ -9,14 +8,14 @@ class PolymerType(enum.Enum):
     DNA = "DNA"
 
     @classmethod
-    def parse(cls, s: str) -> "PolymerType":
-        if s.lower() in ("protein", "polypeptide(l)"):
+    def parse(cls, string: str) -> "PolymerType":
+        if string.lower() in ("protein", "polypeptide(l)"):
             return cls.PROTEIN
-        if s.lower() in ("rna", "polyribonucleotide"):
+        if string.lower() in ("rna", "polyribonucleotide"):
             return cls.RNA
-        if s.lower() in ("dna", "polydeoxyribonucleotide"):
+        if string.lower() in ("dna", "polydeoxyribonucleotide"):
             return cls.DNA
-        raise ValueError(f"Unknown polymer type: '{s}'")
+        raise ValueError(f"Unknown polymer type: '{string}'")
 
     @classmethod
     def from_sequence(cls, sequence: str) -> "PolymerType":
@@ -38,10 +37,11 @@ class Polymer:
     def __init__(
         self,
         sequence: str,
-        start: Optional[int] = None,
-        copies: Optional[int] = None,
-        polymer_type: Optional[PolymerType] = None,
-        modifications: Optional[List[str]] = None,
+        start: int = None,
+        copies: int = None,
+        polymer_type: PolymerType = None,
+        modifications: list = None,
+        monomers: Monomers = None,
     ):
         self.sequence = sequence.upper()
         self.start = start or 1
@@ -51,6 +51,7 @@ class Polymer:
         else:
             self.type = polymer_type
         self.modifications = modifications or []
+        self.monomers = monomers or Monomers()
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Polymer):
@@ -80,9 +81,7 @@ class Polymer:
         )
 
     @classmethod
-    def from_sequence_file(
-        cls, path: str, polymer_type: Optional[PolymerType] = None
-    ) -> Iterator["Polymer"]:
+    def from_sequence_file(cls, path: str, polymer_type: PolymerType = None):
         sequence = ""
         with open(path) as stream:
             for line in stream:
@@ -103,7 +102,7 @@ class Polymer:
             "modifications": self.modifications,
         }
 
-    def residue_codes(self, modified: bool = True) -> List[str]:
+    def residue_codes(self, modified: bool = True) -> list:
         codes = [code1_to_code3(code1, self.type) for code1 in self.sequence]
         if modified:
             for mod in self.modifications:
@@ -119,8 +118,8 @@ class Polymer:
 
     def weight(self, modified=False) -> float:
         codes = self.residue_codes(modified=modified)
-        total = sum(weight(code) for code in codes)
-        total -= weight("HOH") * (len(codes) - 1)
+        total = sum(self.monomers.weight(code) for code in codes)
+        total -= self.monomers.weight("HOH") * (len(codes) - 1)
         return total
 
     def volume(self) -> float:
@@ -131,7 +130,7 @@ class Polymer:
         return "M->MSE" in self.modifications
 
 
-def _modifications_in_pdbe_molecule_dict(mol: dict) -> List[str]:
+def _modifications_in_pdbe_molecule_dict(mol: dict) -> list:
     indices = {}
     for index, mod in mol["pdb_sequence_indices_with_multiple_residues"].items():
         code1 = mod["one_letter_code"]
@@ -188,12 +187,11 @@ def code1_to_code3(code1: str, polymer_type: PolymerType) -> str:
             "I": "I",
             "U": "U",
         }.get(code1) or "N"
-    if polymer_type == PolymerType.DNA:
-        return {
-            "A": "DA",
-            "C": "DC",
-            "G": "DG",
-            "I": "DI",
-            "T": "DT",
-            "U": "DU",
-        }.get(code1) or "DN"
+    return {
+        "A": "DA",
+        "C": "DC",
+        "G": "DG",
+        "I": "DI",
+        "T": "DT",
+        "U": "DU",
+    }.get(code1) or "DN"
