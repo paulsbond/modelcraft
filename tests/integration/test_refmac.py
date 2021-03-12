@@ -12,11 +12,9 @@ def test_1rxf():
     mtz = gemmi.read_mtz_file(mtz_path)
     fsigf = DataItem(mtz, "F,SIGF")
     freer = DataItem(mtz, "FreeR_flag")
-    refmac = Refmac(structure, fsigf, freer, cycles=1)
-    assert refmac.fsigf.nreflections == mtz.nreflections
+    refmac = Refmac(structure, fsigf, freer, cycles=1).run()
     assert refmac.abcd.nreflections == mtz.nreflections
     assert refmac.fphi_best.nreflections == mtz.nreflections
     assert refmac.fphi_diff.nreflections == mtz.nreflections
     assert refmac.fphi_calc.nreflections == mtz.nreflections
-    assert refmac.rwork_change < 0
-    refmac.remove_files()
+    assert refmac.rwork < 100

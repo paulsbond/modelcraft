@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import time
 import uuid
+import xml.etree.ElementTree as ET
 import gemmi
 from .pipeline import Pipeline
 from .reflections import write_mtz
@@ -21,6 +22,8 @@ class Job(abc.ABC):
         self._hklins = {}
         self._xyzins = {}
         self._cifouts = {}
+        self._hklouts = {}
+        self._xmlouts = {}
         self._xyzouts = {}
         self._directory = None
         self._seconds = None
@@ -80,10 +83,14 @@ class Job(abc.ABC):
         self._seconds = time.time() - start_time
 
     def _read_files(self):
-        for filename in self._xyzouts:
-            self._xyzouts[filename] = read_structure(self._path(filename))
         for filename in self._cifouts:
             self._cifouts[filename] = gemmi.cif.read(self._path(filename))
+        for filename in self._hklouts:
+            self._hklouts[filename] = gemmi.read_mtz_file(self._path(filename))
+        for filename in self._xmlouts:
+            self._xmlouts[filename] = ET.parse(self._path(filename)).getroot()
+        for filename in self._xyzouts:
+            self._xyzouts[filename] = read_structure(self._path(filename))
 
     def _script(self) -> str:
         script = "#!/usr/bin/env bash\n\n"
