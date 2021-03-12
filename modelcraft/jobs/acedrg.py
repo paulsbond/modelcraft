@@ -1,10 +1,12 @@
-import collections
+import dataclasses
 import gemmi
 from ..job import Job
 from ..pipeline import Pipeline
 
 
-AcedrgResult = collections.namedtuple("AcedrgResult", ["chemcomp"])
+@dataclasses.dataclass
+class AcedrgResult:
+    chemcomp: gemmi.ChemComp
 
 
 class Acedrg(Job):

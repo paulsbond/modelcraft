@@ -1,11 +1,13 @@
-import collections
+import dataclasses
 import gemmi
 from ..job import Job
 from ..pipeline import Pipeline
 from ..reflections import DataItem
 
 
-SheetbendResult = collections.namedtuple("SheetbendResult", ["structure"])
+@dataclasses.dataclass
+class SheetbendResult:
+    structure: gemmi.Structure
 
 
 class Sheetbend(Job):
