@@ -1,44 +1,45 @@
+import dataclasses
 import gemmi
 from ..job import Job
-from ..reflections import DataItem, write_mtz
-from ..structure import read_structure, write_mmcif
+from ..pipeline import Pipeline
+from ..reflections import DataItem
+
+
+@dataclasses.dataclass
+class FindWatersResult:
+    structure: gemmi.Structure
 
 
 class FindWaters(Job):
     def __init__(self, structure: gemmi.Structure, fphi: DataItem, dummy: bool = False):
-        name = "find_dummy" if dummy else "find_water"
-        super().__init__(name)
-
-        xyzin = self.path("xyzin.cif")
-        hklin = self.path("hklin.mtz")
-        water = self.path("water.pdb")  # In PDB format even with a cif extension
-
-        write_mmcif(xyzin, structure)
-        write_mtz(hklin, [fphi])
-
-        args = []
-        args += ["--pdbin", xyzin]
-        args += ["--hklin", hklin]
-        args += ["--f", fphi.label(0)]
-        args += ["--phi", fphi.label(1)]
+        super().__init__("findwaters")
+        self._structure = structure
+        self._fphi = fphi
+        self._dummy = dummy
+        self._hklins["hklin.mtz"] = [fphi]
+        self._xyzins["xyzin.cif"] = structure
+        self._args += ["--pdbin", "xyzin.cif"]
+        self._args += ["--hklin", "hklin.mtz"]
+        self._args += ["--f", fphi.label(0)]
+        self._args += ["--phi", fphi.label(1)]
         if dummy:
-            args += ["--flood"]
-        args += ["--pdbout", water]
-        self.run("findwaters", args)
+            self._args += ["--flood"]
+        self._args += ["--pdbout", "water.pdb"]
+        self._xyzouts["water.pdb"] = None
 
+    def run(self, pipeline: Pipeline = None) -> FindWatersResult:
+        super().run(pipeline)
         water_residues = []
-        water_structure = read_structure(water)
-        for water_chain in water_structure[0]:
+        water_model = self._xyzouts["water.pdb"][0]
+        for water_chain in water_model:
             for water_residue in water_chain:
                 water_residues.append(water_residue)
-
-        self.structure = structure.clone()
+        structure = self._structure.clone()
         if len(water_residues) > 0:
-            model = self.structure[0]
-            chain = "DUM" if dummy else "WAT"
+            model = structure[0]
+            chain = "DUM" if self._dummy else "WAT"
             if chain not in model:
                 model.add_chain(chain)
             for residue in water_residues:
                 model[chain].add_residue(residue)
-
-        self.finish()
+        return FindWatersResult(structure=structure)

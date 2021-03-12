@@ -7,16 +7,21 @@ def test_insulin():
     refmac = insulin_refmac()
     stats_in = ModelStats(refmac.structure)
 
-    findwaters = FindWaters(refmac.structure, refmac.fphi_best)
+    findwaters = FindWaters(
+        structure=refmac.structure,
+        fphi=refmac.fphi_best,
+    ).run()
     stats_out = ModelStats(findwaters.structure)
     assert stats_out.residues == stats_in.residues
     assert stats_out.waters > stats_in.waters
     assert stats_out.dummy_atoms == stats_in.dummy_atoms
-    findwaters.remove_files()
 
-    findwaters = FindWaters(refmac.structure, refmac.fphi_best, dummy=True)
+    findwaters = FindWaters(
+        structure=refmac.structure,
+        fphi=refmac.fphi_best,
+        dummy=True,
+    ).run()
     stats_out = ModelStats(findwaters.structure)
     assert stats_out.residues == stats_in.residues
     assert stats_out.waters == stats_in.waters
     assert stats_out.dummy_atoms > stats_in.dummy_atoms
-    findwaters.remove_files()
