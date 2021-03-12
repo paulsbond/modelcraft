@@ -37,9 +37,8 @@ def insulin_refmac():
     fsigf = insulin_fsigf()
     freer = insulin_freer()
     structure = insulin_structure()
-    refmac = Refmac(structure, fsigf, freer, cycles=0)
-    refmac.remove_files()
-    return refmac
+    refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0)
+    return refmac.run()
 
 
 @functools.lru_cache(maxsize=None)
