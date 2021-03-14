@@ -12,7 +12,6 @@ def test_insulin():
     freer = insulin_freer()
     refmac = insulin_refmac()
     contents = insulin_contents()
-    parrot = Parrot(contents, fsigf, freer, refmac.abcd)
+    parrot = Parrot(contents, fsigf, freer, refmac.abcd).run()
     assert parrot.abcd.nreflections == fsigf.nreflections
     assert parrot.fphi.nreflections == fsigf.nreflections
-    parrot.remove_files()

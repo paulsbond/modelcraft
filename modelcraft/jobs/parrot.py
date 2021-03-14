@@ -1,10 +1,16 @@
-from typing import Optional
+import dataclasses
 import gemmi
 from ..contents import AsuContents
 from ..job import Job
-from ..reflections import DataItem, write_mtz
+from ..pipeline import Pipeline
+from ..reflections import DataItem
 from ..solvent import solvent_fraction
-from ..structure import write_mmcif
+
+
+@dataclasses.dataclass
+class ParrotResult:
+    abcd: DataItem
+    fphi: DataItem
 
 
 class Parrot(Job):
@@ -14,40 +20,33 @@ class Parrot(Job):
         fsigf: DataItem,
         freer: DataItem,
         phases: DataItem,
-        fphi: Optional[DataItem] = None,
-        structure: Optional[gemmi.Structure] = None,
+        fphi: DataItem = None,
+        structure: gemmi.Structure = None,
     ):
-        super().__init__("parrot")
-        args = []
-
-        hklin = self.path("hklin.mtz")
-        write_mtz(hklin, [fsigf, freer, phases, fphi])
-        args += ["-mtzin", hklin]
-        args += ["-colin-fo", fsigf.label()]
-        args += ["-colin-free", freer.label()]
+        super().__init__("cparrot")
+        self._hklins["hklin.mtz"] = [fsigf, freer, phases, fphi]
+        self._args += ["-mtzin", "hklin.mtz"]
+        self._args += ["-colin-fo", fsigf.label()]
+        self._args += ["-colin-free", freer.label()]
         if phases.types == "AAAA":
-            args += ["-colin-hl", phases.label()]
+            self._args += ["-colin-hl", phases.label()]
         else:
-            args += ["-colin-phifom", phases.label()]
+            self._args += ["-colin-phifom", phases.label()]
         if fphi is not None:
-            args += ["-colin-fc", fphi.label()]
-
+            self._args += ["-colin-fc", fphi.label()]
         if structure is not None:
-            xyzin = self.path("xyzin.cif")
-            args += ["-pdbin-mr", xyzin]
-            write_mmcif(xyzin, structure)
+            self._xyzins["xyzin.cif"] = structure
+            self._args += ["-pdbin-mr", "xyzin.cif"]
+        self._args += ["-solvent-content", "%.3f" % solvent_fraction(contents, fsigf)]
+        self._args += ["-cycles", "5"]
+        self._args += ["-anisotropy-correction"]
+        self._args += ["-mtzout", "hklout.mtz"]
+        self._hklouts["hklout.mtz"] = None
 
-        args += ["-cycles", "5"]
-        args += ["-anisotropy-correction"]
-        args += ["-solvent-content", "%.3f" % solvent_fraction(contents, fsigf)]
-
-        hklout = self.path("hklout.mtz")
-        args += ["-mtzout", hklout]
-
-        self.run("cparrot", args)
-
-        mtz = gemmi.read_mtz_file(hklout)
-        self.abcd = DataItem(mtz, "parrot.ABCD")
-        self.fphi = DataItem(mtz, "parrot.F_phi")
-
-        self.finish()
+    def run(self, pipeline: Pipeline = None) -> ParrotResult:
+        super().run(pipeline)
+        mtz = self._hklouts["hklout.mtz"]
+        return ParrotResult(
+            abcd=DataItem(mtz, "parrot.ABCD"),
+            fphi=DataItem(mtz, "parrot.F_phi"),
+        )
