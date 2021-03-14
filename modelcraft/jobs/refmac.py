@@ -1,8 +1,9 @@
 import dataclasses
+import xml.etree.ElementTree as ET
 import gemmi
 from ..job import Job
-from ..pipeline import Pipeline
-from ..reflections import DataItem
+from ..reflections import DataItem, write_mtz
+from ..structure import read_structure, write_mmcif
 
 
 @dataclasses.dataclass
@@ -27,47 +28,51 @@ class Refmac(Job):
         twinned: bool = False,
     ):
         super().__init__("refmac5")
-        self._hklins["hklin.mtz"] = [fsigf, freer, phases]
-        self._xyzins["xyzin.cif"] = structure
+        self.structure = structure
+        self.fsigf = fsigf
+        self.freer = freer
+        self.phases = phases
+        self.cycles = cycles
+        self.twinned = twinned
+
+    def _setup(self) -> None:
+        write_mtz(self._path("hklin.mtz"), [self.fsigf, self.freer, self.phases])
+        write_mmcif(self._path("xyzin.cif"), self.structure)
         self._args += ["HKLIN", "./hklin.mtz"]
         self._args += ["XYZIN", "./xyzin.cif"]
         self._args += ["HKLOUT", "./hklout.mtz"]
         self._args += ["XYZOUT", "./xyzout.cif"]
         self._args += ["XMLOUT", "./xmlout.xml"]
-        labin = "FP=" + fsigf.label(0)
-        labin += " SIGFP=" + fsigf.label(1)
-        labin += " FREE=" + freer.label()
-        if phases is not None:
-            if phases.types == "AAAA":
-                labin += " HLA=" + phases.label(0)
-                labin += " HLB=" + phases.label(1)
-                labin += " HLC=" + phases.label(2)
-                labin += " HLD=" + phases.label(3)
+        labin = "FP=" + self.fsigf.label(0)
+        labin += " SIGFP=" + self.fsigf.label(1)
+        labin += " FREE=" + self.freer.label()
+        if self.phases is not None:
+            if self.phases.types == "AAAA":
+                labin += " HLA=" + self.phases.label(0)
+                labin += " HLB=" + self.phases.label(1)
+                labin += " HLC=" + self.phases.label(2)
+                labin += " HLD=" + self.phases.label(3)
             else:
-                labin += " PHIB=" + phases.label(0)
-                labin += " FOM=" + phases.label(1)
+                labin += " PHIB=" + self.phases.label(0)
+                labin += " FOM=" + self.phases.label(1)
         self._stdin.append("LABIN " + labin)
-        self._stdin.append("NCYCLES %d" % cycles)
+        self._stdin.append("NCYCLES %d" % self.cycles)
         self._stdin.append("MAKE HYDR NO")
-        if twinned:
+        if self.twinned:
             self._stdin.append("TWIN")
         self._stdin.append("MAKE NEWLIGAND NOEXIT")
         self._stdin.append("PHOUT")
         self._stdin.append("PNAME modelcraft")
         self._stdin.append("DNAME modelcraft")
         self._stdin.append("END")
-        self._hklouts["hklout.mtz"] = None
-        self._xmlouts["xmlout.xml"] = None
-        self._xyzouts["xyzout.cif"] = None
 
-    def run(self, pipeline: Pipeline = None) -> RefmacResult:
-        super().run(pipeline)
-        mtz = self._hklouts["hklout.mtz"]
-        xml = self._xmlouts["xmlout.xml"]
+    def _result(self) -> RefmacResult:
+        mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
+        xml = ET.parse(self._path("xmlout.xml")).getroot()
         rworks = list(xml.iter("r_factor"))
         rfrees = list(xml.iter("r_free"))
         return RefmacResult(
-            structure=self._xyzouts["xyzout.cif"],
+            structure=read_structure(self._path("xyzout.cif")),
             abcd=DataItem(mtz, "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB"),
             fphi_best=DataItem(mtz, "FWT,PHWT"),
             fphi_diff=DataItem(mtz, "DELFWT,PHDELWT"),

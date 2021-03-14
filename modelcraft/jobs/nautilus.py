@@ -1,10 +1,15 @@
-from typing import Optional
+import dataclasses
 import gemmi
 from ..contents import AsuContents
 from ..job import Job
 from ..polymer import PolymerType
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
+
+
+@dataclasses.dataclass
+class NautilusResult:
+    structure: gemmi.Structure
 
 
 class Nautilus(Job):
@@ -14,43 +19,41 @@ class Nautilus(Job):
         fsigf: DataItem,
         freer: DataItem,
         phases: DataItem,
-        fphi: Optional[DataItem] = None,
-        structure: Optional[gemmi.Structure] = None,
+        fphi: DataItem = None,
+        structure: gemmi.Structure = None,
         cycles: int = 3,
     ):
-        super().__init__("nautilus")
-        args = []
+        super().__init__("cnautilus")
+        self.contents = contents
+        self.fsigf = fsigf
+        self.freer = freer
+        self.phases = phases
+        self.fphi = fphi
+        self.structure = structure
+        self.cycles = cycles
 
-        seqin = self.path("seqin.seq")
-        args += ["-seqin", seqin]
-        contents.write_sequence_file(seqin, [PolymerType.RNA, PolymerType.DNA])
-
-        hklin = self.path("hklin.mtz")
-        data_items = [fsigf, freer, phases]
-        args += ["-mtzin", hklin]
-        args += ["-colin-fo", fsigf.label()]
-        args += ["-colin-free", freer.label()]
-        if phases.types == "AAAA":
-            args += ["-colin-hl", phases.label()]
+    def _setup(self) -> None:
+        types = [PolymerType.RNA, PolymerType.DNA]
+        self.contents.write_sequence_file(self._path("seqin.seq"), types)
+        self._args += ["-seqin", "seqin.seq"]
+        data_items = [self.fsigf, self.freer, self.phases, self.fphi]
+        write_mtz(self._path("hklin.mtz"), data_items)
+        self._args += ["-mtzin", "hklin.mtz"]
+        self._args += ["-colin-fo", self.fsigf.label()]
+        self._args += ["-colin-free", self.freer.label()]
+        if self.phases.types == "AAAA":
+            self._args += ["-colin-hl", self.phases.label()]
         else:
-            args += ["-colin-phifom", phases.label()]
-        if fphi is not None:
-            args += ["-colin-fc", fphi.label()]
-            data_items.append(fphi)
-        write_mtz(hklin, data_items)
+            self._args += ["-colin-phifom", self.phases.label()]
+        if self.fphi is not None:
+            self._args += ["-colin-fc", self.fphi.label()]
+        if self.structure is not None:
+            write_mmcif(self._path("xyzin.cif"), self.structure)
+            self._args += ["-pdbin", "xyzin.cif"]
+        self._args += ["-cycles", str(self.cycles)]
+        self._args += ["-anisotropy-correction"]
+        self._args += ["-pdbout", "xyzout.cif"]
+        self._args += ["-cif"]
 
-        if structure is not None:
-            xyzin = self.path("xyzin.cif")
-            args += ["-pdbin", xyzin]
-            write_mmcif(xyzin, structure)
-
-        args += ["-cycles", str(cycles)]
-        args += ["-anisotropy-correction"]
-
-        xyzout = self.path("xyzout.cif")
-        args += ["-pdbout", xyzout]
-        args += ["-cif"]
-
-        self.run("cnautilus", args)
-        self.structure = read_structure(xyzout)
-        self.finish()
+    def _result(self) -> NautilusResult:
+        return NautilusResult(structure=read_structure(self._path("xyzout.cif")))

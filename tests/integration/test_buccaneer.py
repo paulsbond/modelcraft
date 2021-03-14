@@ -13,7 +13,6 @@ def test_insulin():
     freer = insulin_freer()
     refmac = insulin_refmac()
     contents = insulin_contents()
-    buccaneer = Buccaneer(contents, fsigf, freer, refmac.abcd, cycles=1)
+    buccaneer = Buccaneer(contents, fsigf, freer, refmac.abcd, cycles=1).run()
     stats = ModelStats(buccaneer.structure)
     assert stats.residues > 0
-    buccaneer.remove_files()

@@ -1,8 +1,8 @@
 import dataclasses
 import gemmi
 from ..job import Job
-from ..pipeline import Pipeline
-from ..reflections import DataItem
+from ..reflections import DataItem, write_mtz
+from ..structure import read_structure, write_mmcif
 
 
 @dataclasses.dataclass
@@ -13,31 +13,31 @@ class FindWatersResult:
 class FindWaters(Job):
     def __init__(self, structure: gemmi.Structure, fphi: DataItem, dummy: bool = False):
         super().__init__("findwaters")
-        self._structure = structure
-        self._fphi = fphi
-        self._dummy = dummy
-        self._hklins["hklin.mtz"] = [fphi]
-        self._xyzins["xyzin.cif"] = structure
+        self.structure = structure
+        self.fphi = fphi
+        self.dummy = dummy
+
+    def _setup(self) -> None:
+        write_mtz(self._path("hklin.mtz"), [self.fphi])
+        write_mmcif(self._path("xyzin.cif"), self.structure)
         self._args += ["--pdbin", "xyzin.cif"]
         self._args += ["--hklin", "hklin.mtz"]
-        self._args += ["--f", fphi.label(0)]
-        self._args += ["--phi", fphi.label(1)]
-        if dummy:
+        self._args += ["--f", self.fphi.label(0)]
+        self._args += ["--phi", self.fphi.label(1)]
+        if self.dummy:
             self._args += ["--flood"]
         self._args += ["--pdbout", "water.pdb"]
-        self._xyzouts["water.pdb"] = None
 
-    def run(self, pipeline: Pipeline = None) -> FindWatersResult:
-        super().run(pipeline)
+    def _result(self) -> FindWatersResult:
         water_residues = []
-        water_model = self._xyzouts["water.pdb"][0]
+        water_model = read_structure(self._path("water.pdb"))[0]
         for water_chain in water_model:
             for water_residue in water_chain:
                 water_residues.append(water_residue)
-        structure = self._structure.clone()
+        structure = self.structure.clone()
         if len(water_residues) > 0:
             model = structure[0]
-            chain = "DUM" if self._dummy else "WAT"
+            chain = "DUM" if self.dummy else "WAT"
             if chain not in model:
                 model.add_chain(chain)
             for residue in water_residues:

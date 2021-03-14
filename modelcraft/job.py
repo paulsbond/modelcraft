@@ -5,11 +5,7 @@ import shutil
 import subprocess
 import time
 import uuid
-import xml.etree.ElementTree as ET
-import gemmi
 from .pipeline import Pipeline
-from .reflections import write_mtz
-from .structure import read_structure, write_mmcif
 
 
 class Job(abc.ABC):
@@ -18,52 +14,45 @@ class Job(abc.ABC):
         self._args = []
         self._stdin = []
         self._environ = {}
-        self._cifins = {}
-        self._hklins = {}
-        self._xyzins = {}
-        self._cifouts = {}
-        self._hklouts = {}
-        self._xmlouts = {}
-        self._xyzouts = {}
         self._directory = None
-        self._seconds = None
 
-    @abc.abstractmethod
-    def run(self, pipeline: Pipeline = None) -> None:
+    def run(self, pipeline: Pipeline = None):
         if distutils.spawn.find_executable(self._executable) is None:
             raise ValueError("Executable '%s' not found" % self._executable)
-        self._write_files(pipeline)
-        self._run_subprocess()
-        self._read_files()
-        if pipeline is None:
-            self._remove_files()
-        else:
-            pipeline.times.setdefault(self._executable, 0)
-            pipeline.times[self._executable] += self._seconds
-            if not pipeline.keep_jobs:
-                self._remove_files(keep_logs=pipeline.keep_logs)
-
-    def _path(self, *paths: str) -> str:
-        return os.path.join(self._directory, *paths)
-
-    def _write_files(self, pipeline: Pipeline = None) -> str:
         if pipeline is None:
             self._directory = str(uuid.uuid4())
         else:
             self._directory = pipeline.directory(self._executable)
         os.mkdir(self._directory)
+        self._setup()
         with open(self._path("script.sh"), "w") as stream:
             stream.write(self._script())
         os.chmod(self._path("script.sh"), 0o755)
-        for filename, items in self._hklins.items():
-            write_mtz(self._path(filename), items)
-        for filename, structure in self._xyzins.items():
-            write_mmcif(self._path(filename), structure)
-        for filename, document in self._cifins.items():
-            document.write_file(self._path(filename))
+        start_time = time.time()
+        self._run_subprocess()
+        seconds = time.time() - start_time
+        result = self._result()
+        if pipeline is None:
+            self._remove_files()
+        else:
+            pipeline.times.setdefault(self._executable, 0)
+            pipeline.times[self._executable] += seconds
+            if not pipeline.keep_jobs:
+                self._remove_files(keep_logs=pipeline.keep_logs)
+        return result
+
+    def _path(self, *paths: str) -> str:
+        return os.path.join(self._directory, *paths)
+
+    @abc.abstractmethod
+    def _setup(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    def _result(self):
+        pass
 
     def _run_subprocess(self):
-        start_time = time.time()
         with open(self._path("stdout.txt"), "w") as out_stream:
             with open(self._path("stderr.txt"), "w") as err_stream:
                 process = subprocess.Popen(
@@ -80,17 +69,6 @@ class Job(abc.ABC):
                 process.stdin.write(line + "\n")
             process.stdin.close()
         process.wait()
-        self._seconds = time.time() - start_time
-
-    def _read_files(self):
-        for filename in self._cifouts:
-            self._cifouts[filename] = gemmi.cif.read(self._path(filename))
-        for filename in self._hklouts:
-            self._hklouts[filename] = gemmi.read_mtz_file(self._path(filename))
-        for filename in self._xmlouts:
-            self._xmlouts[filename] = ET.parse(self._path(filename)).getroot()
-        for filename in self._xyzouts:
-            self._xyzouts[filename] = read_structure(self._path(filename))
 
     def _script(self) -> str:
         script = "#!/usr/bin/env bash\n\n"

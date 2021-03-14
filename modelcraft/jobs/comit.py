@@ -1,7 +1,7 @@
 import dataclasses
+import gemmi
 from ..job import Job
-from ..pipeline import Pipeline
-from ..reflections import DataItem
+from ..reflections import DataItem, write_mtz
 
 
 @dataclasses.dataclass
@@ -13,16 +13,18 @@ class ComitResult:
 class Comit(Job):
     def __init__(self, fsigf: DataItem, fphi: DataItem):
         super().__init__("comit")
-        self._hklins["hklin.mtz"] = [fsigf, fphi]
-        self._args += ["-mtzin", "hklin.mtz"]
-        self._args += ["-colin-fo", fsigf.label()]
-        self._args += ["-colin-fc", fphi.label()]
-        self._args += ["-mtzout", "hklout.mtz"]
-        self._hklouts["hklout.mtz"] = None
+        self.fsigf = fsigf
+        self.fphi = fphi
 
-    def run(self, pipeline: Pipeline = None) -> ComitResult:
-        super().run(pipeline)
-        mtz = self._hklouts["hklout.mtz"]
+    def _setup(self) -> None:
+        write_mtz(self._path("hklin.mtz"), [self.fsigf, self.fphi])
+        self._args += ["-mtzin", "hklin.mtz"]
+        self._args += ["-colin-fo", self.fsigf.label()]
+        self._args += ["-colin-fc", self.fphi.label()]
+        self._args += ["-mtzout", "hklout.mtz"]
+
+    def _result(self) -> ComitResult:
+        mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
         return ComitResult(
             abcd=DataItem(mtz, "omit.ABCD"),
             fphi=DataItem(mtz, "omit.F_phi"),
