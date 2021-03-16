@@ -37,7 +37,7 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     args = _PARSER.parse_args(arguments)
     _basic_check(args)
     _parse_data_items(args)
-    args.contents = AsuContents(args.contents)
+    args.contents = AsuContents.from_file(args.contents)
     if args.model is not None:
         args.model = read_structure(args.model)
     return args

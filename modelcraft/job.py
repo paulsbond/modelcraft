@@ -35,7 +35,6 @@ class Job(abc.ABC):
         if pipeline is None:
             self._remove_files()
         else:
-            pipeline.times.setdefault(self._executable, 0)
             pipeline.times[self._executable] += seconds
             if not pipeline.keep_jobs:
                 self._remove_files(keep_logs=pipeline.keep_logs)

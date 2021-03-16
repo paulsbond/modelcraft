@@ -1,3 +1,4 @@
+import collections
 import itertools
 from .utils import random_id
 
@@ -8,7 +9,7 @@ class Pipeline:
         self._numbers = itertools.count(start=1)
         self.keep_jobs = keep_jobs
         self.keep_logs = keep_logs
-        self.times = {}
+        self.times = collections.defaultdict(float)
 
     def directory(self, executable: str) -> str:
         return f"job_{self._id}_{next(self._numbers)}_{executable}"

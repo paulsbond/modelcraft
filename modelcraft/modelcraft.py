@@ -14,11 +14,12 @@ from .jobs import (
     Refmac,
     Sheetbend,
 )
+from .pipeline import Pipeline
 from .reflections import write_mtz
 from .structure import ModelStats, write_mmcif
 
 
-class ModelCraft:
+class ModelCraft(Pipeline):
     def __init__(self, argument_list):
         print(f"# ModelCraft {__version__}\n")
         print("Arguments:")
