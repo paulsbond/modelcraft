@@ -1,5 +1,5 @@
 import pytest
-from modelcraft.polymer import code1_to_code3, PolymerType
+from modelcraft.contents import code1_to_code3, guess_sequence_type, PolymerType
 
 
 @pytest.mark.parametrize(
@@ -13,8 +13,8 @@ from modelcraft.polymer import code1_to_code3, PolymerType
         ("GGGG", PolymerType.PROTEIN),
     ],
 )
-def test_polymer_type_guess_from_sequence(sequence: str, expected: PolymerType):
-    assert PolymerType.guess_from_sequence(sequence) == expected
+def test_guess_sequence_type(sequence: str, expected: PolymerType):
+    assert guess_sequence_type(sequence) == expected
 
 
 @pytest.mark.parametrize(

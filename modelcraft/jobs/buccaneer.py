@@ -1,9 +1,8 @@
 import dataclasses
 import os
 import gemmi
-from ..contents import AsuContents
+from ..contents import AsuContents, PolymerType
 from ..job import Job
-from ..polymer import PolymerType
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
 
