@@ -2,7 +2,6 @@ import math
 import os
 import gemmi
 from modelcraft.jobs import Acedrg
-from modelcraft.monomers import Monomers
 
 
 def test_0pr_smiles():
@@ -16,6 +15,5 @@ def test_gly_cif():
     path = os.path.join(os.environ["CLIBD"], "monomers", "g", "GLY.cif")
     cif = gemmi.cif.read(path)
     acedrg = Acedrg("GLY", cif=cif).run()
-    old_weight = Monomers().weight("GLY")
-    new_weight = sum(atom.el.weight for atom in acedrg.chemcomp.atoms)
-    assert math.isclose(old_weight, new_weight, abs_tol=0.01)
+    weight = sum(atom.el.weight for atom in acedrg.chemcomp.atoms)
+    assert math.isclose(weight, 75.07, abs_tol=0.01)
