@@ -90,17 +90,10 @@ class Polymer:
 
     @classmethod
     def from_sequence_file(cls, path: str, polymer_type: PolymerType = None):
-        sequence = ""
         with open(path) as stream:
-            for line in stream:
-                if line[0] == ">":
-                    if len(sequence) > 0:
-                        yield cls(sequence=sequence, polymer_type=polymer_type)
-                    sequence = ""
-                elif line[0] != ";":
-                    sequence += "".join(c for c in line if c.isalpha())
-        if len(sequence) > 0:
-            yield cls(sequence=sequence, polymer_type=polymer_type)
+            contents = stream.read()
+            for sequence in sequences_in_file(contents=contents):
+                yield cls(sequence=sequence, polymer_type=polymer_type)
 
     def to_json(self) -> dict:
         return {
@@ -298,3 +291,29 @@ def guess_sequence_type(sequence: str) -> PolymerType:
     if "T" in codes:
         return PolymerType.DNA
     return PolymerType.RNA
+
+
+def sequences_in_file(contents: str) -> list:
+    sequence = ""
+    sequences = []
+    skip_line = False
+    skip_lines = False
+    lines = contents.splitlines(keepends=False)
+    for line in lines:
+        if skip_line:
+            skip_line = False
+            continue
+        if line[:1] == ">":
+            if len(sequence) > 0:
+                sequences.append(sequence)
+            sequence = ""
+            if line[1:4] in ("P1;", "F1;", "DL;", "DC;", "RL;", "RC;", "XX;"):
+                skip_line = True
+            skip_lines = False
+        elif line[:1] != ";" and not skip_lines:
+            sequence += "".join(c for c in line if c.isalpha())
+            if line[-1:] == "*":
+                skip_lines = True
+    if len(sequence) > 0:
+        sequences.append(sequence)
+    return sequences
