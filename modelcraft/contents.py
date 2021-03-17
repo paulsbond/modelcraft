@@ -48,6 +48,8 @@ DNA_CODES = {
     "X": "DN",
 }
 
+PIR_CODES = {"D1", "DC", "DL", "F1", "N1", "N3", "P1", "RC", "RL", "XX"}
+
 
 class PolymerType(enum.Enum):
     PROTEIN = "PROTEIN"
@@ -307,7 +309,7 @@ def sequences_in_file(contents: str) -> list:
             if len(sequence) > 0:
                 sequences.append(sequence)
             sequence = ""
-            if line[1:4] in ("P1;", "F1;", "DL;", "DC;", "RL;", "RC;", "XX;"):
+            if line[1:3] in PIR_CODES and line[3:4] == ";":
                 skip_line = True
             skip_lines = False
         elif line[:1] != ";" and not skip_lines:
