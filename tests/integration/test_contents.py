@@ -1,9 +1,9 @@
-from modelcraft.contents import AsuContents
+from modelcraft.scripts.contents import _entry_contents
 
 
-def _test_contents(pdbid: str, expected: list, selenomet: bool):
-    contents = AsuContents(pdbid)
-    assert contents.to_json() == expected
+def _test_contents(entry: str, expected_json: list, selenomet: bool):
+    contents = _entry_contents(entry)
+    assert contents.to_json() == expected_json
     assert contents.is_selenomet() == selenomet
     return contents
 
@@ -24,6 +24,7 @@ def test_1o6a():
         "carbs": [],
         "ligands": [],
         "buffers": [],
+        "smiles": {},
     }
     _test_contents("1o6a", expected, selenomet=True)
 
@@ -47,6 +48,7 @@ def test_4gxy():
             {"code": "IRI", "copies": 7},
         ],
         "buffers": ["MG"],
+        "smiles": {},
     }
     _test_contents("4gxy", expected, selenomet=False)
 
@@ -80,6 +82,7 @@ def test_6as7():
         "carbs": [],
         "ligands": [{"code": "DCP", "copies": 1}],
         "buffers": ["MG", "CO"],
+        "smiles": {},
     }
     _test_contents("6as7", expected, selenomet=False)
 
@@ -109,6 +112,7 @@ def test_4aqd():
             {"code": "PEG", "copies": 2},
         ],
         "buffers": ["EDO", "CL", "GLY"],
+        "smiles": {},
     }
     _test_contents("4aqd", expected, selenomet=False)
 
@@ -129,6 +133,7 @@ def test_1vjr():
         "carbs": [],
         "ligands": [],
         "buffers": ["NI", "CL"],
+        "smiles": {},
     }
     _test_contents("1vjr", expected, selenomet=True)
 
@@ -160,6 +165,7 @@ def test_1cag():
         "carbs": [],
         "ligands": [],
         "buffers": ["ACY"],
+        "smiles": {},
     }
     contents = _test_contents("1cag", expected, selenomet=False)
     polymer = contents.proteins[0]
@@ -167,3 +173,35 @@ def test_1cag():
     ppg = ["PRO", "HYP", "GLY"]
     ppa = ["PRO", "HYP", "ALA"]
     assert codes == ppg * 4 + ppa + ppg * 5
+
+
+def test_6eem():
+    expected = {
+        "copies": 1,
+        "proteins": [
+            {
+                "sequence": "MGSLPTNNLESISLCSQNPLDPDEFRRQGHMIIDFLADYYKNVEKYPVRSQVEPGYLKKRLPESAPYNPESIETILEDVTNDIIPGLTHWQSPNYFAYFPSSGSIAGFLGEMLSTGFNVVGFNWMSSPAATELESIVMNWLGQMLTLPKSFLFSSDGSSGGGGVLQGTTCEAILCTLTAARDKMLNKIGRENINKLVVYASDQTHCALQKAAQIAGINPKNVRAIKTSKATNFGLSPNSLQSAILADIESGLVPLFLCATVGTTSSTAVDPIGPLCAVAKLYGIWVHIDAAYAGSACICPEFRHFIDGVEDADSFSLNAHKWFFTTLDCCCLWVKDSDSLVKALSTSPEYLKNKATESKQVIDYKDWQIALSRRFRSMKLWLVLRSYGVANLRTFLRSHVKMAKHFQGLIGMDNRFEIVVPRTFAMVCFRLKPTAIFKQKIVDNDYIEDQTNEVNVKLLESVNASGKIYMTHAVVGGVYMIRFAVGATLTEERHVTGAWKVVQEHTDAILGA",
+                "start": 1,
+                "copies": 1,
+                "modifications": [],
+            },
+            {
+                "sequence": "MGSLPTNNLESISLCSQNPLDPDEFRRQGHMIIDFLADYYKNVEKYPVRSQVEPGYLKKRLPESAPYNPESIETILEDVTNDIIPGLTHWQSPNYFAYFPSSGSIAGFLGEMLSTGFNVVGFNWMSSPAATELESIVMNWLGQMLTLPKSFLFSSDGSSGGGGVLQGTTCEAILCTLTAARDKMLNKIGRENINKLVVYASDQTHCALQKAAQIAGINPKNVRAIKTSKATNFGLSPNSLQSAILADIESGLVPLFLCATVGTTSSTAVDPIGPLCAVAKLYGIWVHIDAAYAGSACICPEFRHFIDGVEDADSFSLNAHKWFFTTLDCCCLWVKDSDSLVKALSTSPEYLKNKATESKQVIDYKDWQIALSRRFRSMKLWLVLRSYGVANLRTFLRSHVKMAKHFQGLIGMDNRFEIVVPRTFAMVCFRLKPTAIFKQKIVDNDYIEDQTNEVNVKLLESVNASGKIYMTHAVVGGVYMIRFAVGATLTEERHVTGAWKVVQEHTDAILGA",
+                "start": 1,
+                "copies": 1,
+                "modifications": ["321->LLP"],
+            },
+        ],
+        "rnas": [],
+        "dnas": [],
+        "carbs": [],
+        "ligands": [
+            {"code": "0PR", "copies": 1},
+            {"code": "TYR", "copies": 1},
+        ],
+        "buffers": ["SO4"],
+        "smiles": {
+            "0PR": "Cc1c(c(c(cn1)COP(=O)(O)O)CN[C@@H](Cc2ccc(cc2)O)C(=O)O)O",
+        },
+    }
+    _test_contents("6eem", expected, selenomet=False)
