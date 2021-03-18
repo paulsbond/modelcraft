@@ -12,7 +12,7 @@ def test_0pr_smiles():
 
 
 def test_gly_cif():
-    path = os.path.join(os.environ["CLIBD"], "monomers", "g", "GLY.cif")
+    path = os.path.join(os.environ["CLIBD_MON"], "g", "GLY.cif")
     cif = gemmi.cif.read(path)
     acedrg = Acedrg("GLY", cif=cif).run()
     weight = sum(atom.el.weight for atom in acedrg.chemcomp.atoms)
