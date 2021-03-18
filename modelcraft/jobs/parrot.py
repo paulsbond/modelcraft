@@ -2,7 +2,6 @@ import dataclasses
 import gemmi
 from ..contents import AsuContents
 from ..job import Job
-from ..pipeline import Pipeline
 from ..reflections import DataItem, write_mtz
 from ..solvent import solvent_fraction
 from ..structure import write_mmcif
