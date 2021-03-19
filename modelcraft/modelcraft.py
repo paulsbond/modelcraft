@@ -207,10 +207,10 @@ class ModelCraft(Pipeline):
             "r_free": self.last_refmac.rfree,
         }
         print("")
-        print("Residues:", model_stats.residues)
-        print("Waters:", model_stats.waters)
-        print("R-work:", self.last_refmac.rwork)
-        print("R-free:", self.last_refmac.rfree)
+        print(f"Residues: {model_stats.residues:5d}")
+        print(f"Waters:   {model_stats.waters:5d}")
+        print(f"R-work:   {self.last_refmac.rwork:5.1f}")
+        print(f"R-free:   {self.last_refmac.rfree:5.1f}")
         self.report["cycles"][self.cycle] = stats
         if self.best_refmac is not None:
             diff = self.best_refmac.rfree - self.last_refmac.rfree
