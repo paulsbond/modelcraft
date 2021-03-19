@@ -1,103 +1,321 @@
-from enum import Enum
-from typing import Iterator, List, Optional
-import modelcraft.residues as residues
+import enum
+import json
+
+PROTEIN_CODES = {
+    "A": "ALA",
+    "B": "ASX",
+    "C": "CYS",
+    "D": "ASP",
+    "E": "GLU",
+    "F": "PHE",
+    "G": "GLY",
+    "H": "HIS",
+    "I": "ILE",
+    "K": "LYS",
+    "L": "LEU",
+    "M": "MET",
+    "N": "ASN",
+    "O": "PYL",
+    "P": "PRO",
+    "Q": "GLN",
+    "R": "ARG",
+    "S": "SER",
+    "T": "THR",
+    "U": "SEC",
+    "V": "VAL",
+    "W": "TRP",
+    "X": "UNK",
+    "Y": "TYR",
+    "Z": "GLX",
+}
+
+RNA_CODES = {
+    "A": "A",
+    "C": "C",
+    "G": "G",
+    "I": "I",
+    "U": "U",
+    "X": "N",
+}
+
+DNA_CODES = {
+    "A": "DA",
+    "C": "DC",
+    "G": "DG",
+    "I": "DI",
+    "T": "DT",
+    "U": "DU",
+    "X": "DN",
+}
+
+PIR_CODES = {"D1", "DC", "DL", "F1", "N1", "N3", "P1", "RC", "RL", "XX"}
 
 
-class PolymerType(Enum):
-    PROTEIN = "protein"
-    RNA = "rna"
-    DNA = "dna"
-
-    @classmethod
-    def from_sequence(cls, sequence: str) -> "PolymerType":
-        codes = set(sequence)
-        if "U" in codes:
-            return cls.RNA
-        protein_codes = {residue.code1 for residue in residues.PROTEIN}
-        unique_protein_codes = protein_codes - {"A", "C", "G", "T"}
-        if codes & unique_protein_codes:
-            return cls.PROTEIN
-        if codes == {"A"}:
-            return cls.PROTEIN
-        if codes == {"G"}:
-            return cls.PROTEIN
-        if "T" in codes:
-            return cls.DNA
-        return cls.RNA
+class PolymerType(enum.Enum):
+    PROTEIN = "PROTEIN"
+    RNA = "RNA"
+    DNA = "DNA"
 
 
 class Polymer:
     def __init__(
         self,
         sequence: str,
-        label: str = "",
-        copies: int = 1,
-        polymer_type: Optional[PolymerType] = None,
+        start: int = None,
+        copies: int = None,
+        polymer_type: PolymerType = None,
+        modifications: list = None,
     ):
         self.sequence = sequence.upper()
-        self.label = label
+        self.start = start or 1
         self.copies = copies
-        if polymer_type is None:
-            self.polymer_type = PolymerType.from_sequence(sequence)
-        else:
-            self.polymer_type = polymer_type
+        self.type = polymer_type or guess_sequence_type(self.sequence)
+        self.modifications = modifications or []
 
     def __eq__(self, other) -> bool:
-        if not isinstance(other, Polymer):
-            return NotImplemented
-        return self.sequence == other.sequence
+        if isinstance(other, Polymer):
+            return (
+                self.sequence == other.sequence
+                and self.type == other.type
+                and self.modifications == other.modifications
+            )
+        return NotImplemented
 
     @classmethod
-    def from_sequence_file(
-        cls, path: str, polymer_type: Optional[PolymerType] = None
-    ) -> Iterator["Polymer"]:
-        label = ""
-        sequence = ""
-        with open(path) as sequence_file:
-            for line in sequence_file:
-                if line[0] == ">":
-                    if len(sequence) > 0:
-                        yield Polymer(
-                            sequence=sequence, label=label, polymer_type=polymer_type,
-                        )
-                    label = line[1:].split()[0]
-                    sequence = ""
+    def from_json(cls, component: dict) -> "Polymer":
+        return cls(
+            sequence=component["sequence"],
+            start=component.get("start"),
+            copies=component.get("copies"),
+            modifications=component.get("modifications"),
+        )
+
+    @classmethod
+    def from_sequence_file(cls, path: str, polymer_type: PolymerType = None):
+        with open(path) as stream:
+            contents = stream.read()
+            for sequence in sequences_in_file(contents=contents):
+                yield cls(sequence=sequence, polymer_type=polymer_type)
+
+    def to_json(self) -> dict:
+        return {
+            "sequence": self.sequence,
+            "start": self.start,
+            "copies": self.copies,
+            "modifications": self.modifications,
+        }
+
+    def residue_codes(self, modified: bool = True) -> list:
+        codes = [code1_to_code3(code1, self.type) for code1 in self.sequence]
+        if modified:
+            for mod in self.modifications:
+                source, code = mod.split("->")
+                if source[0].isdigit():
+                    index = int(source) - self.start
+                    codes[index] = code
                 else:
-                    sequence += line.strip()
-        if len(sequence) > 0:
-            yield Polymer(sequence=sequence, label=label, polymer_type=polymer_type)
+                    for index, code1 in enumerate(self.sequence):
+                        if code1 == source:
+                            codes[index] = code
+        return codes
+
+    def is_selenomet(self) -> bool:
+        return "M->MSE" in self.modifications
+
+
+class Carb:
+    def __init__(self, codes: dict, copies: int = None):
+        self.codes = codes
+        self.copies = copies
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Carb):
+            return self.codes == other.codes
+        return NotImplemented
+
+    @classmethod
+    def from_json(cls, component: dict) -> "Carb":
+        return cls(codes=component["codes"], copies=component.get("copies"))
+
+    def to_json(self) -> dict:
+        return {"codes": self.codes, "copies": self.copies}
 
 
 class Ligand:
-    def __init__(self, code: str, copies: Optional[int] = None):
+    def __init__(self, code: str, copies: int = None):
         self.code = code
         self.copies = copies
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Ligand):
+            return self.code == other.code
+        return NotImplemented
+
+    @classmethod
+    def from_json(cls, component: dict) -> "Ligand":
+        return cls(code=component["code"], copies=component.get("copies"))
+
+    def to_json(self) -> dict:
+        return {"code": self.code, "copies": self.copies}
+
 
 class AsuContents:
-    def __init__(self, path: Optional[str] = None):
-        self.polymers: List[Polymer] = []
-        self.ligands: List[Ligand] = []
-        if path is not None:
-            self.polymers.extend(Polymer.from_sequence_file(path))
+    def __init__(
+        self,
+        copies: int = None,
+        proteins: list = None,
+        rnas: list = None,
+        dnas: list = None,
+        carbs: list = None,
+        ligands: list = None,
+        buffers: list = None,
+        smiles: dict = None,
+    ):
+        self.copies = copies
+        self.proteins = proteins or []
+        self.rnas = rnas or []
+        self.dnas = dnas or []
+        self.carbs = carbs or []
+        self.ligands = ligands or []
+        self.buffers = buffers or []
+        self.smiles = smiles or {}
 
-    def sequence_file_lines(
-        self, polymer_type: Optional[PolymerType] = None, line_length: int = 60
-    ) -> Iterator[str]:
-        for polymer in self.polymers:
-            if polymer_type is None or polymer.polymer_type == polymer_type:
-                yield f"> {polymer.label}\n"
-                for i in range(0, len(polymer.sequence), line_length):
-                    yield polymer.sequence[i : i + line_length] + "\n"
+    @classmethod
+    def from_file(cls, path: str) -> "AsuContents":
+        if path[-5:] == ".json":
+            return cls.from_json_file(path)
+        return cls.from_sequence_file(path)
+
+    @classmethod
+    def from_json_file(cls, path: str) -> "AsuContents":
+        contents = cls()
+        with open(path) as stream:
+            contents_json = json.load(stream)
+        contents.copies = contents_json.get("copies")
+        for obj in contents_json.get("proteins") or []:
+            polymer = Polymer.from_json(obj)
+            polymer.type = PolymerType.PROTEIN
+            contents.proteins.append(polymer)
+        for obj in contents_json.get("rnas") or []:
+            polymer = Polymer.from_json(obj)
+            polymer.type = PolymerType.RNA
+            contents.rnas.append(polymer)
+        for obj in contents_json.get("dnas") or []:
+            polymer = Polymer.from_json(obj)
+            polymer.type = PolymerType.DNA
+            contents.dnas.append(polymer)
+        for obj in contents_json.get("carbs") or []:
+            carb = Carb.from_json(obj)
+            contents.carbs.append(carb)
+        for obj in contents_json.get("ligands") or []:
+            ligand = Ligand.from_json(obj)
+            contents.ligands.append(ligand)
+        contents.buffers = contents_json.get("buffers") or []
+        contents.smiles = contents_json.get("smiles") or []
+        return contents
+
+    @classmethod
+    def from_sequence_file(
+        cls, path: str, polymer_type: PolymerType = None
+    ) -> "AsuContents":
+        contents = cls()
+        for polymer in Polymer.from_sequence_file(path, polymer_type):
+            contents.add_polymer(polymer)
+        return contents
+
+    def add_polymer(self, polymer: Polymer) -> None:
+        if polymer.type == PolymerType.PROTEIN:
+            self.proteins.append(polymer)
+        if polymer.type == PolymerType.RNA:
+            self.rnas.append(polymer)
+        if polymer.type == PolymerType.DNA:
+            self.dnas.append(polymer)
+
+    def monomer_codes(self) -> set:
+        codes = set()
+        for polymer in self.proteins + self.rnas + self.dnas:
+            codes.update(set(polymer.residue_codes(modified=True)))
+        for carb in self.carbs:
+            codes.update(set(carb.codes.keys()))
+        for ligand in self.ligands:
+            codes.add(ligand.code)
+        codes.update(set(self.buffers))
+        return codes
+
+    def is_selenomet(self) -> bool:
+        return len(self.proteins) > 0 and all(p.is_selenomet() for p in self.proteins)
+
+    def to_json(self) -> list:
+        return {
+            "copies": self.copies,
+            "proteins": [protein.to_json() for protein in self.proteins],
+            "rnas": [rna.to_json() for rna in self.rnas],
+            "dnas": [dna.to_json() for dna in self.dnas],
+            "carbs": [carb.to_json() for carb in self.carbs],
+            "ligands": [ligand.to_json() for ligand in self.ligands],
+            "buffers": self.buffers,
+            "smiles": self.smiles,
+        }
+
+    def write_json_file(self, path: str) -> None:
+        with open(path, "w") as stream:
+            json.dump(self.to_json(), stream, indent=2)
 
     def write_sequence_file(
-        self,
-        path: str,
-        polymer_type: Optional[PolymerType] = None,
-        line_length: int = 60,
-    ):
-        with open(path, "w") as sequence_file:
-            for line in self.sequence_file_lines(
-                polymer_type=polymer_type, line_length=line_length
-            ):
-                sequence_file.write(line)
+        self, path: str, types: list = None, line_length: int = 60
+    ) -> None:
+        with open(path, "w") as stream:
+            for polymer in self.proteins + self.rnas + self.dnas:
+                if types is None or polymer.type in types:
+                    stream.write(f">{polymer.type.value}\n")
+                    for i in range(0, len(polymer.sequence), line_length):
+                        stream.write(polymer.sequence[i : i + line_length] + "\n")
+
+
+def code1_to_code3(code1: str, polymer_type: PolymerType) -> str:
+    return {
+        PolymerType.PROTEIN: PROTEIN_CODES.get(code1) or PROTEIN_CODES["X"],
+        PolymerType.RNA: RNA_CODES.get(code1) or RNA_CODES["X"],
+        PolymerType.DNA: DNA_CODES.get(code1) or DNA_CODES["X"],
+    }[polymer_type]
+
+
+def guess_sequence_type(sequence: str) -> PolymerType:
+    codes = set(sequence)
+    if "U" in codes:
+        return PolymerType.RNA
+    if codes & set("DEFHIKLMNPQRSVWY"):
+        return PolymerType.PROTEIN
+    if codes == {"A"}:
+        return PolymerType.PROTEIN
+    if codes == {"G"}:
+        return PolymerType.PROTEIN
+    if "T" in codes:
+        return PolymerType.DNA
+    return PolymerType.RNA
+
+
+def sequences_in_file(contents: str) -> list:
+    sequence = ""
+    sequences = []
+    skip_line = False
+    skip_lines = False
+    lines = contents.splitlines(keepends=False)
+    for line in lines:
+        if skip_line:
+            skip_line = False
+            continue
+        if line[:1] == ">":
+            if len(sequence) > 0:
+                sequences.append(sequence)
+            sequence = ""
+            if line[1:3] in PIR_CODES and line[3:4] == ";":
+                skip_line = True
+            skip_lines = False
+        elif line[:1] != ";" and not skip_lines:
+            sequence += "".join(c for c in line if c.isalpha())
+            if line[-1:] == "*":
+                skip_lines = True
+    if len(sequence) > 0:
+        sequences.append(sequence)
+    return sequences

@@ -7,7 +7,7 @@ import pandas
 
 class ColumnRef:
     def __init__(
-        self, label: str, dataset: str = "", crystal: str = "", project: str = "",
+        self, label: str, dataset: str = "", crystal: str = "", project: str = ""
     ):
         self.label = label
         self.dataset = dataset
@@ -75,6 +75,7 @@ class DataItem(gemmi.Mtz):
         for column in columns:
             self.add_column(column.label, column.type)
         data = numpy.stack(columns, axis=1)
+        data = data[~numpy.isnan(data).any(axis=1)]
         self.set_data(data)
         self.update_reso()
 
@@ -116,16 +117,16 @@ def _combine_data_items(items: List[DataItem]) -> gemmi.Mtz:
         for column in item.columns[3:]:
             column_labels.append(column.label)
             column_types.append(column.type)
-    data_frame = items[0].data_frame()
+    data = items[0].data_frame()
     for item in items[1:]:
-        data_frame = pandas.merge(data_frame, item.data_frame(), on=["H", "K", "L"])
+        data = data.merge(item.data_frame(), on=["H", "K", "L"], how="outer")
     mtz = gemmi.Mtz()
     mtz.cell = items[0].cell
     mtz.spacegroup = items[0].spacegroup
     mtz.add_dataset("HKL_base")
     for i, label in enumerate(column_labels):
         mtz.add_column(label, column_types[i])
-    mtz.set_data(data_frame.to_numpy())
+    mtz.set_data(data.to_numpy())
     return mtz
 
 

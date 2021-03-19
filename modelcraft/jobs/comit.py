@@ -1,26 +1,31 @@
+import dataclasses
 import gemmi
+from ..job import Job
 from ..reflections import DataItem, write_mtz
-from .job import Job
+
+
+@dataclasses.dataclass
+class ComitResult:
+    abcd: DataItem
+    fphi: DataItem
 
 
 class Comit(Job):
     def __init__(self, fsigf: DataItem, fphi: DataItem):
         super().__init__("comit")
-        args = []
+        self.fsigf = fsigf
+        self.fphi = fphi
 
-        hklin = self.path("hklin.mtz")
-        args += ["-mtzin", hklin]
-        args += ["-colin-fo", fsigf.label()]
-        args += ["-colin-fc", fphi.label()]
-        write_mtz(hklin, [fsigf, fphi])
+    def _setup(self) -> None:
+        write_mtz(self._path("hklin.mtz"), [self.fsigf, self.fphi])
+        self._args += ["-mtzin", "hklin.mtz"]
+        self._args += ["-colin-fo", self.fsigf.label()]
+        self._args += ["-colin-fc", self.fphi.label()]
+        self._args += ["-mtzout", "hklout.mtz"]
 
-        hklout = self.path("hklout.mtz")
-        args += ["-mtzout", hklout]
-
-        self.run("comit", args)
-
-        mtz = gemmi.read_mtz_file(hklout)
-        self.abcd = DataItem(mtz, "omit.ABCD")
-        self.fphi = DataItem(mtz, "omit.F_phi")
-
-        self.finish()
+    def _result(self) -> ComitResult:
+        mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
+        return ComitResult(
+            abcd=DataItem(mtz, "omit.ABCD"),
+            fphi=DataItem(mtz, "omit.F_phi"),
+        )

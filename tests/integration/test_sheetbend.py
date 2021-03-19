@@ -1,8 +1,8 @@
 import gemmi
-from modelcraft.jobs import Sheetbend
+from modelcraft.jobs.sheetbend import Sheetbend
 from modelcraft.reflections import DataItem
 from modelcraft.structure import ModelStats, read_structure
-from tests.integration import ccp4_path, remove_logs
+from . import ccp4_path
 
 
 def test_1rxf():
@@ -12,6 +12,5 @@ def test_1rxf():
     freer = DataItem(mtz, "FreeR_flag")
     pdb_path = ccp4_path("examples", "data", "1rxf_randomise.pdb")
     structure = read_structure(pdb_path)
-    sheetbend = Sheetbend(fsigf, freer, structure)
+    sheetbend = Sheetbend(fsigf, freer, structure).run()
     assert ModelStats(structure) == ModelStats(sheetbend.structure)
-    remove_logs()

@@ -1,22 +1,48 @@
-from modelcraft.jobs import FindWaters
+from modelcraft.jobs.findwaters import FindWaters
 from modelcraft.structure import ModelStats
-from tests.integration import remove_logs, insulin_refmac
+from tests.integration import insulin_refmac
 
 
-def test_insulin():
+def test_insulin_water():
     refmac = insulin_refmac()
     stats_in = ModelStats(refmac.structure)
-
-    findwaters = FindWaters(refmac.structure, refmac.fphi_best)
+    findwaters = FindWaters(
+        structure=refmac.structure,
+        fphi=refmac.fphi_best,
+    ).run()
     stats_out = ModelStats(findwaters.structure)
     assert stats_out.residues == stats_in.residues
     assert stats_out.waters > stats_in.waters
     assert stats_out.dummy_atoms == stats_in.dummy_atoms
 
-    findwaters = FindWaters(refmac.structure, refmac.fphi_best, dummy=True)
+
+def test_insulin_dummy():
+    refmac = insulin_refmac()
+    stats_in = ModelStats(refmac.structure)
+    findwaters = FindWaters(
+        structure=refmac.structure,
+        fphi=refmac.fphi_best,
+        dummy=True,
+    ).run()
     stats_out = ModelStats(findwaters.structure)
     assert stats_out.residues == stats_in.residues
     assert stats_out.waters == stats_in.waters
     assert stats_out.dummy_atoms > stats_in.dummy_atoms
 
-    remove_logs()
+
+def test_existing_water_chain():
+    refmac = insulin_refmac()
+    findwaters1 = FindWaters(
+        structure=refmac.structure,
+        fphi=refmac.fphi_best,
+    ).run()
+    findwaters2 = FindWaters(
+        structure=findwaters1.structure,
+        fphi=refmac.fphi_best,
+    ).run()
+    chains1 = len(findwaters1.structure[0])
+    chains2 = len(findwaters2.structure[0])
+    assert chains1 == chains2
+    waters1 = ModelStats(findwaters1.structure).waters
+    waters2 = ModelStats(findwaters2.structure).waters
+    assert waters2 > waters1

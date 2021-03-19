@@ -1,10 +1,15 @@
-from typing import Optional
+import dataclasses
 import os
 import gemmi
 from ..contents import AsuContents, PolymerType
-from .job import Job
+from ..job import Job
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
+
+
+@dataclasses.dataclass
+class BuccaneerResult:
+    structure: gemmi.Structure
 
 
 class Buccaneer(Job):
@@ -14,73 +19,70 @@ class Buccaneer(Job):
         fsigf: DataItem,
         freer: DataItem,
         phases: DataItem,
-        fphi: Optional[DataItem] = None,
-        input_structure: Optional[gemmi.Structure] = None,
-        mr_structure: Optional[gemmi.Structure] = None,
+        fphi: DataItem = None,
+        input_structure: gemmi.Structure = None,
+        mr_structure: gemmi.Structure = None,
         use_mr: bool = True,
         filter_mr: bool = True,
         seed_mr: bool = True,
         cycles: int = 2,
-        semet: bool = False,
-        remove_non_protein: bool = False,
-        program: str = "cbuccaneer",
+        executable: str = "cbuccaneer",
     ):
-        super().__init__("buccaneer")
-        args = []
+        super().__init__(executable)
+        self.contents = contents
+        self.fsigf = fsigf
+        self.freer = freer
+        self.phases = phases
+        self.fphi = fphi
+        self.input_structure = input_structure
+        self.mr_structure = mr_structure
+        self.use_mr = use_mr
+        self.filter_mr = filter_mr
+        self.seed_mr = seed_mr
+        self.cycles = cycles
 
-        seqin = self.path("seqin.seq")
-        args += ["-seqin", seqin]
-        contents.write_sequence_file(seqin, PolymerType.PROTEIN)
-
-        hklin = self.path("hklin.mtz")
-        data_items = [fsigf, freer, phases]
-        args += ["-mtzin", hklin]
-        args += ["-colin-fo", fsigf.label()]
-        args += ["-colin-free", freer.label()]
-        if phases.types == "AAAA":
-            args += ["-colin-hl", phases.label()]
+    def _setup(self) -> None:
+        types = [PolymerType.PROTEIN]
+        self.contents.write_sequence_file(self._path("seqin.seq"), types)
+        self._args += ["-seqin", "seqin.seq"]
+        data_items = [self.fsigf, self.freer, self.phases, self.fphi]
+        write_mtz(self._path("hklin.mtz"), data_items)
+        self._args += ["-mtzin", "hklin.mtz"]
+        self._args += ["-colin-fo", self.fsigf.label()]
+        self._args += ["-colin-free", self.freer.label()]
+        if self.phases.types == "AAAA":
+            self._args += ["-colin-hl", self.phases.label()]
         else:
-            args += ["-colin-phifom", phases.label()]
-        if fphi is not None:
-            args += ["-colin-fc", fphi.label()]
-            data_items.append(fphi)
-        write_mtz(hklin, data_items)
+            self._args += ["-colin-phifom", self.phases.label()]
+        if self.fphi is not None:
+            self._args += ["-colin-fc", self.fphi.label()]
+        if self.input_structure is not None:
+            write_mmcif(self._path("xyzin.cif"), self.input_structure)
+            self._args += ["-pdbin", "xyzin.cif"]
+            self._args += ["-model-filter"]
+            self._args += ["-model-filter-sigma", "1.0"]
+            self._args += ["-nonprotein-radius", "2.0"]
+        if self.mr_structure is not None:
+            write_mmcif(self._path("xyzmr.cif"), self.mr_structure)
+            self._args += ["-pdbin-mr", "xyzmr.cif"]
+            if self.use_mr:
+                self._args += ["-mr-model"]
+                if self.filter_mr:
+                    self._args += ["-mr-model-filter"]
+                    self._args += ["-mr-model-filter-sigma", "2.0"]
+                if self.seed_mr:
+                    self._args += ["-mr-model-seed"]
+        self._args += ["-cycles", str(self.cycles)]
+        if self.contents.is_selenomet():
+            self._args += ["-build-semet"]
+        self._args += ["-fast"]
+        self._args += ["-correlation-mode"]
+        self._args += ["-anisotropy-correction"]
+        self._args += ["-resolution", "2.0"]
+        self._args += ["-pdbout", "xyzout.cif"]
+        self._args += ["-cif"]
 
-        if input_structure is not None:
-            xyzin = self.path("xyzin.cif")
-            args += ["-pdbin", xyzin]
-            args += ["-model-filter"]
-            args += ["-model-filter-sigma", "1.0"]
-            if not remove_non_protein:
-                args += ["-nonprotein-radius", "2.0"]
-            write_mmcif(xyzin, input_structure)
-
-        if mr_structure is not None:
-            xyzmr = self.path("xyzmr.cif")
-            args += ["-pdbin-mr", xyzmr]
-            if use_mr:
-                args += ["-mr-model"]
-                if filter_mr:
-                    args += ["-mr-model-filter"]
-                    args += ["-mr-model-filter-sigma", "2.0"]
-                if seed_mr:
-                    args += ["-mr-model-seed"]
-            write_mmcif(xyzmr, mr_structure)
-
-        args += ["-cycles", str(cycles)]
-        if semet:
-            args += ["-build-semet"]
-        args += ["-fast"]
-        args += ["-correlation-mode"]
-        args += ["-anisotropy-correction"]
-        args += ["-resolution", "2.0"]
-
-        xyzout = self.path("xyzout.cif")
-        args += ["-pdbout", xyzout]
-        args += ["-cif"]
-
-        self.run(program, args)
-        if not os.path.exists(xyzout):
+    def _result(self) -> BuccaneerResult:
+        if not os.path.exists(self._path("xyzout.cif")):
             raise RuntimeError("Buccaneer did not produce an output structure")
-        self.structure = read_structure(xyzout)
-        self.finish()
+        return BuccaneerResult(structure=read_structure(self._path("xyzout.cif")))

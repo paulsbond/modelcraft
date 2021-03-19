@@ -9,35 +9,35 @@ from modelcraft.structure import read_structure
 
 _PARSER = argparse.ArgumentParser(add_help=False)
 
-_ = _PARSER.add_argument_group("Required arguments")
-_.add_argument("--hklin", metavar="FILE", required=True)
-_.add_argument("--seqin", metavar="FILE", required=True)
+_req = _PARSER.add_argument_group("Required arguments")
+_req.add_argument("--data", metavar="FILE", required=True)
+_req.add_argument("--contents", metavar="FILE", required=True)
 
-_ = _PARSER.add_argument_group("Optional arguments")
-_.add_argument("--amplitudes", metavar="COLS")
-_.add_argument("--convergence-cycles", metavar="N", default=4, type=int)
-_.add_argument("--convergence-tolerance", metavar="X", default=0.1, type=float)
-_.add_argument("--cycles", metavar="N", default=25, type=int)
-_.add_argument("--freerflag", metavar="COL")
-_.add_argument("--help", action="help")
-_.add_argument("--keep-jobs", action="store_true")
-_.add_argument("--model", metavar="FILE")
-_.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
-_.add_argument("--remove-non-protein", action="store_true")
-_.add_argument("--phases", metavar="COLS")
-_.add_argument("--semet", action="store_true")
-_.add_argument("--twinned", action="store_true")
-_.add_argument("--unbiased", action="store_true")
+_opt = _PARSER.add_argument_group("Optional arguments")
+_opt.add_argument("--amplitudes", metavar="COLS")
+_opt.add_argument("--basic", action="store_true")
+_opt.add_argument("--convergence-cycles", metavar="N", default=4, type=int)
+_opt.add_argument("--convergence-tolerance", metavar="X", default=0.1, type=float)
+_opt.add_argument("--cycles", metavar="N", default=25, type=int)
+_opt.add_argument("--freerflag", metavar="COL")
+_opt.add_argument("--help", action="help")
+_opt.add_argument("--keep-jobs", action="store_true")
+_opt.add_argument("--keep-logs", action="store_true")
+_opt.add_argument("--model", metavar="FILE")
+_opt.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
+_opt.add_argument("--phases", metavar="COLS")
+_opt.add_argument("--twinned", action="store_true")
+_opt.add_argument("--unbiased", action="store_true")
 
-_ = _PARSER.add_argument_group("Developer arguments")
-_.add_argument("--buccaneer", metavar="FILE", default="cbuccaneer")
+_dev = _PARSER.add_argument_group("Developer arguments")
+_dev.add_argument("--buccaneer", metavar="FILE", default="cbuccaneer")
 
 
 def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     args = _PARSER.parse_args(arguments)
     _basic_check(args)
     _parse_data_items(args)
-    args.contents = AsuContents(args.seqin)
+    args.contents = AsuContents.from_file(args.contents)
     if args.model is not None:
         args.model = read_structure(args.model)
     return args
@@ -53,14 +53,17 @@ def _basic_check(args: argparse.Namespace):
     if args.convergence_tolerance < 0.1:
         _PARSER.error("The convergence tolerance must be 0.1 or higher")
 
-    for arg in "hklin", "seqin", "model":
+    for arg in "data", "contents", "model":
         path = getattr(args, arg)
+        if arg == "contents" and len(path) == 4:
+            # Contents is a PDB ID and not a path
+            continue
         if path is not None and not os.path.exists(path):
             _PARSER.error("File not found: %s" % path)
 
 
 def _parse_data_items(args: argparse.Namespace):
-    mtz = gemmi.read_mtz_file(args.hklin)
+    mtz = gemmi.read_mtz_file(args.data)
     args.fsigf = _parse_data_item(mtz, args.amplitudes, ["FQ"], "amplitudes")
     args.freer = _parse_data_item(mtz, args.freerflag, ["I"], "free-R flag")
     if args.phases is not None or args.model is None:

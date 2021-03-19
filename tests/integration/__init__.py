@@ -1,21 +1,14 @@
 import functools
 import os
-import shutil
 import gemmi
-from modelcraft.contents import AsuContents, Polymer, PolymerType
-from modelcraft.jobs import Refmac
+from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
+from modelcraft.jobs.refmac import Refmac
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 
 
 def ccp4_path(*paths: str) -> str:
-    if "CCP4" not in os.environ:
-        raise EnvironmentError("CCP4 environment not set")
     return os.path.join(os.environ["CCP4"], *paths)
-
-
-def remove_logs():
-    shutil.rmtree("modelcraft-logs", ignore_errors=True)
 
 
 @functools.lru_cache(maxsize=None)
@@ -43,43 +36,42 @@ def insulin_refmac():
     fsigf = insulin_fsigf()
     freer = insulin_freer()
     structure = insulin_structure()
-    return Refmac(structure, fsigf, freer, cycles=0)
+    refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0)
+    return refmac.run()
 
 
 @functools.lru_cache(maxsize=None)
 def insulin_contents():
     contents = AsuContents()
-    a = Polymer(
+    chain_a = Polymer(
         sequence="GIVEQCCASVCSLYQLENYCN",
-        label="A",
         copies=1,
         polymer_type=PolymerType.PROTEIN,
     )
-    b = Polymer(
+    chain_b = Polymer(
         sequence="FVNQHLCGSHLVEALYLVCGERGFFYTPKA",
-        label="B",
         copies=1,
         polymer_type=PolymerType.PROTEIN,
     )
-    contents.polymers = [a, b]
+    contents.add_polymer(chain_a)
+    contents.add_polymer(chain_b)
     return contents
 
 
 @functools.lru_cache(maxsize=None)
 def pdb1rxf_contents():
-    contents = AsuContents()
-    a = Polymer(
-        sequence=(
-            "MDTTVPTFSLAELQQGLHQDEFRRCLRDKGLFYLTDCGLTDTELKSAKDLVIDFFEHGSE"
-            "AEKRAVTSPVPTMRRGFTGLESESTAQITNTGSYSDYSMCYSMGTADNLFPSGDFERIWT"
-            "QYFDRQYTASRAVAREVLRATGTEPDGGVEAFLDCEPLLRFRYFPQVPEHRSAEEQPLRM"
-            "APHYDLSMVTLIQQTPCANGFVSLQAEVGGAFTDLPYRPDAVLVFCGAIATLVTGGQVKA"
-            "PRHHVAAPRRDQIAGSSRTSSVFFLRPNADFTFSVPLARECGFDVSLDGETATFQDWIGG"
-            "NYVNIRRTSKA"
-        ),
-        label="A",
-        copies=1,
-        polymer_type=PolymerType.PROTEIN,
+    sequence = (
+        "MDTTVPTFSLAELQQGLHQDEFRRCLRDKGLFYLTDCGLTDTELKSAKDLVIDFFEHGSE"
+        "AEKRAVTSPVPTMRRGFTGLESESTAQITNTGSYSDYSMCYSMGTADNLFPSGDFERIWT"
+        "QYFDRQYTASRAVAREVLRATGTEPDGGVEAFLDCEPLLRFRYFPQVPEHRSAEEQPLRM"
+        "APHYDLSMVTLIQQTPCANGFVSLQAEVGGAFTDLPYRPDAVLVFCGAIATLVTGGQVKA"
+        "PRHHVAAPRRDQIAGSSRTSSVFFLRPNADFTFSVPLARECGFDVSLDGETATFQDWIGG"
+        "NYVNIRRTSKA"
     )
-    contents.polymers = [a]
+    protein = Polymer(sequence=sequence, polymer_type=PolymerType.PROTEIN, copies=1)
+    ligand = Ligand(code="FE", copies=1)
+    contents = AsuContents()
+    contents.proteins.append(protein)
+    contents.ligands.append(ligand)
+    contents.copies = 1
     return contents
