@@ -1,4 +1,4 @@
-from modelcraft.jobs import Buccaneer
+from modelcraft.jobs.buccaneer import Buccaneer
 from modelcraft.structure import ModelStats
 from tests.integration import (
     insulin_fsigf,

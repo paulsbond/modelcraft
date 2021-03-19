@@ -1,7 +1,7 @@
 import math
 import os
 import gemmi
-from modelcraft.jobs import Acedrg
+from modelcraft.jobs.acedrg import Acedrg
 
 
 def test_0pr_smiles():

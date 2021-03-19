@@ -22,7 +22,7 @@ class Job(abc.ABC):
         if pipeline is None:
             self._directory = str(uuid.uuid4())
         else:
-            self._directory = pipeline.directory(self._executable)
+            self._directory = pipeline.next_job_directory(self._executable)
         os.mkdir(self._directory)
         self._setup()
         with open(self._path("script.sh"), "w") as stream:
@@ -35,7 +35,7 @@ class Job(abc.ABC):
         if pipeline is None:
             self._remove_files()
         else:
-            pipeline.times[self._executable] += seconds
+            pipeline.seconds[self._executable] += seconds
             if not pipeline.keep_jobs:
                 self._remove_files(keep_logs=pipeline.keep_logs)
         return result

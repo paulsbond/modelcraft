@@ -1,5 +1,5 @@
 import gemmi
-from modelcraft.jobs import Refmac
+from modelcraft.jobs.refmac import Refmac
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 from tests.integration import ccp4_path

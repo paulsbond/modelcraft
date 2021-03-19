@@ -1,4 +1,4 @@
-from modelcraft.jobs import FindWaters
+from modelcraft.jobs.findwaters import FindWaters
 from modelcraft.structure import ModelStats
 from tests.integration import insulin_refmac
 

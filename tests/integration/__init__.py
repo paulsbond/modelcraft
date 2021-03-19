@@ -1,8 +1,8 @@
 import functools
 import os
 import gemmi
-from modelcraft.contents import AsuContents, Polymer, PolymerType
-from modelcraft.jobs import Refmac
+from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
+from modelcraft.jobs.refmac import Refmac
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 
@@ -55,4 +55,23 @@ def insulin_contents():
     )
     contents.add_polymer(chain_a)
     contents.add_polymer(chain_b)
+    return contents
+
+
+@functools.lru_cache(maxsize=None)
+def pdb1rxf_contents():
+    sequence = (
+        "MDTTVPTFSLAELQQGLHQDEFRRCLRDKGLFYLTDCGLTDTELKSAKDLVIDFFEHGSE"
+        "AEKRAVTSPVPTMRRGFTGLESESTAQITNTGSYSDYSMCYSMGTADNLFPSGDFERIWT"
+        "QYFDRQYTASRAVAREVLRATGTEPDGGVEAFLDCEPLLRFRYFPQVPEHRSAEEQPLRM"
+        "APHYDLSMVTLIQQTPCANGFVSLQAEVGGAFTDLPYRPDAVLVFCGAIATLVTGGQVKA"
+        "PRHHVAAPRRDQIAGSSRTSSVFFLRPNADFTFSVPLARECGFDVSLDGETATFQDWIGG"
+        "NYVNIRRTSKA"
+    )
+    protein = Polymer(sequence=sequence, polymer_type=PolymerType.PROTEIN, copies=1)
+    ligand = Ligand(code="FE", copies=1)
+    contents = AsuContents()
+    contents.proteins.append(protein)
+    contents.ligands.append(ligand)
+    contents.copies = 1
     return contents

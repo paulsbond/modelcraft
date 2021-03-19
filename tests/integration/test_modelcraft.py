@@ -12,6 +12,7 @@ from tests.integration import (
     insulin_fsigf,
     insulin_freer,
     insulin_refmac,
+    pdb1rxf_contents,
 )
 
 
@@ -33,7 +34,7 @@ def test_insulin_from_phases():
         main(args)
     with open("modelcraft.json") as report_file:
         report = json.load(report_file)
-    assert report["real_time"]["total"] > 0
+    assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
     os.chdir("..")
     shutil.rmtree(tmp_dir)
@@ -45,21 +46,20 @@ def test_1rxf_from_model():
     os.chdir(tmp_dir)
     hklin = ccp4_path("examples", "data", "1rxf.mtz")
     xyzin = ccp4_path("examples", "data", "1rxf_randomise.pdb")
-    structure = read_structure(xyzin)
-    structure.remove_alternative_conformations()
-    structure.write_minimal_pdb("model.pdb")
+    contents = pdb1rxf_contents()
+    contents.write_sequence_file("sequence.fasta")
     args = []
     args += ["--data", hklin]
     args += ["--amplitudes", "F,SIGF"]
     args += ["--freerflag", "FreeR_flag"]
-    args += ["--contents", "1rxf"]
-    args += ["--model", "model.pdb"]
+    args += ["--contents", "sequence.fasta"]
+    args += ["--model", xyzin]
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):
         main(args)
     with open("modelcraft.json") as report_file:
         report = json.load(report_file)
-    assert report["real_time"]["total"] > 0
+    assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
     structure = read_structure("modelcraft.cif")
     assert contains_residue(structure, "FE")

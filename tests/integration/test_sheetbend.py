@@ -1,5 +1,5 @@
 import gemmi
-from modelcraft.jobs import Sheetbend
+from modelcraft.jobs.sheetbend import Sheetbend
 from modelcraft.reflections import DataItem
 from modelcraft.structure import ModelStats, read_structure
 from . import ccp4_path

@@ -1,4 +1,4 @@
-from modelcraft.jobs import Comit
+from modelcraft.jobs.comit import Comit
 from tests.integration import insulin_fsigf, insulin_refmac
 
 
