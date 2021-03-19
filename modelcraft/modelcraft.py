@@ -115,7 +115,7 @@ class ModelCraft(Pipeline):
             seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
             executable=self.args.buccaneer,
-        ).run()
+        ).run(self)
         stats = ModelStats(result.structure)
         if stats.residues == 0:
             self.terminate(reason="Buccaneer did not build any residues")
@@ -130,7 +130,7 @@ class ModelCraft(Pipeline):
             phases=self.current_phases,
             fphi=self.current_fphi_best,
             structure=self.current_structure,
-        ).run()
+        ).run(self)
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
@@ -145,7 +145,7 @@ class ModelCraft(Pipeline):
             cycles=cycles,
             phases=self.args.phases if use_phases else None,
             twinned=self.args.twinned,
-        ).run()
+        ).run(self)
         if auto_accept or result.rfree < self.last_refmac.rfree:
             self.update_current_from_refmac_result(result)
 
@@ -166,7 +166,7 @@ class ModelCraft(Pipeline):
             phases=self.current_phases,
             fphi=self.current_fphi_best,
             structure=self.current_structure,
-        ).run()
+        ).run(self)
         self.current_phases = result.abcd
         self.current_fphi_best = result.fphi
 
@@ -177,7 +177,7 @@ class ModelCraft(Pipeline):
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
             chains_only=chains_only,
-        )
+        ).run(self)
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def fixsidechains(self):
@@ -186,7 +186,7 @@ class ModelCraft(Pipeline):
             structure=self.current_structure,
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
-        )
+        ).run(self)
         self.refmac(result.structure, cycles=5, auto_accept=False)
 
     def findwaters(self, dummy=False):
@@ -195,17 +195,22 @@ class ModelCraft(Pipeline):
             structure=self.current_structure,
             fphi=self.current_fphi_best,
             dummy=dummy,
-        )
+        ).run(self)
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self):
         model_stats = ModelStats(self.last_refmac.structure)
         stats = {
-            "r_work": self.last_refmac.rwork,
-            "r_free": self.last_refmac.rfree,
             "residues": model_stats.residues,
             "waters": model_stats.waters,
+            "r_work": self.last_refmac.rwork,
+            "r_free": self.last_refmac.rfree,
         }
+        print("")
+        print("Residues:", model_stats.residues)
+        print("Waters:", model_stats.waters)
+        print("R-work:", self.last_refmac.rwork)
+        print("R-free:", self.last_refmac.rfree)
         self.report["cycles"][self.cycle] = stats
         if self.best_refmac is not None:
             diff = self.best_refmac.rfree - self.last_refmac.rfree
