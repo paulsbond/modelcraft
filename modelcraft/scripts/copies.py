@@ -34,11 +34,12 @@ def main(argument_list=None):
     print("|----------------------------------------------|---------------|----------|")
     for component in _volume_components(contents):
         description = component.description
-        copies = component.copies
-        assumed = "(assumed)" if component.copies_assumed else ""
+        stoichiometry = component.stoichiometry
+        assumed = "(assumed)" if component.stoichiometry_assumed else ""
         volume = component.volume
         print(
-            "| %44s | %9s %3d | %8.0f |" % (description[:44], assumed, copies, volume)
+            "| %44s | %9s %3d | %8.0f |"
+            % (description[:44], assumed, stoichiometry, volume)
         )
     print("|----------------------------------------------|---------------|----------|")
     print("| %44s |               | %8.0f |" % ("Total", _contents_volume(contents)))

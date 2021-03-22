@@ -54,12 +54,12 @@ def _carb_codes(entry: str) -> dict:
 def _carb_from_pdbe_molecule_dict(mol: dict) -> Carb:
     codes = mol["carb_codes"]
     length = sum(codes.values())
-    copies = mol["number_of_copies"] // length
-    return Carb(codes=codes, copies=copies)
+    stoichiometry = mol["number_of_copies"] // length
+    return Carb(codes=codes, stoichiometry=stoichiometry)
 
 
-def _divide_copies(contents: AsuContents):
-    copies = []
+def _divide_stoichiometry(contents: AsuContents):
+    stoichiometry = []
     for item in (
         contents.proteins
         + contents.rnas
@@ -67,9 +67,11 @@ def _divide_copies(contents: AsuContents):
         + contents.carbs
         + contents.ligands
     ):
-        if item.copies is not None:
-            copies.append(item.copies)
-    divisor = copies[0] if len(copies) == 1 else functools.reduce(math.gcd, copies)
+        if item.stoichiometry is not None:
+            stoichiometry.append(item.stoichiometry)
+    divisor = stoichiometry[0]
+    if len(stoichiometry) > 1:
+        divisor = functools.reduce(math.gcd, stoichiometry)
     contents.copies *= divisor
     for item in (
         contents.proteins
@@ -78,7 +80,7 @@ def _divide_copies(contents: AsuContents):
         + contents.carbs
         + contents.ligands
     ):
-        item.copies //= divisor
+        item.stoichiometry //= divisor
 
 
 def _entry_contents(entry: str) -> AsuContents:
@@ -97,7 +99,7 @@ def _entry_contents(entry: str) -> AsuContents:
                 contents.buffers.append(ligand.code)
             elif ligand.code not in ("UNL", "UNX"):
                 contents.ligands.append(ligand)
-    _divide_copies(contents)
+    _divide_stoichiometry(contents)
     _add_smiles(contents)
     return contents
 
@@ -114,7 +116,7 @@ def _is_buffer(code: str) -> float:
 
 
 def _ligand_from_pdbe_molecule_dict(mol: dict) -> Ligand:
-    return Ligand(code=mol["chem_comp_ids"][0], copies=mol["number_of_copies"])
+    return Ligand(code=mol["chem_comp_ids"][0], stoichiometry=mol["number_of_copies"])
 
 
 def _modifications_in_pdbe_molecule_dict(mol: dict) -> list:
@@ -162,7 +164,7 @@ def _polymer_from_pdbe_molecule_dict(mol: dict) -> Polymer:
     }[mol["molecule_type"].lower()]
     return Polymer(
         sequence=mol["sequence"],
-        copies=mol["number_of_copies"],
+        stoichiometry=mol["number_of_copies"],
         polymer_type=polymer_type,
         modifications=_modifications_in_pdbe_molecule_dict(mol),
     )

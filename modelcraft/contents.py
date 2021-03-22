@@ -62,13 +62,13 @@ class Polymer:
         self,
         sequence: str,
         start: int = None,
-        copies: int = None,
+        stoichiometry: int = None,
         polymer_type: PolymerType = None,
         modifications: list = None,
     ):
         self.sequence = sequence.upper()
         self.start = start or 1
-        self.copies = copies
+        self.stoichiometry = stoichiometry
         self.type = polymer_type or guess_sequence_type(self.sequence)
         self.modifications = modifications or []
 
@@ -86,7 +86,7 @@ class Polymer:
         return cls(
             sequence=component["sequence"],
             start=component.get("start"),
-            copies=component.get("copies"),
+            stoichiometry=component.get("stoichiometry"),
             modifications=component.get("modifications"),
         )
 
@@ -101,7 +101,7 @@ class Polymer:
         return {
             "sequence": self.sequence,
             "start": self.start,
-            "copies": self.copies,
+            "stoichiometry": self.stoichiometry,
             "modifications": self.modifications,
         }
 
@@ -124,9 +124,9 @@ class Polymer:
 
 
 class Carb:
-    def __init__(self, codes: dict, copies: int = None):
+    def __init__(self, codes: dict, stoichiometry: int = None):
         self.codes = codes
-        self.copies = copies
+        self.stoichiometry = stoichiometry
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Carb):
@@ -135,16 +135,19 @@ class Carb:
 
     @classmethod
     def from_json(cls, component: dict) -> "Carb":
-        return cls(codes=component["codes"], copies=component.get("copies"))
+        return cls(
+            codes=component["codes"],
+            stoichiometry=component.get("stoichiometry"),
+        )
 
     def to_json(self) -> dict:
-        return {"codes": self.codes, "copies": self.copies}
+        return {"codes": self.codes, "stoichiometry": self.stoichiometry}
 
 
 class Ligand:
-    def __init__(self, code: str, copies: int = None):
+    def __init__(self, code: str, stoichiometry: int = None):
         self.code = code
-        self.copies = copies
+        self.stoichiometry = stoichiometry
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Ligand):
@@ -153,10 +156,13 @@ class Ligand:
 
     @classmethod
     def from_json(cls, component: dict) -> "Ligand":
-        return cls(code=component["code"], copies=component.get("copies"))
+        return cls(
+            code=component["code"],
+            stoichiometry=component.get("stoichiometry"),
+        )
 
     def to_json(self) -> dict:
-        return {"code": self.code, "copies": self.copies}
+        return {"code": self.code, "stoichiometry": self.stoichiometry}
 
 
 class AsuContents:

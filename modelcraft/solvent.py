@@ -53,14 +53,16 @@ def _smiles_volume(smiles: str) -> float:
 
 
 def _contents_volume(contents: AsuContents) -> float:
-    return sum(item.volume * item.copies for item in _volume_components(contents))
+    return sum(
+        item.volume * item.stoichiometry for item in _volume_components(contents)
+    )
 
 
 @dataclasses.dataclass
 class _VolumeComponent:
     description: str
-    copies: int
-    copies_assumed: bool
+    stoichiometry: int
+    stoichiometry_assumed: bool
     volume: float
 
 
@@ -77,14 +79,16 @@ def _volume_components(contents: AsuContents):
                 description += f"{sequence[:3]}...{sequence[-3:]}"
             else:
                 description += f"{sequence:9}"
-            copies = polymer.copies or 1
-            copies_assumed = polymer.copies is None
+            stoichiometry = polymer.stoichiometry or 1
+            stoichiometry_assumed = polymer.stoichiometry is None
             volume = _polymer_volume(polymer)
-            yield _VolumeComponent(description, copies, copies_assumed, volume)
+            yield _VolumeComponent(
+                description, stoichiometry, stoichiometry_assumed, volume
+            )
     for carb in contents.carbs:
         description = "Carb:"
-        copies = carb.copies or 1
-        copies_assumed = carb.copies is None
+        stoichiometry = carb.stoichiometry or 1
+        stoichiometry_assumed = carb.stoichiometry is None
         volume = 0
         length = 0
         for code, count in carb.codes.items():
@@ -95,16 +99,20 @@ def _volume_components(contents: AsuContents):
             else:
                 volume += _library_volume(code) * count
         volume -= _library_volume("HOH") * length
-        yield _VolumeComponent(description, copies, copies_assumed, volume)
+        yield _VolumeComponent(
+            description, stoichiometry, stoichiometry_assumed, volume
+        )
     for ligand in contents.ligands:
         description = "Ligand: " + ligand.code
-        copies = ligand.copies or 1
-        copies_assumed = ligand.copies is None
+        stoichiometry = ligand.stoichiometry or 1
+        stoichiometry_assumed = ligand.stoichiometry is None
         if ligand.code in contents.smiles:
             volume = _smiles_volume(contents.smiles[ligand.code])
         else:
             volume = _library_volume(ligand.code)
-        yield _VolumeComponent(description, copies, copies_assumed, volume)
+        yield _VolumeComponent(
+            description, stoichiometry, stoichiometry_assumed, volume
+        )
 
 
 @dataclasses.dataclass
@@ -117,8 +125,8 @@ class _CopiesOption:
 def _copies_options(contents: AsuContents, mtz: gemmi.Mtz) -> list:
     options = []
     nucleic_acids = contents.rnas + contents.dnas
-    mwp = sum(_polymer_weight(p) * (p.copies or 1) for p in contents.proteins)
-    mwn = sum(_polymer_weight(n) * (n.copies or 1) for n in nucleic_acids)
+    mwp = sum(_polymer_weight(p) * (p.stoichiometry or 1) for p in contents.proteins)
+    mwn = sum(_polymer_weight(n) * (n.stoichiometry or 1) for n in nucleic_acids)
     asu_volume = mtz.cell.volume / len(mtz.spacegroup.operations())
     contents_volume = _contents_volume(contents)
     resolution = mtz.resolution_high()

@@ -15,7 +15,7 @@ def test_1o6a():
             {
                 "sequence": "SETRKTEVPSDKLELLLDIPLKVTVELGRTRMTLKRVLEMIHGSIIELDKLTGEPVDILVNGKLIARGEVVVIDENFGVRITEIVSPKERLELLNE",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": ["M->MSE"],
             }
         ],
@@ -37,15 +37,15 @@ def test_4gxy():
             {
                 "sequence": "GGCGGCAGGUGCUCCCGACCCUGCGGUCGGGAGUUAAAAGGGAAGCCGGUGCAAGUCCGGCACGGUCCCGCCACUGUGACGGGGAGUCGCCCCUCGGGAUGUGCCACUGGCCCGAAGGCCGGGAAGGCGGAGGGGCGGCGAGGAUCCGGAGUCAGGAAACCUGCCUGCCGUC",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": ["1->GTP", "172->CCC"],
             }
         ],
         "dnas": [],
         "carbs": [],
         "ligands": [
-            {"code": "B1Z", "copies": 2},
-            {"code": "IRI", "copies": 7},
+            {"code": "B1Z", "stoichiometry": 2},
+            {"code": "IRI", "stoichiometry": 7},
         ],
         "buffers": ["MG"],
         "smiles": {},
@@ -60,7 +60,7 @@ def test_6as7():
             {
                 "sequence": "DEEQVFHFYWLDAYEDQYNQPGVVFLFGKVWIESAETHVSCCVMVKNIERTLYFLPREMKIDLNTGKETGTPISMKDVYEEFDEKIATKYKIMKFKSKPVEKNYAFEIPDVPEKSEYLEVKYSAEMPQLPQDLKGETFSHVFGTNTSSLELFLMNRKIKGPCWLEVKSPQLLNQPVSWCKAEAMALKPDLVNVIKDVSPPPLVVMAFSMKTMQNAKNHQNEIIAMAALVHHSFALDKAAPKPPFQSHFCVVSKPKDCIFPYAFKEVIEKKNVKVEVAATERTLLGFFLAKVHKIDPDIIVGHNIYGFELEVLLQRINVCKAPHWSKIGRLKRSNMPKLGGRSGFGERNATCGRMICDVEISAKELIRCKSYHLSELVQQILKTERVVIPMENIQNMYSESSQLLYLLEHTWKDAKFILQIMCELNVLPLALQITNIAGNIMSRTLMGGRSERNEFLLLHAFYENNYIVPDKQIFRKPQQKLGDEDEEIDGDTNKYKKGRKKAAYAGGLVLDPKVGFYDKFILLLDFNSLYPSIIQEFNICFTTVQRVASEAQKVTEDGEQEQIPELPDPSLEMGILPREIRKLVERRKQVKQLMKQQDLNPDLILQYDIRQKALKLTANSMYGCLGFSYSRFYAKPLAALVTYKGREILMHTKEMVQKMNLEVIYGDTDSIMINTNSTNLEEVFKLGNKVKSEVNKLYKLLEIDIDGVFKSLLLLKKKKYAALVVEPTSDGNYVTKQELKGLDIVRRDWCDLAKDTGNFVIGQILSDQSRDTIVENIQKRLIEIGENVLNGSVPVSQFEINKALTKDPQDYPDKKSLPHVHVALWINSQGGRKVKAGDTVSYVICQDGSNLTASQRAYAPEQLQKQDNLTIDTQYYLAQQIHPVVARICEPIDGIDAVLIATWLGLDPTQFRVHHYHKDEEN",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": [],
             }
         ],
@@ -69,18 +69,18 @@ def test_6as7():
             {
                 "sequence": "GCCTGGAGCGC",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": [],
             },
             {
                 "sequence": "AGGCGCTCCAGGC",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": [],
             },
         ],
         "carbs": [],
-        "ligands": [{"code": "DCP", "copies": 1}],
+        "ligands": [{"code": "DCP", "stoichiometry": 1}],
         "buffers": ["MG", "CO"],
         "smiles": {},
     }
@@ -94,22 +94,22 @@ def test_4aqd():
             {
                 "sequence": "RSEDDIIIATKNGKVRGMNLTVFGGTVTAFLGIPYAQPPLGRLRFKKPQSLTKWSDIWNATKYANSCCQNIDQSFPGFHGSEMWNPNTDLSEDCLYLNVWIPAPKPKNATVLIWIYGGGFQTGTSSLHVYDGKFLARVERVIVVSMNYRVGALGFLALPGNPEAPGNMGLFDQQLALQWVQKNIAAFGGNPKSVTLFGESAGAASVSLHLLSPGSHSLFTRAILQSGSFNAPWAVTSLYEARNRTLNLAKLTGCSRENETEIIKCLRNKDPQEILLNEAFVVPYGTPLSVNFGPTVDGDFLTDMPDILLELGQFKKTQILVGVNKDEGTAFLVYGAPGFSKDNNSIITRKEFQEGLKIFFPGVSEFGKESILFHYTDWVDDQRPENYREALGDVVGDYNFICPALEFTKKFSEWGNNAFFYYFEHRSSKLPWPEWMGVMHGYEIEFVFGLPLERRDNYTKAEEILSRSIVKRWANFAKYGNPNETQNNSTSWPVFKSTEQKYLTLNTESTRIMTKLRAQQCRFWTSFFPKV",
                 "start": 1,
-                "copies": 2,
+                "stoichiometry": 2,
                 "modifications": [],
             }
         ],
         "rnas": [],
         "dnas": [],
         "carbs": [
-            {"codes": {"NAG": 2}, "copies": 2},
-            {"codes": {"FUL": 1, "NAG": 2}, "copies": 6},
-            {"codes": {"MAN": 1, "NAG": 2}, "copies": 1},
+            {"codes": {"NAG": 2}, "stoichiometry": 2},
+            {"codes": {"FUL": 1, "NAG": 2}, "stoichiometry": 6},
+            {"codes": {"MAN": 1, "NAG": 2}, "stoichiometry": 1},
         ],
         "ligands": [
-            {"code": "BAL", "copies": 2},
-            {"code": "NAG", "copies": 6},
-            {"code": "PG4", "copies": 2},
-            {"code": "PEG", "copies": 2},
+            {"code": "BAL", "stoichiometry": 2},
+            {"code": "NAG", "stoichiometry": 6},
+            {"code": "PG4", "stoichiometry": 2},
+            {"code": "PEG", "stoichiometry": 2},
         ],
         "buffers": ["EDO", "CL", "GLY"],
         "smiles": {},
@@ -124,7 +124,7 @@ def test_1vjr():
             {
                 "sequence": "MGSDKIHHHHHHVLDKIELFILDMDGTFYLDDSLLPGSLEFLETLKEKNKRFVFFTNNSSLGAQDYVRKLRNMGVDVPDDAVVTSGEITAEHMLKRFGRCRIFLLGTPQLKKVFEAYGHVIDEENPDFVVLGFDKTLTYERLKKACILLRKGKFYIATHPDINCPSKEGPVPDAGSIMAAIEASTGRKPDLIAGKPNPLVVDVISEKFGVPKERMAMVGDRLYTDVKLGKNAGIVSILVLTGETTPEDLERAETKPDFVFKNLGELAKAVQ",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": ["M->MSE"],
             }
         ],
@@ -145,7 +145,7 @@ def test_1cag():
             {
                 "sequence": "PPGPPGPPGPPGPPAPPGPPGPPGPPGPPG",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": [
                     "2->HYP",
                     "5->HYP",
@@ -182,13 +182,13 @@ def test_6eem():
             {
                 "sequence": "MGSLPTNNLESISLCSQNPLDPDEFRRQGHMIIDFLADYYKNVEKYPVRSQVEPGYLKKRLPESAPYNPESIETILEDVTNDIIPGLTHWQSPNYFAYFPSSGSIAGFLGEMLSTGFNVVGFNWMSSPAATELESIVMNWLGQMLTLPKSFLFSSDGSSGGGGVLQGTTCEAILCTLTAARDKMLNKIGRENINKLVVYASDQTHCALQKAAQIAGINPKNVRAIKTSKATNFGLSPNSLQSAILADIESGLVPLFLCATVGTTSSTAVDPIGPLCAVAKLYGIWVHIDAAYAGSACICPEFRHFIDGVEDADSFSLNAHKWFFTTLDCCCLWVKDSDSLVKALSTSPEYLKNKATESKQVIDYKDWQIALSRRFRSMKLWLVLRSYGVANLRTFLRSHVKMAKHFQGLIGMDNRFEIVVPRTFAMVCFRLKPTAIFKQKIVDNDYIEDQTNEVNVKLLESVNASGKIYMTHAVVGGVYMIRFAVGATLTEERHVTGAWKVVQEHTDAILGA",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": [],
             },
             {
                 "sequence": "MGSLPTNNLESISLCSQNPLDPDEFRRQGHMIIDFLADYYKNVEKYPVRSQVEPGYLKKRLPESAPYNPESIETILEDVTNDIIPGLTHWQSPNYFAYFPSSGSIAGFLGEMLSTGFNVVGFNWMSSPAATELESIVMNWLGQMLTLPKSFLFSSDGSSGGGGVLQGTTCEAILCTLTAARDKMLNKIGRENINKLVVYASDQTHCALQKAAQIAGINPKNVRAIKTSKATNFGLSPNSLQSAILADIESGLVPLFLCATVGTTSSTAVDPIGPLCAVAKLYGIWVHIDAAYAGSACICPEFRHFIDGVEDADSFSLNAHKWFFTTLDCCCLWVKDSDSLVKALSTSPEYLKNKATESKQVIDYKDWQIALSRRFRSMKLWLVLRSYGVANLRTFLRSHVKMAKHFQGLIGMDNRFEIVVPRTFAMVCFRLKPTAIFKQKIVDNDYIEDQTNEVNVKLLESVNASGKIYMTHAVVGGVYMIRFAVGATLTEERHVTGAWKVVQEHTDAILGA",
                 "start": 1,
-                "copies": 1,
+                "stoichiometry": 1,
                 "modifications": ["321->LLP"],
             },
         ],
@@ -196,8 +196,8 @@ def test_6eem():
         "dnas": [],
         "carbs": [],
         "ligands": [
-            {"code": "0PR", "copies": 1},
-            {"code": "TYR", "copies": 1},
+            {"code": "0PR", "stoichiometry": 1},
+            {"code": "TYR", "stoichiometry": 1},
         ],
         "buffers": ["SO4"],
         "smiles": {

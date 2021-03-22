@@ -192,9 +192,9 @@
     "proteins": [
         {
             "sequence": "LPGECSVNVIPKMNLDKAKFFSGTWYETHYLDMDPQATEKFCFSFAPRESGGTVMEALYHFNVDSKV",
-            "start": 1,
-            "copies": 1,
+            "stoichiometry": 1,
             "modifications": ["M->MSE"]
+            "start": 1,
         },
         {
             "sequence": "GGG"
@@ -203,18 +203,18 @@
     "rnas": [
         {
             "sequence": "GGUAACUGUUACAGUUACC",
-            "start": 5,
-            "copies": 2,
+            "stoichiometry": 2,
             "modifications": ["5->GTP", "23->CCC"]
+            "start": 5,
         }
     ],
     "dnas": [],
     "carbs": [
-        { "codes": { "NAG": 2 }, "copies": 1 },
-        { "codes": { "MAN": 1, "NAG": 2 }, "copies": 1 }
+        { "codes": { "NAG": 2 }, "stoichiometry": 1 },
+        { "codes": { "MAN": 1, "NAG": 2 }, "stoichiometry": 1 }
     ],
     "ligands": [
-        { "code": "HEM", "copies": 1 }
+        { "code": "HEM", "stoichiometry": 1 }
     ],
     "buffers": ["GOL", "NA", "CL"]
 }</code></pre>
@@ -230,7 +230,7 @@
         </p>
         <p>
             Each component (other than buffers) has a
-            <code>copies</code> parameter to specify the stoichiometry.
+            <code>stoichiometry</code> parameter to specify the stoichiometry.
             In the example above there are 2 RNA chains for each protein chain.
             If the stoichiometry is not specified it is assumed to be 1.
             There is also a <code>copies</code> parameter for the whole file
@@ -241,8 +241,6 @@
             given a contents file and an MTZ file.
             It is assumed that the number of ordered buffer molecules is unknown
             so they are not included in the solvent calculation.
-            In order to specify a number of copies
-            they can be included as ligand components.
         </p>
         <p>
             Finally, protein, RNA and DNA chains may have
