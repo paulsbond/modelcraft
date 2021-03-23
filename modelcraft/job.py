@@ -4,8 +4,8 @@ import distutils.spawn
 import shutil
 import subprocess
 import time
-import uuid
 from .pipeline import Pipeline
+from .utils import random_id
 
 
 class Job(abc.ABC):
@@ -20,7 +20,7 @@ class Job(abc.ABC):
         if distutils.spawn.find_executable(self._executable) is None:
             raise ValueError("Executable '%s' not found" % self._executable)
         if pipeline is None:
-            self._directory = str(uuid.uuid4())
+            self._directory = f"job_{self._executable}_{random_id(length=20)}"
         else:
             self._directory = pipeline.next_job_directory(self._executable)
         os.mkdir(self._directory)
