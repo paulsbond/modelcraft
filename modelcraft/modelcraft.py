@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import time
 import gemmi
@@ -45,6 +46,8 @@ class ModelCraft(Pipeline):
     def run(self):
         self.start_time = time.time()
         args = self.args
+        os.makedirs(args.directory, exist_ok=True)
+        os.chdir(args.directory)
         if args.model is not None:
             print("\n## Refining Input Model\n")
             self.sheetbend()
@@ -166,6 +169,7 @@ class ModelCraft(Pipeline):
             phases=self.current_phases,
             fphi=self.current_fphi_best,
             structure=self.current_structure,
+            executable=self.args.parrot,
         ).run(self)
         self.current_phases = result.abcd
         self.current_fphi_best = result.fphi

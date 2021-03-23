@@ -22,8 +22,8 @@ class Job(abc.ABC):
         if exe_path is None:
             raise ValueError(f"Executable '{self._executable}' not found")
         self._executable = os.path.abspath(exe_path)
+        name = pathlib.Path(self._executable).stem
         if pipeline is None:
-            name = pathlib.Path(self._executable).stem
             self._directory = f"job_{name}_{random_id(length=20)}"
         else:
             self._directory = pipeline.next_job_directory(name)
