@@ -11,5 +11,5 @@ class Pipeline:
         self.keep_logs = keep_logs
         self.seconds = collections.defaultdict(float)
 
-    def next_job_directory(self, executable: str) -> str:
-        return f"job_{self._id}_{next(self._numbers)}_{executable}"
+    def next_job_directory(self, name: str) -> str:
+        return f"job_{self._id}_{next(self._numbers)}_{name}"
