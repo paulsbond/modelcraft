@@ -4,7 +4,6 @@ import math
 import os
 import re
 import sys
-import time
 import requests
 from ..contents import AsuContents, Carb, Ligand, Polymer, PolymerType
 from ..environ import setup_environ
@@ -37,7 +36,6 @@ def _carb_codes(entry: str) -> dict:
     filter_list = "carb_compound_id_entity"
     request_data = {"q": query, "fl": filter_list, "wt": "json"}
     print("Requesting carbohydrate details for", entry)
-    time.sleep(2)
     response = requests.post(url, data=request_data)
     if response.status_code != 200:
         raise ConnectionError(response.text)
@@ -144,7 +142,6 @@ def _pdbe_molecules(entry: str) -> list:
     entry = entry.lower()
     url = "https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/" + entry
     print("Requesting PDBe molecule data for", entry)
-    time.sleep(2)
     response = requests.get(url)
     if response.status_code != 200:
         raise ConnectionError(response.text)
@@ -187,7 +184,6 @@ def _smiles(code: str) -> str:
     )
     url = "https://data.rcsb.org/graphql?query=" + requests.utils.quote(query)
     print("Requesting SMILES for", code)
-    time.sleep(2)
     response = requests.get(url)
     if response.status_code != 200:
         raise RuntimeError("Could not get SMILES from RCSB for " + code)
