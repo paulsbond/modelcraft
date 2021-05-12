@@ -22,8 +22,9 @@ class Parrot(Job):
         phases: DataItem,
         fphi: DataItem = None,
         structure: gemmi.Structure = None,
+        executable: str = None,
     ):
-        super().__init__("cparrot")
+        super().__init__(executable or "cparrot")
         self.contents = contents
         self.fsigf = fsigf
         self.freer = freer

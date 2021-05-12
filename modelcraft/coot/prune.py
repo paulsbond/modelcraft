@@ -907,7 +907,7 @@ class Model:
                     bchange = (atom.bfactor - attached.bfactor) / attached.bfactor
                     atom.bchange = max(bchange, atom.bchange)
                 if atom.bchange == -99999:
-                    raise Exception("Atom %s is not bonded to anything" % atom.name)
+                    raise Exception("Residue %s atom %s is not bonded to anything" % (residue.spec, atom.name))
 
     def set_correlation(self, attr, mask):
         specs = [residue.spec for residue in self.residues]

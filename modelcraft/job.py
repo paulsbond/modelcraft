@@ -4,8 +4,9 @@ import distutils.spawn
 import shutil
 import subprocess
 import time
-import uuid
+import pathlib
 from .pipeline import Pipeline
+from .utils import random_id
 
 
 class Job(abc.ABC):
@@ -17,12 +18,15 @@ class Job(abc.ABC):
         self._directory = None
 
     def run(self, pipeline: Pipeline = None):
-        if distutils.spawn.find_executable(self._executable) is None:
-            raise ValueError("Executable '%s' not found" % self._executable)
+        exe_path = distutils.spawn.find_executable(self._executable)
+        if exe_path is None:
+            raise ValueError(f"Executable '{self._executable}' not found")
+        self._executable = os.path.abspath(exe_path)
+        name = pathlib.Path(self._executable).stem
         if pipeline is None:
-            self._directory = str(uuid.uuid4())
+            self._directory = f"job_{name}_{random_id(length=20)}"
         else:
-            self._directory = pipeline.next_job_directory(self._executable)
+            self._directory = pipeline.next_job_directory(name)
         os.mkdir(self._directory)
         self._setup()
         with open(self._path("script.sh"), "w") as stream:

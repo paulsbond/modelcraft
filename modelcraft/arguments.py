@@ -19,6 +19,7 @@ _opt.add_argument("--basic", action="store_true")
 _opt.add_argument("--convergence-cycles", metavar="N", default=4, type=int)
 _opt.add_argument("--convergence-tolerance", metavar="X", default=0.1, type=float)
 _opt.add_argument("--cycles", metavar="N", default=25, type=int)
+_opt.add_argument("--directory", metavar="PATH", default=".")
 _opt.add_argument("--freerflag", metavar="COL")
 _opt.add_argument("--help", action="help")
 _opt.add_argument("--keep-jobs", action="store_true")
@@ -30,12 +31,14 @@ _opt.add_argument("--twinned", action="store_true")
 _opt.add_argument("--unbiased", action="store_true")
 
 _dev = _PARSER.add_argument_group("Developer arguments")
-_dev.add_argument("--buccaneer", metavar="FILE", default="cbuccaneer")
+_dev.add_argument("--buccaneer", metavar="FILE")
+_dev.add_argument("--parrot", metavar="FILE")
 
 
 def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     args = _PARSER.parse_args(arguments)
     _basic_check(args)
+    _check_paths(args)
     _parse_data_items(args)
     args.contents = AsuContents.from_file(args.contents)
     if args.model is not None:
@@ -53,13 +56,15 @@ def _basic_check(args: argparse.Namespace):
     if args.convergence_tolerance < 0.1:
         _PARSER.error("The convergence tolerance must be 0.1 or higher")
 
-    for arg in "data", "contents", "model":
+
+def _check_paths(args: argparse.Namespace):
+    for arg in "data", "contents", "model", "buccaneer", "parrot":
         path = getattr(args, arg)
-        if arg == "contents" and len(path) == 4:
-            # Contents is a PDB ID and not a path
-            continue
-        if path is not None and not os.path.exists(path):
-            _PARSER.error("File not found: %s" % path)
+        if path is not None:
+            path = os.path.abspath(path)
+            setattr(args, arg, path)
+            if not os.path.exists(path):
+                _PARSER.error("File not found: %s" % path)
 
 
 def _parse_data_items(args: argparse.Namespace):

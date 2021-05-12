@@ -4,7 +4,6 @@ import math
 import os
 import re
 import sys
-import time
 import requests
 from ..contents import AsuContents, Carb, Ligand, Polymer, PolymerType
 from ..environ import setup_environ
@@ -37,7 +36,6 @@ def _carb_codes(entry: str) -> dict:
     filter_list = "carb_compound_id_entity"
     request_data = {"q": query, "fl": filter_list, "wt": "json"}
     print("Requesting carbohydrate details for", entry)
-    time.sleep(2)
     response = requests.post(url, data=request_data)
     if response.status_code != 200:
         raise ConnectionError(response.text)
@@ -54,12 +52,12 @@ def _carb_codes(entry: str) -> dict:
 def _carb_from_pdbe_molecule_dict(mol: dict) -> Carb:
     codes = mol["carb_codes"]
     length = sum(codes.values())
-    copies = mol["number_of_copies"] // length
-    return Carb(codes=codes, copies=copies)
+    stoichiometry = mol["number_of_copies"] // length
+    return Carb(codes=codes, stoichiometry=stoichiometry)
 
 
-def _divide_copies(contents: AsuContents):
-    copies = []
+def _divide_stoichiometry(contents: AsuContents):
+    stoichiometry = []
     for item in (
         contents.proteins
         + contents.rnas
@@ -67,9 +65,11 @@ def _divide_copies(contents: AsuContents):
         + contents.carbs
         + contents.ligands
     ):
-        if item.copies is not None:
-            copies.append(item.copies)
-    divisor = copies[0] if len(copies) == 1 else functools.reduce(math.gcd, copies)
+        if item.stoichiometry is not None:
+            stoichiometry.append(item.stoichiometry)
+    divisor = stoichiometry[0]
+    if len(stoichiometry) > 1:
+        divisor = functools.reduce(math.gcd, stoichiometry)
     contents.copies *= divisor
     for item in (
         contents.proteins
@@ -78,7 +78,7 @@ def _divide_copies(contents: AsuContents):
         + contents.carbs
         + contents.ligands
     ):
-        item.copies //= divisor
+        item.stoichiometry //= divisor
 
 
 def _entry_contents(entry: str) -> AsuContents:
@@ -97,7 +97,7 @@ def _entry_contents(entry: str) -> AsuContents:
                 contents.buffers.append(ligand.code)
             elif ligand.code not in ("UNL", "UNX"):
                 contents.ligands.append(ligand)
-    _divide_copies(contents)
+    _divide_stoichiometry(contents)
     _add_smiles(contents)
     return contents
 
@@ -114,7 +114,7 @@ def _is_buffer(code: str) -> float:
 
 
 def _ligand_from_pdbe_molecule_dict(mol: dict) -> Ligand:
-    return Ligand(code=mol["chem_comp_ids"][0], copies=mol["number_of_copies"])
+    return Ligand(code=mol["chem_comp_ids"][0], stoichiometry=mol["number_of_copies"])
 
 
 def _modifications_in_pdbe_molecule_dict(mol: dict) -> list:
@@ -142,7 +142,6 @@ def _pdbe_molecules(entry: str) -> list:
     entry = entry.lower()
     url = "https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/" + entry
     print("Requesting PDBe molecule data for", entry)
-    time.sleep(2)
     response = requests.get(url)
     if response.status_code != 200:
         raise ConnectionError(response.text)
@@ -159,10 +158,10 @@ def _polymer_from_pdbe_molecule_dict(mol: dict) -> Polymer:
         "polypeptide(l)": PolymerType.PROTEIN,
         "polyribonucleotide": PolymerType.RNA,
         "polydeoxyribonucleotide": PolymerType.DNA,
-    }[mol["molecule_type"].lower()]
+    }.get(mol["molecule_type"].lower(), None)
     return Polymer(
         sequence=mol["sequence"],
-        copies=mol["number_of_copies"],
+        stoichiometry=mol["number_of_copies"],
         polymer_type=polymer_type,
         modifications=_modifications_in_pdbe_molecule_dict(mol),
     )
@@ -185,7 +184,6 @@ def _smiles(code: str) -> str:
     )
     url = "https://data.rcsb.org/graphql?query=" + requests.utils.quote(query)
     print("Requesting SMILES for", code)
-    time.sleep(2)
     response = requests.get(url)
     if response.status_code != 200:
         raise RuntimeError("Could not get SMILES from RCSB for " + code)

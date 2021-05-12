@@ -45,12 +45,10 @@ def insulin_contents():
     contents = AsuContents()
     chain_a = Polymer(
         sequence="GIVEQCCASVCSLYQLENYCN",
-        copies=1,
         polymer_type=PolymerType.PROTEIN,
     )
     chain_b = Polymer(
         sequence="FVNQHLCGSHLVEALYLVCGERGFFYTPKA",
-        copies=1,
         polymer_type=PolymerType.PROTEIN,
     )
     contents.add_polymer(chain_a)
@@ -68,8 +66,8 @@ def pdb1rxf_contents():
         "PRHHVAAPRRDQIAGSSRTSSVFFLRPNADFTFSVPLARECGFDVSLDGETATFQDWIGG"
         "NYVNIRRTSKA"
     )
-    protein = Polymer(sequence=sequence, polymer_type=PolymerType.PROTEIN, copies=1)
-    ligand = Ligand(code="FE", copies=1)
+    protein = Polymer(sequence=sequence, polymer_type=PolymerType.PROTEIN)
+    ligand = Ligand(code="FE")
     contents = AsuContents()
     contents.proteins.append(protein)
     contents.ligands.append(ligand)
