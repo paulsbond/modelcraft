@@ -205,3 +205,24 @@ def test_6eem():
         },
     }
     _test_contents("6eem", expected, selenomet=False)
+
+
+def test_1iha():
+    expected = {
+        "copies": 2,
+        "proteins": [],
+        "rnas": [
+            {
+                "sequence": "GCUUCGGCU",
+                "start": 1,
+                "stoichiometry": 1,
+                "modifications": ["9->BRU"],
+            }
+        ],
+        "dnas": [],
+        "carbs": [],
+        "ligands": [{"code": "RHD", "stoichiometry": 1}],
+        "buffers": ["CL"],
+        "smiles": {},
+    }
+    _test_contents("1iha", expected, selenomet=False)
