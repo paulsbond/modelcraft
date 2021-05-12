@@ -54,6 +54,7 @@ class ModelCraft(Pipeline):
             args.model = self.current_structure
             if args.phases is not None:
                 self.current_phases = args.phases
+            _print_refmac_result(self.last_refmac)
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
@@ -69,6 +70,8 @@ class ModelCraft(Pipeline):
             self.update_current_from_refmac_result(self.best_refmac)
             self.fixsidechains()
             self.process_cycle_output()
+        print("\n## Best Model:")
+        _print_refmac_result(self.best_refmac)
         self.terminate(reason="Normal")
 
     def run_cycle(self):
@@ -203,6 +206,7 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self):
+        _print_refmac_result(self.last_refmac)
         model_stats = ModelStats(self.last_refmac.structure)
         stats = {
             "residues": model_stats.residues,
@@ -210,11 +214,6 @@ class ModelCraft(Pipeline):
             "r_work": self.last_refmac.rwork,
             "r_free": self.last_refmac.rfree,
         }
-        print("")
-        print(f"Residues: {model_stats.residues:5d}")
-        print(f"Waters:   {model_stats.waters:5d}")
-        print(f"R-work:   {self.last_refmac.rwork:5.1f}")
-        print(f"R-free:   {self.last_refmac.rfree:5.1f}")
         self.report["cycles"][self.cycle] = stats
         if self.best_refmac is not None:
             diff = self.best_refmac.rfree - self.last_refmac.rfree
@@ -243,3 +242,12 @@ class ModelCraft(Pipeline):
         self.seconds["total"] = time.time() - self.start_time
         with open("modelcraft.json", "w") as report_file:
             json.dump(self.report, report_file, indent=4)
+
+
+def _print_refmac_result(result: RefmacResult):
+    model_stats = ModelStats(result.structure)
+    print("")
+    print(f"Residues: {model_stats.residues:5d}")
+    print(f"Waters:   {model_stats.waters:5d}")
+    print(f"R-work:   {result.rwork:5.1f}")
+    print(f"R-free:   {result.rfree:5.1f}")
