@@ -158,7 +158,7 @@ def _polymer_from_pdbe_molecule_dict(mol: dict) -> Polymer:
         "polypeptide(l)": PolymerType.PROTEIN,
         "polyribonucleotide": PolymerType.RNA,
         "polydeoxyribonucleotide": PolymerType.DNA,
-    }[mol["molecule_type"].lower()]
+    }.get(mol["molecule_type"].lower(), None)
     return Polymer(
         sequence=mol["sequence"],
         stoichiometry=mol["number_of_copies"],
