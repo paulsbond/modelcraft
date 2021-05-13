@@ -79,6 +79,7 @@ class ModelCraft(Pipeline):
             if self.cycle == 1:
                 self.parrot()
             self.buccaneer()
+            self.nautilus()
         else:
             if self.cycle > 1 and self.resolution < 2.3:
                 self.prune()
@@ -87,8 +88,7 @@ class ModelCraft(Pipeline):
                 self.findwaters(dummy=True)
             self.buccaneer()
             self.prune(chains_only=True)
-            if len(self.args.contents.rnas + self.args.contents.dnas) > 0:
-                self.nautilus()
+            self.nautilus()
             self.findwaters()
 
     def terminate(self, reason: str):
@@ -107,6 +107,8 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
+        if not self.args.contents.proteins:
+            return
         print("Buccaneer")
         result = Buccaneer(
             contents=self.args.contents,
@@ -128,6 +130,8 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def nautilus(self):
+        if not (self.args.contents.rnas or self.args.contents.dnas):
+            return
         print("Nautilus")
         result = Nautilus(
             contents=self.args.contents,
@@ -178,6 +182,8 @@ class ModelCraft(Pipeline):
         self.current_fphi_best = result.fphi
 
     def prune(self, chains_only=False):
+        if not self.args.contents.proteins:
+            return
         print("Pruning chains" if chains_only else "Pruning model")
         result = Prune(
             structure=self.current_structure,
@@ -188,6 +194,8 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def fixsidechains(self):
+        if not self.args.contents.proteins:
+            return
         print("Fixing side chains")
         result = FixSideChains(
             structure=self.current_structure,
