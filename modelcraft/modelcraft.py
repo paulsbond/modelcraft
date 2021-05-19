@@ -7,6 +7,7 @@ from . import __version__
 from .arguments import parse
 from .jobs.buccaneer import Buccaneer
 from .jobs.coot import FixSideChains, Prune
+from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
@@ -48,6 +49,12 @@ class ModelCraft(Pipeline):
         args = self.args
         os.makedirs(args.directory, exist_ok=True)
         os.chdir(args.directory)
+        if self.args.observations.types == "FQ":
+            self.args.fsigf = self.args.observations
+        else:
+            print("\n## Converting input observations to mean amplitudes\n")
+            result = CTruncate(observations=self.args.observations).run(self)
+            self.args.fsigf = result.fmean
         if args.model is not None:
             print("\n## Refining Input Model\n")
             self.sheetbend()

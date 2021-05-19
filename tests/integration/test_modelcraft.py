@@ -50,7 +50,7 @@ def test_1rxf_from_model():
     contents.write_sequence_file("sequence.fasta")
     args = []
     args += ["--data", hklin]
-    args += ["--amplitudes", "F,SIGF"]
+    args += ["--observations", "I,SIGI"]
     args += ["--freerflag", "FreeR_flag"]
     args += ["--contents", "sequence.fasta"]
     args += ["--model", xyzin]

@@ -43,7 +43,7 @@
             can be called from the command line.
             The simplest execution requires only
             a reflection data file in MTZ format
-            (with amplitudes, a free-R flag and starting phases)
+            (with observations, a free-R flag and starting phases)
             and a description of the asymmetric unit contents.
         </p>
         <pre><code>modelcraft --data data.mtz --contents contents.json</code></pre>
@@ -60,12 +60,12 @@
         <p>
             <code>--data FILE</code><br>
             Input reflection data in MTZ format.
-            This must contain observed amplitudes and a free-R flag.
+            This must contain observations and a free-R flag.
             If a starting model has not been provided then it must also contain phases
             as a phase and figure-of-merit or Hendrickson-Lattman coefficients.
             An attempt will be made to automatically identify column labels
             unless they are specified using the
-            <code>--amplitudes</code>,
+            <code>--observations</code>,
             <code>--phases</code> and
             <code>--freerflag</code> arguments.
         </p>
@@ -81,10 +81,6 @@
 
     <section id="optional-arguments">
         <h2 class="heading">Optional Arguments</h2>
-        <p>
-            <code>--amplitudes COLS</code> e.g. <code>FP,SIGFP</code><br>
-            Column labels for the observed amplitudes.
-        </p>
         <p>
             <code>--basic</code><br>
             Run a basic pipeline using only Buccaneer and Refmac.
@@ -137,6 +133,12 @@
         <p>
             <code>--no-auto-stop</code><br>
             Run the maximum number of cycles even if the model is not improving.
+        </p>
+        <p>
+            <code>--observations COLS</code> e.g. <code>FP,SIGFP</code><br>
+            Column labels for the observations
+            as either amplitudes or intensities
+            (both can be mean or anomalous).
         </p>
         <p>
             <code>--phases COLS</code>
