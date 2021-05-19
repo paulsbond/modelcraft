@@ -75,7 +75,7 @@ class DataItem(gemmi.Mtz):
         for column in columns:
             self.add_column(column.label, column.type)
         data = numpy.stack(columns, axis=1)
-        data = data[~numpy.isnan(data).any(axis=1)]
+        data = data[~numpy.isnan(data[:, 3:]).all(axis=1)]
         self.set_data(data)
         self.update_reso()
 
