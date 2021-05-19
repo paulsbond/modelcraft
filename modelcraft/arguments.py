@@ -33,6 +33,7 @@ _opt.add_argument("--unbiased", action="store_true")
 _dev = _PARSER.add_argument_group("Developer arguments")
 _dev.add_argument("--buccaneer", metavar="FILE")
 _dev.add_argument("--parrot", metavar="FILE")
+_dev.add_argument("--sheetbend", metavar="FILE")
 
 
 def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
@@ -58,7 +59,7 @@ def _basic_check(args: argparse.Namespace):
 
 
 def _check_paths(args: argparse.Namespace):
-    for arg in "data", "contents", "model", "buccaneer", "parrot":
+    for arg in "data", "contents", "model", "buccaneer", "parrot", "sheetbend":
         path = getattr(args, arg)
         if path is not None:
             path = os.path.abspath(path)

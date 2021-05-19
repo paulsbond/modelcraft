@@ -100,9 +100,10 @@ class ModelCraft(Pipeline):
     def sheetbend(self):
         print("Sheetbend")
         result = Sheetbend(
-            self.args.fsigf,
-            self.args.freer,
-            self.current_structure,
+            fsigf=self.args.fsigf,
+            freer=self.args.freer,
+            structure=self.current_structure,
+            executable=self.args.sheetbend,
         ).run(self)
         self.refmac(result.structure, cycles=10, auto_accept=True)
 

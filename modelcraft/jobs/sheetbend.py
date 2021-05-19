@@ -11,8 +11,14 @@ class SheetbendResult:
 
 
 class Sheetbend(Job):
-    def __init__(self, fsigf: DataItem, freer: DataItem, structure: gemmi.Structure):
-        super().__init__("csheetbend")
+    def __init__(
+        self,
+        fsigf: DataItem,
+        freer: DataItem,
+        structure: gemmi.Structure,
+        executable: str = None,
+    ):
+        super().__init__(executable or "csheetbend")
         self.fsigf = fsigf
         self.freer = freer
         self.structure = structure
