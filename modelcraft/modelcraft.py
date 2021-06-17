@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 import time
 import gemmi
@@ -49,6 +50,7 @@ class ModelCraft(Pipeline):
         args = self.args
         os.makedirs(args.directory, exist_ok=True)
         os.chdir(args.directory)
+        _check_for_files_that_could_be_overwritten()
         if self.args.observations.types == "FQ":
             self.args.fsigf = self.args.observations
         else:
@@ -267,3 +269,19 @@ def _print_refmac_result(result: RefmacResult):
     print(f"Waters:   {model_stats.waters:5d}")
     print(f"R-work:   {result.rwork:5.1f}")
     print(f"R-free:   {result.rfree:5.1f}")
+
+
+def _check_for_files_that_could_be_overwritten():
+    patterns = [
+        r"modelcraft\..+",
+        r"job_[A-Za-z0-9]+_[A-Za-z0-9]{20}",
+        r"job_\d+_[A-Za-z0-9]+",
+    ]
+    paths = os.listdir(".")
+    paths = [p for p in paths if any(re.fullmatch(pattern, p) for pattern in patterns)]
+    if paths:
+        print("\nThe following files may be from a previous run:\n")
+        for path in paths:
+            print("-", path)
+        print("\nPlease run in a different directory or remove these files.")
+        sys.exit()
