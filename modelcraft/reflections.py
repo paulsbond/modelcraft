@@ -89,7 +89,7 @@ class DataItem(gemmi.Mtz):
         return pandas.DataFrame(data=data, columns=self.column_labels())
 
     @classmethod
-    def search(cls, mtz: gemmi.Mtz, types=str, sequential: bool = True):
+    def search(cls, mtz: gemmi.Mtz, types: str, sequential: bool = True):
         types = list(types)
         if sequential:
             mtz_types = [col.type for col in mtz.columns]
