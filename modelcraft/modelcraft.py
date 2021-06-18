@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 import time
 import gemmi
@@ -7,6 +8,7 @@ from . import __version__
 from .arguments import parse
 from .jobs.buccaneer import Buccaneer
 from .jobs.coot import FixSideChains, Prune
+from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
@@ -48,6 +50,13 @@ class ModelCraft(Pipeline):
         args = self.args
         os.makedirs(args.directory, exist_ok=True)
         os.chdir(args.directory)
+        _check_for_files_that_could_be_overwritten()
+        if self.args.observations.types == "FQ":
+            self.args.fsigf = self.args.observations
+        else:
+            print("\n## Converting input observations to mean amplitudes\n")
+            result = CTruncate(observations=self.args.observations).run(self)
+            self.args.fsigf = result.fmean
         if args.model is not None:
             print("\n## Refining Input Model\n")
             self.sheetbend()
@@ -79,6 +88,7 @@ class ModelCraft(Pipeline):
             if self.cycle == 1:
                 self.parrot()
             self.buccaneer()
+            self.nautilus()
         else:
             if self.cycle > 1 and self.resolution < 2.3:
                 self.prune()
@@ -87,8 +97,7 @@ class ModelCraft(Pipeline):
                 self.findwaters(dummy=True)
             self.buccaneer()
             self.prune(chains_only=True)
-            if len(self.args.contents.rnas + self.args.contents.dnas) > 0:
-                self.nautilus()
+            self.nautilus()
             self.findwaters()
 
     def terminate(self, reason: str):
@@ -100,13 +109,16 @@ class ModelCraft(Pipeline):
     def sheetbend(self):
         print("Sheetbend")
         result = Sheetbend(
-            self.args.fsigf,
-            self.args.freer,
-            self.current_structure,
+            fsigf=self.args.fsigf,
+            freer=self.args.freer,
+            structure=self.current_structure,
+            executable=self.args.sheetbend,
         ).run(self)
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
+        if not self.args.contents.proteins:
+            return
         print("Buccaneer")
         result = Buccaneer(
             contents=self.args.contents,
@@ -128,6 +140,8 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def nautilus(self):
+        if not (self.args.contents.rnas or self.args.contents.dnas):
+            return
         print("Nautilus")
         result = Nautilus(
             contents=self.args.contents,
@@ -178,6 +192,8 @@ class ModelCraft(Pipeline):
         self.current_fphi_best = result.fphi
 
     def prune(self, chains_only=False):
+        if not self.args.contents.proteins:
+            return
         print("Pruning chains" if chains_only else "Pruning model")
         result = Prune(
             structure=self.current_structure,
@@ -188,6 +204,8 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def fixsidechains(self):
+        if not self.args.contents.proteins:
+            return
         print("Fixing side chains")
         result = FixSideChains(
             structure=self.current_structure,
@@ -251,3 +269,19 @@ def _print_refmac_result(result: RefmacResult):
     print(f"Waters:   {model_stats.waters:5d}")
     print(f"R-work:   {result.rwork:5.1f}")
     print(f"R-free:   {result.rfree:5.1f}")
+
+
+def _check_for_files_that_could_be_overwritten():
+    patterns = [
+        r"modelcraft\..+",
+        r"job_[A-Za-z0-9]+_[A-Za-z0-9]{20}",
+        r"job_\d+_[A-Za-z0-9]+",
+    ]
+    paths = os.listdir(".")
+    paths = [p for p in paths if any(re.fullmatch(pattern, p) for pattern in patterns)]
+    if paths:
+        print("\nThe following files may be from a previous run:\n")
+        for path in paths:
+            print("-", path)
+        print("\nPlease run in a different directory or remove these files.")
+        sys.exit()

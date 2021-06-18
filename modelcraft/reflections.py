@@ -75,7 +75,7 @@ class DataItem(gemmi.Mtz):
         for column in columns:
             self.add_column(column.label, column.type)
         data = numpy.stack(columns, axis=1)
-        data = data[~numpy.isnan(data).any(axis=1)]
+        data = data[~numpy.isnan(data[:, 3:]).all(axis=1)]
         self.set_data(data)
         self.update_reso()
 
@@ -89,7 +89,7 @@ class DataItem(gemmi.Mtz):
         return pandas.DataFrame(data=data, columns=self.column_labels())
 
     @classmethod
-    def search(cls, mtz: gemmi.Mtz, types=str, sequential: bool = True):
+    def search(cls, mtz: gemmi.Mtz, types: str, sequential: bool = True):
         types = list(types)
         if sequential:
             mtz_types = [col.type for col in mtz.columns]
