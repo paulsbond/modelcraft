@@ -84,7 +84,7 @@ def _parse_data_item(
     if label is None:
         options = []
         for types in accepted_types:
-            items = DataItem.search(mtz, types, sequential=(types == "PW"))
+            items = DataItem.search(mtz, types, sequential=(types != "PW"))
             options.extend(items)
         if len(options) == 1:
             print(f"Using {options[0].label()} for the {name}")
