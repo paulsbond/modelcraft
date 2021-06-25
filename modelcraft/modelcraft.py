@@ -197,8 +197,7 @@ class ModelCraft(Pipeline):
         print("Pruning chains" if chains_only else "Pruning model")
         result = Prune(
             structure=self.current_structure,
-            fphi_best=self.current_fphi_best,
-            fphi_diff=self.current_fphi_diff,
+            fphi=self.current_fphi_best,
             chains_only=chains_only,
         ).run(self)
         self.refmac(result.structure, cycles=5, auto_accept=True)
@@ -209,8 +208,7 @@ class ModelCraft(Pipeline):
         print("Fixing side chains")
         result = FixSideChains(
             structure=self.current_structure,
-            fphi_best=self.current_fphi_best,
-            fphi_diff=self.current_fphi_diff,
+            fphi=self.current_fphi_best,
         ).run(self)
         self.refmac(result.structure, cycles=5, auto_accept=False)
 

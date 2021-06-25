@@ -15,23 +15,19 @@ class Coot(Job):
     def __init__(
         self,
         structure: gemmi.Structure,
-        fphi_best: DataItem,
-        fphi_diff: DataItem,
+        fphi: DataItem,
         script: str,
     ):
         super().__init__("coot")
         self.structure = structure
-        self.fphi_best = fphi_best
-        self.fphi_diff = fphi_diff
+        self.fphi = fphi
         self.script = script
 
     def _setup(self) -> None:
         script_lines = [
             "handle_read_draw_molecule('xyzin.cif')\n",
             "make_and_draw_map('hklin.mtz',",
-            f"    '{self.fphi_best.label(0)}', '{self.fphi_best.label(1)}', '', 0, 0)\n",
-            "make_and_draw_map('hklin.mtz',",
-            f"    '{self.fphi_diff.label(0)}', '{self.fphi_diff.label(1)}', '', 0, 1)\n",
+            f" '{self.fphi.label(0)}', '{self.fphi.label(1)}', '', 0, 0)\n",
             "turn_off_backup(0)\n",
             "try:\n",
         ]
@@ -47,7 +43,7 @@ class Coot(Job):
         ]
         with open(self._path("script.py"), "w") as script_file:
             script_file.writelines(script_lines)
-        write_mtz(self._path("hklin.mtz"), [self.fphi_best, self.fphi_diff])
+        write_mtz(self._path("hklin.mtz"), [self.fphi])
         write_mmcif(self._path("xyzin.cif"), self.structure)
         self._args += ["--no-graphics"]
         self._args += ["--no-guano"]
@@ -62,26 +58,24 @@ class Prune(Coot):
     def __init__(
         self,
         structure: gemmi.Structure,
-        fphi_best: DataItem,
-        fphi_diff: DataItem,
+        fphi: DataItem,
         chains_only: bool = False,
     ):
         path = os.path.join(os.path.dirname(__file__), "..", "coot", "prune.py")
         with open(path) as stream:
             script = stream.read()
         if chains_only:
-            script += "prune(0, 1, 2, residues=False, sidechains=False)\n"
+            script += "prune(0, 1, residues=False, sidechains=False)\n"
         else:
-            script += "prune(0, 1, 2)\n"
-        super().__init__(structure, fphi_best, fphi_diff, script)
+            script += "prune(0, 1)\n"
+        super().__init__(structure, fphi, script)
 
 
 class FixSideChains(Coot):
     def __init__(
         self,
         structure: gemmi.Structure,
-        fphi_best: DataItem,
-        fphi_diff: DataItem,
+        fphi: DataItem,
     ):
         path = os.path.join(os.path.dirname(__file__), "..", "coot", "prune.py")
         with open(path) as stream:
@@ -89,5 +83,5 @@ class FixSideChains(Coot):
         path = os.path.join(os.path.dirname(__file__), "..", "coot", "sidechains.py")
         with open(path) as stream:
             script += "\n\n%s\n" % stream.read()
-        script += "fix_side_chains(0, 1, 2)\n"
-        super().__init__(structure, fphi_best, fphi_diff, script)
+        script += "fix_side_chains(0, 1)\n"
+        super().__init__(structure, fphi, script)
