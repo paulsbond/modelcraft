@@ -45,24 +45,16 @@ def fix_side_chain(imol, imap, residue):
     refine(imol, neighbours)
 
 
-def fix_side_chains(imol, imap):
-    model = Model(imol, imap)
-    main_median = median([r.main_chain_correlation for r in model.residues])
-    side_median = median(
-        [r.side_chain_correlation for r in model.residues if r.truncatable]
-    )
+def fix_side_chains(imol, imap, imap_diff):
+    model = Model(imol, imap, imap_diff)
+    main_median = median([r.main_chain_correctness for r in model.residues])
+    side_median = median([r.side_chain_correctness for r in model.residues if r.truncatable])
     main_threshold = main_median * 0.25
     side_threshold = side_median * 0.25
     for residue in model.residues:
         if (
             residue.name in RESIDUES_WITH_SIDECHAINS
-            and residue.main_chain_correlation > main_threshold
-            and (
-                (not residue.truncatable)
-                or (
-                    residue.truncatable
-                    and residue.side_chain_correlation < side_threshold
-                )
-            )
+            and residue.main_chain_correctness > main_threshold
+            and ((not residue.truncatable) or (residue.truncatable and residue.side_chain_correctness < side_threshold))
         ):
             fix_side_chain(imol, imap, residue)
