@@ -273,7 +273,9 @@ def _print_refmac_result(result: RefmacResult):
 
 def _check_for_files_that_could_be_overwritten():
     patterns = [
-        r"modelcraft\..+",
+        r"modelcraft\.cif",
+        r"modelcraft\.json",
+        r"modelcraft\.mtz",
         r"job_[A-Za-z0-9]+_[A-Za-z0-9]{20}",
         r"job_\d+_[A-Za-z0-9]+",
     ]
