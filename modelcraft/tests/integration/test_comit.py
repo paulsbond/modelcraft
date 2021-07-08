@@ -1,5 +1,5 @@
 from modelcraft.jobs.comit import Comit
-from tests.integration import insulin_fsigf, insulin_refmac
+from . import insulin_fsigf, insulin_refmac
 
 
 def test_insulin():

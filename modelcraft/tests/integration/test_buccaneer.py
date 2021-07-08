@@ -1,6 +1,6 @@
 from modelcraft.jobs.buccaneer import Buccaneer
 from modelcraft.structure import ModelStats
-from tests.integration import (
+from . import (
     insulin_fsigf,
     insulin_freer,
     insulin_refmac,

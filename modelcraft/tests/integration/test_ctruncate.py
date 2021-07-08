@@ -1,7 +1,7 @@
 import gemmi
 from modelcraft.jobs.ctruncate import CTruncate
 from modelcraft.reflections import DataItem
-from tests.integration import ccp4_path
+from . import ccp4_path
 
 
 def fanom_test(path: str, label: str) -> None:

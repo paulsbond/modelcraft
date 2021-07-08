@@ -1,7 +1,7 @@
 from typing import List
 import gemmi
 from modelcraft.reflections import DataItem
-from tests.integration import ccp4_path
+from . import ccp4_path
 
 
 def search_test(

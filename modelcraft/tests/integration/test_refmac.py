@@ -2,7 +2,7 @@ import gemmi
 from modelcraft.jobs.refmac import Refmac
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
-from tests.integration import ccp4_path
+from . import ccp4_path
 
 
 def test_1rxf():

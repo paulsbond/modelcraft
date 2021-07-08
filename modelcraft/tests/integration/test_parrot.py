@@ -1,5 +1,5 @@
 from modelcraft.jobs.parrot import Parrot
-from tests.integration import (
+from . import (
     insulin_fsigf,
     insulin_freer,
     insulin_refmac,
