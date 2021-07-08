@@ -2,7 +2,7 @@ import os
 import shutil
 import uuid
 from modelcraft.scripts.copies import main
-from tests.integration import ccp4_path, insulin_contents
+from . import ccp4_path, insulin_contents
 
 
 def test_insulin():

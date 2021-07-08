@@ -1,6 +1,6 @@
 from modelcraft.jobs.coot import Prune, FixSideChains
 from modelcraft.structure import ModelStats
-from tests.integration import insulin_refmac
+from . import insulin_refmac
 
 
 def test_insulin_prune():

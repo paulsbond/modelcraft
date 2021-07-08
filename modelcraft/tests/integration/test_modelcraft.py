@@ -6,7 +6,7 @@ import pytest
 from modelcraft.scripts.modelcraft import main
 from modelcraft.reflections import write_mtz
 from modelcraft.structure import contains_residue, read_structure
-from tests.integration import (
+from . import (
     ccp4_path,
     insulin_contents,
     insulin_fsigf,
