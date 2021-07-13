@@ -1,5 +1,6 @@
 from typing import Iterator, Iterable, List, Optional, Union
 import itertools
+import re
 import gemmi
 import numpy
 import pandas
@@ -47,6 +48,20 @@ def expand_label(label: str) -> str:
         return ",".join(f"{prefix}{suffix}{x}" for x in ("A", "B", "C", "D"))
     if suffix in ("F_sigF", "I_sigI", "F_phi", "phi_fom"):
         return ",".join(f"{prefix}{suffix}.{x}" for x in suffix.split("_"))
+    return label
+
+
+def contract_label(label: str) -> str:
+    for name, pattern in (
+        ("ABCD", r"(.*)ABCD\.A,(.*)ABCD\.B,(.*)ABCD\.C,(.*)ABCD\.D"),
+        ("F_phi", r"(.*)F_phi\.F,(.*)F_phi\.phi"),
+        ("F_sigF", r"(.*)F_sigF\.F,(.*)F_sigF\.sigF"),
+        ("I_sigI", r"(.*)I_sigI\.I,(.*)I_sigI\.sigI"),
+        ("phi_fom", r"(.*)phi_fom\.phi,(.*)phi_fom\.fom"),
+    ):
+        match = re.match(pattern, label)
+        if match and len(set(match.groups())) == 1:
+            return match.group(1) + name
     return label
 
 
