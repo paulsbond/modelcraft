@@ -10,7 +10,6 @@ from modelcraft.structure import read_structure
 _PARSER = argparse.ArgumentParser(add_help=False)
 
 _req = _PARSER.add_argument_group("Required arguments")
-_req.add_argument("--data", metavar="FILE", required=True)
 _req.add_argument("--contents", metavar="FILE", required=True)
 
 _opt = _PARSER.add_argument_group("Optional arguments")
@@ -19,14 +18,18 @@ _opt.add_argument("--convergence-cycles", metavar="N", default=4, type=int)
 _opt.add_argument("--convergence-tolerance", metavar="X", default=0.1, type=float)
 _opt.add_argument("--cycles", metavar="N", default=25, type=int)
 _opt.add_argument("--directory", metavar="PATH", default=".")
+_opt.add_argument("--em", action="store_true")
 _opt.add_argument("--freerflag", metavar="COL")
 _opt.add_argument("--help", action="help")
 _opt.add_argument("--keep-jobs", action="store_true")
 _opt.add_argument("--keep-logs", action="store_true")
+_opt.add_argument("--map", metavar="FILE")
 _opt.add_argument("--model", metavar="FILE")
 _opt.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
 _opt.add_argument("--observations", metavar="COLS")
 _opt.add_argument("--phases", metavar="COLS")
+_opt.add_argument("--reflections", metavar="FILE")
+_opt.add_argument("--resolution", metavar="X", type=float)
 _opt.add_argument("--twinned", action="store_true")
 _opt.add_argument("--unbiased", action="store_true")
 
@@ -40,7 +43,8 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     args = _PARSER.parse_args(arguments)
     _basic_check(args)
     _check_paths(args)
-    _parse_data_items(args)
+    if args.reflections:
+        _parse_data_items(args)
     args.contents = AsuContents.from_file(args.contents)
     if args.model is not None:
         args.model = read_structure(args.model)
@@ -48,18 +52,36 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
 
 
 def _basic_check(args: argparse.Namespace):
+    if args.em and args.map is None:
+        _PARSER.error("A map is required for EM data")
+    if args.reflections is None and args.map is None:
+        _PARSER.error("Either reflections or a map must be provided")
+    if args.reflections is not None and args.map is not None:
+        _PARSER.error("Either reflections or a map must be provided (not both)")
+    if args.map is None and args.resolution is not None:
+        _PARSER.error("The --resolution argument is only used when starting from a map")
+    if args.map is not None and args.resolution is None:
+        _PARSER.error("The --resolution argument is required when starting from a map")
+    if args.resolution is not None and args.resolution <= 0:
+        _PARSER.error("Resolution must be greater than 0")
     if args.cycles < 1:
         _PARSER.error("The maximum number of cycles must be greater than 0")
-
     if args.convergence_cycles < 1:
         _PARSER.error("The number of convergence cycles must be greater than 0")
-
     if args.convergence_tolerance < 0.1:
         _PARSER.error("The convergence tolerance must be 0.1 or higher")
 
 
 def _check_paths(args: argparse.Namespace):
-    for arg in "data", "contents", "model", "buccaneer", "parrot", "sheetbend":
+    for arg in (
+        "buccaneer",
+        "contents",
+        "map",
+        "model",
+        "parrot",
+        "reflections",
+        "sheetbend",
+    ):
         path = getattr(args, arg)
         if path is not None:
             path = os.path.abspath(path)
@@ -69,7 +91,7 @@ def _check_paths(args: argparse.Namespace):
 
 
 def _parse_data_items(args: argparse.Namespace):
-    mtz = gemmi.read_mtz_file(args.data)
+    mtz = gemmi.read_mtz_file(args.reflections)
     args.observations = _parse_data_item(
         mtz, args.observations, ["FQ", "GLGL", "JQ", "KMKM"], "observations"
     )
