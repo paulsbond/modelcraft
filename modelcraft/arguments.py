@@ -108,19 +108,18 @@ def _parse_data_item(
         for types in accepted_types:
             items = DataItem.search(mtz, types, sequential=(types != "PW"))
             options.extend(items)
-        if len(options) == 1:
-            print(f"Using {options[0].label()} for the {name}")
-            return options[0]
+        if len(options) == 0:
+            _PARSER.error(f"No suitable columns found for the {name}")
         if len(options) > 1:
             message = f"Multiple possible columns found for the {name}:"
             for option in options:
                 message += f"\n{option.label()}"
             _PARSER.error(message)
-        _PARSER.error(f"No suitable columns found for the {name}")
-    else:
-        item = DataItem(mtz, label)
-        if item.types in accepted_types:
-            return item
+        print(f"Using {options[0].label()} for the {name}")
+        return options[0]
+    item = DataItem(mtz, label)
+    if item.types not in accepted_types:
         message = f"Column label '{label}' does not match type "
         message += " or ".join(accepted_types)
         _PARSER.error(message)
+    return item
