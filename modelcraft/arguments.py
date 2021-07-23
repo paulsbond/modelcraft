@@ -2,6 +2,7 @@ from typing import List, Optional
 import argparse
 import os
 import gemmi
+import numpy
 from modelcraft.contents import AsuContents
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
@@ -43,10 +44,12 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     args = _PARSER.parse_args(arguments)
     _basic_check(args)
     _check_paths(args)
+    args.contents = AsuContents.from_file(args.contents)
     if args.reflections:
         _parse_data_items(args)
-    args.contents = AsuContents.from_file(args.contents)
-    if args.model is not None:
+    if args.map:
+        _parse_map(args)
+    if args.model:
         args.model = read_structure(args.model)
     return args
 
@@ -123,3 +126,24 @@ def _parse_data_item(
         message += " or ".join(accepted_types)
         _PARSER.error(message)
     return item
+
+
+def _parse_map(args: argparse.Namespace):
+    args.map = gemmi.read_ccp4_map(args.map)
+    args.map.setup()
+    array = numpy.array(args.map, copy=False)
+    if numpy.isnan(array).any():
+        _PARSER.error("Map does not cover the full ASU")
+    grid = gemmi.transform_map_to_f_phi(args.map.grid, half_l=True)
+    data = grid.prepare_asu_data(dmin=args.resolution)
+    mtz = gemmi.Mtz()
+    mtz.cell = args.map.grid.unit_cell
+    mtz.spacegroup = args.map.grid.spacegroup
+    mtz.add_dataset("HKL_base")
+    mtz.add_column("H", "H")
+    mtz.add_column("K", "H")
+    mtz.add_column("L", "H")
+    mtz.add_column("F", "F")
+    mtz.add_column("PHI", "P")
+    mtz.set_data(data)
+    mtz.update_reso()
