@@ -131,7 +131,7 @@ def _parse_data_item(
 def _parse_map(args: argparse.Namespace):
     args.map = gemmi.read_ccp4_map(args.map)
     args.map.setup()
-    array = numpy.array(args.map, copy=False)
+    array = numpy.array(args.map.grid, copy=False)
     if numpy.isnan(array).any():
         _PARSER.error("Map does not cover the full ASU")
     grid = gemmi.transform_map_to_f_phi(args.map.grid, half_l=True)
