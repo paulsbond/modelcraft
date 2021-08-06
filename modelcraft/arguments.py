@@ -1,12 +1,11 @@
 from typing import List, Optional
 import argparse
 import os
-import random
 import gemmi
 import numpy
 import pandas
 from modelcraft.contents import AsuContents
-from modelcraft.reflections import DataItem
+from modelcraft.reflections import DataItem, make_freer
 from modelcraft.structure import read_structure
 
 
@@ -155,13 +154,7 @@ def _parse_map(args: argparse.Namespace):
     data_frame["SIGF"] = 1.0
     mtz.add_column("FOM", "W")
     data_frame["FOM"] = 1.0
-    freer = list(range(20)) * (mtz.nreflections // 20 + 1)
-    freer = freer[: mtz.nreflections]
-    random.seed(0)
-    random.shuffle(freer)
-    mtz.add_column("FREE", "I")
-    data_frame["FREE"] = freer
     mtz.set_data(data_frame.to_numpy())
     args.observations = DataItem(mtz, "F,SIGF")
-    args.freer = DataItem(mtz, "FREE")
+    args.freer = make_freer(args.observations)
     args.phases = DataItem(mtz, "PHI,FOM")

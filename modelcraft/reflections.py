@@ -1,5 +1,6 @@
 from typing import Iterator, Iterable, List, Optional, Union
 import itertools
+import random
 import re
 import gemmi
 import numpy
@@ -99,8 +100,8 @@ class DataItem(gemmi.Mtz):
             return ",".join(column.label for column in self.columns[3:])
         return self.columns[index + 3].label
 
-    def data_frame(self) -> pandas.DataFrame:
-        data = numpy.array(self, copy=False)
+    def data_frame(self, copy=False) -> pandas.DataFrame:
+        data = numpy.array(self, copy=copy)
         return pandas.DataFrame(data=data, columns=self.column_labels())
 
     @classmethod
@@ -123,6 +124,26 @@ class DataItem(gemmi.Mtz):
                 columns.append([col for col in mtz.columns if col.type == column_type])
             for combination in itertools.product(*columns):
                 yield cls(mtz, combination)
+
+
+def make_freer(item: DataItem) -> DataItem:
+    frame = item.data_frame(copy=True)
+    frame = frame[["H", "K", "L"]]
+    freer = list(range(20)) * (item.nreflections // 20 + 1)
+    freer = freer[: item.nreflections]
+    random.shuffle(freer)
+    frame["FREE"] = freer
+    mtz = gemmi.Mtz()
+    mtz.cell = item.cell
+    mtz.spacegroup = item.spacegroup
+    mtz.add_dataset("HKL_base")
+    mtz.add_column("H", "H")
+    mtz.add_column("K", "H")
+    mtz.add_column("L", "H")
+    mtz.add_column("FREE", "I")
+    mtz.set_data(frame.to_numpy())
+    mtz.update_reso()
+    return DataItem(mtz, "FREE")
 
 
 def _combine_data_items(items: List[DataItem]) -> gemmi.Mtz:
