@@ -27,7 +27,7 @@ class Job(abc.ABC):
             self._directory = f"job_{name}_{random_id(length=20)}"
         else:
             self._directory = pipeline.next_job_directory(name)
-        os.mkdir(self._directory)
+        os.makedirs(self._directory)
         self._setup()
         with open(self._path("script.sh"), "w") as stream:
             stream.write(self._script())
