@@ -99,7 +99,7 @@ def _parse_data_items(args: argparse.Namespace):
     args.observations = _parse_data_item(
         mtz, args.observations, ["FQ", "GLGL", "JQ", "KMKM"], "observations"
     )
-    args.freer = _parse_data_item(mtz, args.freerflag, ["I"], "free-R flag")
+    args.freer = _parse_data_item(mtz, args.freerflag, ["I"], "freerflag")
     if args.phases is not None or args.model is None:
         args.phases = _parse_data_item(mtz, args.phases, ["PW", "AAAA"], "phases")
 
@@ -116,8 +116,9 @@ def _parse_data_item(
             _PARSER.error(f"No suitable columns found for the {name}")
         if len(options) > 1:
             message = f"Multiple possible columns found for the {name}:"
+            message += "\nPlease add one of the following options:"
             for option in options:
-                message += f"\n{option.label()}"
+                message += f"\n--{name} {option.label()}"
             _PARSER.error(message)
         print(f"Using {options[0].label()} for the {name}")
         return options[0]
