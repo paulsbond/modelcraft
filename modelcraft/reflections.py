@@ -131,7 +131,8 @@ def make_freer(item: DataItem) -> DataItem:
     frame = frame[["H", "K", "L"]]
     freer = list(range(20)) * (item.nreflections // 20 + 1)
     freer = freer[: item.nreflections]
-    random.shuffle(freer)
+    seeded = random.Random(0)
+    seeded.shuffle(freer)
     frame["FREE"] = freer
     mtz = gemmi.Mtz()
     mtz.cell = item.cell
