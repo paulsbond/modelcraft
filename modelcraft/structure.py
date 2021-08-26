@@ -2,17 +2,23 @@ import gemmi
 
 
 def read_structure(path: str) -> gemmi.Structure:
-    if (
-        path[-4:] == ".cif"
-        or path[-7:] == ".cif.gz"
-        or path[-6:] == ".mmcif"
-        or path[-9:] == ".mmcif.gz"
+    structure = None
+    errors = {}
+    for format_ in (
+        gemmi.CoorFormat.Pdb,
+        gemmi.CoorFormat.Mmcif,
+        gemmi.CoorFormat.Mmjson,
     ):
-        document = gemmi.cif.read(path)
-        block = document[0]  # Assume the first block is the structure
-        structure = gemmi.make_structure_from_block(block)
-    else:
-        structure = gemmi.read_structure(path)
+        try:
+            structure = gemmi.read_structure(path, format=format_)
+            break
+        except (RuntimeError, ValueError) as error:
+            errors[format_] = error
+    if structure is None:
+        message = "Unable to read structure"
+        for format_, error in errors.items():
+            message += f"\nError for {format_}:\n{error}"
+        raise RuntimeError(message)
     structure.remove_empty_chains()
     structure.remove_hydrogens()
     # TODO: Currently altconfs appear in CIF auth_atom_id after sheetbend
