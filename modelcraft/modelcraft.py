@@ -38,7 +38,7 @@ class ModelCraft(Pipeline):
         self.start_time = None
         self.report = {
             "seconds": self.seconds,
-            "cycles": {},
+            "cycles": [],
         }
 
     @property
@@ -227,12 +227,13 @@ class ModelCraft(Pipeline):
         _print_refmac_result(self.last_refmac)
         model_stats = ModelStats(self.last_refmac.structure)
         stats = {
+            "cycle": self.cycle,
             "residues": model_stats.residues,
             "waters": model_stats.waters,
             "r_work": self.last_refmac.rwork,
             "r_free": self.last_refmac.rfree,
         }
-        self.report["cycles"][self.cycle] = stats
+        self.report["cycles"].append(stats)
         if self.best_refmac is not None:
             diff = self.best_refmac.rfree - self.last_refmac.rfree
             if diff >= self.args.convergence_tolerance:
