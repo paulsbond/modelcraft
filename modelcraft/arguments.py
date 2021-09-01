@@ -5,7 +5,8 @@ import gemmi
 import numpy
 import pandas
 from modelcraft.contents import AsuContents
-from modelcraft.reflections import DataItem, make_freer
+from modelcraft.jobs.freerflag import FreeRFlag
+from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 
 
@@ -157,5 +158,5 @@ def _parse_map(args: argparse.Namespace):
     data_frame["FOM"] = 1.0
     mtz.set_data(data_frame.to_numpy())
     args.observations = DataItem(mtz, "F,SIGF")
-    args.freer = make_freer(args.observations)
+    args.freer = FreeRFlag(mtz).run().freer
     args.phases = DataItem(mtz, "PHI,FOM")

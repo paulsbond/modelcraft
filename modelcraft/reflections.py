@@ -1,6 +1,5 @@
 from typing import Iterator, Iterable, List, Optional, Union
 import itertools
-import random
 import re
 import gemmi
 import numpy
@@ -124,27 +123,6 @@ class DataItem(gemmi.Mtz):
                 columns.append([col for col in mtz.columns if col.type == column_type])
             for combination in itertools.product(*columns):
                 yield cls(mtz, combination)
-
-
-def make_freer(item: DataItem) -> DataItem:
-    frame = item.data_frame(copy=True)
-    frame = frame[["H", "K", "L"]]
-    freer = list(range(20)) * (item.nreflections // 20 + 1)
-    freer = freer[: item.nreflections]
-    seeded = random.Random(0)
-    seeded.shuffle(freer)
-    frame["FREE"] = freer
-    mtz = gemmi.Mtz()
-    mtz.cell = item.cell
-    mtz.spacegroup = item.spacegroup
-    mtz.add_dataset("HKL_base")
-    mtz.add_column("H", "H")
-    mtz.add_column("K", "H")
-    mtz.add_column("L", "H")
-    mtz.add_column("FREE", "I")
-    mtz.set_data(frame.to_numpy())
-    mtz.update_reso()
-    return DataItem(mtz, "FREE")
 
 
 def _combine_data_items(items: List[DataItem]) -> gemmi.Mtz:
