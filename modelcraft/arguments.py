@@ -51,6 +51,7 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
         _parse_data_items(args)
     if args.map:
         _parse_map(args)
+        args.basic = True
     if args.model:
         args.model = read_structure(args.model)
     return args

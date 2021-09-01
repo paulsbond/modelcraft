@@ -85,7 +85,7 @@ class ModelCraft(Pipeline):
 
     def run_cycle(self):
         if self.args.basic:
-            if self.cycle == 1:
+            if self.args.map is None and self.cycle == 1:
                 self.parrot()
             self.buccaneer()
             self.nautilus()
