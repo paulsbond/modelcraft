@@ -26,6 +26,7 @@ class Buccaneer(Job):
         filter_mr: bool = True,
         seed_mr: bool = True,
         cycles: int = 2,
+        em: bool = False,
         executable: str = None,
     ):
         super().__init__(executable or "cbuccaneer")
@@ -40,8 +41,15 @@ class Buccaneer(Job):
         self.filter_mr = filter_mr
         self.seed_mr = seed_mr
         self.cycles = cycles
+        self.em = em
 
     def _setup(self) -> None:
+        if self.em:
+            ref_dir = os.path.join(os.environ["CLIBD"], "reference_structures")
+            ref_mtz = os.path.join(ref_dir, "reference-EMD-4116.mtz")
+            ref_pdb = os.path.join(ref_dir, "reference-EMD-4116.pdb")
+            self._args += ["-mtzin-ref", ref_mtz]
+            self._args += ["-pdbin-ref", ref_pdb]
         types = [PolymerType.PROTEIN]
         self.contents.write_sequence_file(self._path("seqin.seq"), types)
         self._args += ["-seqin", "seqin.seq"]

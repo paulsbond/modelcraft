@@ -20,6 +20,7 @@ _opt.add_argument("--basic", action="store_true")
 _opt.add_argument("--convergence-cycles", metavar="N", default=4, type=int)
 _opt.add_argument("--convergence-tolerance", metavar="X", default=0.1, type=float)
 _opt.add_argument("--cycles", metavar="N", default=25, type=int)
+_opt.add_argument("--data", metavar="FILE")
 _opt.add_argument("--directory", metavar="PATH", default=".")
 _opt.add_argument("--em", action="store_true")
 _opt.add_argument("--freerflag", metavar="COL")
@@ -31,10 +32,10 @@ _opt.add_argument("--model", metavar="FILE")
 _opt.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
 _opt.add_argument("--observations", metavar="COLS")
 _opt.add_argument("--phases", metavar="COLS")
-_opt.add_argument("--reflections", metavar="FILE")
 _opt.add_argument("--resolution", metavar="X", type=float)
 _opt.add_argument("--twinned", action="store_true")
 _opt.add_argument("--unbiased", action="store_true")
+_opt.add_argument("--xray", action="store_true")
 
 _dev = _PARSER.add_argument_group("Developer arguments")
 _dev.add_argument("--buccaneer", metavar="FILE")
@@ -47,45 +48,54 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     _basic_check(args)
     _check_paths(args)
     args.contents = AsuContents.from_file(args.contents)
-    if args.reflections:
+    if args.xray:
         _parse_data_items(args)
-    if args.map:
+    else:
         _parse_map(args)
-        args.basic = True
     if args.model:
         args.model = read_structure(args.model)
     return args
 
 
 def _basic_check(args: argparse.Namespace):
-    if args.em and args.map is None:
-        _PARSER.error("A map is required for EM data")
-    if args.reflections is None and args.map is None:
-        _PARSER.error("Either reflections or a map must be provided")
-    if args.reflections is not None and args.map is not None:
-        _PARSER.error("Either reflections or a map must be provided (not both)")
-    if args.map is None and args.resolution is not None:
-        _PARSER.error("The --resolution argument is only used when starting from a map")
-    if args.map is not None and args.resolution is None:
-        _PARSER.error("The --resolution argument is required when starting from a map")
-    if args.resolution is not None and args.resolution <= 0:
-        _PARSER.error("Resolution must be greater than 0")
+    if not args.xray and not args.em:
+        _PARSER.error("Either --xray or --em must be specified")
+    if args.xray and args.em:
+        _PARSER.error("Either --xray or --em must be specified (not both)")
+    if args.xray:
+        if args.data is None:
+            _PARSER.error("--data is required in X-ray mode")
+        if args.map is not None:
+            _PARSER.error("--map is not used in X-ray mode")
+        if args.resolution is not None:
+            _PARSER.error("--resolution is not used in X-ray mode")
+    else:
+        if args.map is None:
+            _PARSER.error("--map is required in EM mode")
+        if args.resolution is None:
+            _PARSER.error("--resolution is required in EM mode")
+        if args.data is not None:
+            _PARSER.error("--data is not used in EM mode")
+        if args.basic:
+            _PARSER.error("--basic is not used in EM mode")
+        if args.resolution <= 0:
+            _PARSER.error("--resolution must be greater than 0")
     if args.cycles < 1:
-        _PARSER.error("The maximum number of cycles must be greater than 0")
+        _PARSER.error("--cycles must be greater than 0")
     if args.convergence_cycles < 1:
-        _PARSER.error("The number of convergence cycles must be greater than 0")
-    if args.convergence_tolerance < 0.1:
-        _PARSER.error("The convergence tolerance must be 0.1 or higher")
+        _PARSER.error("--convergence-cycles must be greater than 0")
+    if args.convergence_tolerance < 0:
+        _PARSER.error("--convergence-tolerance cannot be negative")
 
 
 def _check_paths(args: argparse.Namespace):
     for arg in (
         "buccaneer",
         "contents",
+        "data",
         "map",
         "model",
         "parrot",
-        "reflections",
         "sheetbend",
     ):
         path = getattr(args, arg)
@@ -97,7 +107,7 @@ def _check_paths(args: argparse.Namespace):
 
 
 def _parse_data_items(args: argparse.Namespace):
-    mtz = gemmi.read_mtz_file(args.reflections)
+    mtz = gemmi.read_mtz_file(args.data)
     args.observations = _parse_data_item(
         mtz, args.observations, ["FQ", "GLGL", "JQ", "KMKM"], "observations"
     )
@@ -161,3 +171,4 @@ def _parse_map(args: argparse.Namespace):
     args.observations = DataItem(mtz, "F,SIGF")
     args.freer = FreeRFlag(mtz).run().freer
     args.phases = DataItem(mtz, "PHI,FOM")
+    args.fphi = DataItem(mtz, "F,PHI")

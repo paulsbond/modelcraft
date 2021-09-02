@@ -12,7 +12,7 @@ from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
-from .jobs.refmac import Refmac, RefmacResult
+from .jobs.refmac import RefmacXray, RefmacEm, RefmacResult
 from .jobs.sheetbend import Sheetbend
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
@@ -73,7 +73,12 @@ class ModelCraft(Pipeline):
                 and self.cycles_without_improvement == args.convergence_cycles
             ):
                 break
-        if not args.basic and self.best_refmac.rwork < 30 and self.resolution < 2.5:
+        if (
+            args.xray
+            and not args.basic
+            and self.best_refmac.rwork < 30
+            and self.resolution < 2.5
+        ):
             print("\n## Finalisations\n")
             self.cycle += 1
             self.update_current_from_refmac_result(self.best_refmac)
@@ -84,8 +89,11 @@ class ModelCraft(Pipeline):
         self.terminate(reason="Normal")
 
     def run_cycle(self):
-        if self.args.basic:
-            if self.args.map is None and self.cycle == 1:
+        if self.args.em:
+            self.buccaneer()
+            self.nautilus()
+        elif self.args.basic:
+            if self.cycle == 1:
                 self.parrot()
             self.buccaneer()
             self.nautilus()
@@ -132,6 +140,7 @@ class ModelCraft(Pipeline):
             filter_mr=True,
             seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
+            em=self.args.em,
             executable=self.args.buccaneer,
         ).run(self)
         stats = ModelStats(result.structure)
@@ -155,17 +164,25 @@ class ModelCraft(Pipeline):
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
         print("REFMAC")
-        use_phases = self.args.unbiased and (
-            self.best_refmac is None or self.best_refmac.rwork > 35
-        )
-        result = Refmac(
-            structure=structure,
-            fsigf=self.args.fsigf,
-            freer=self.args.freer,
-            cycles=cycles,
-            phases=self.args.phases if use_phases else None,
-            twinned=self.args.twinned,
-        ).run(self)
+        if self.args.xray:
+            use_phases = self.args.unbiased and (
+                self.best_refmac is None or self.best_refmac.rwork > 35
+            )
+            result = RefmacXray(
+                structure=structure,
+                fsigf=self.args.fsigf,
+                freer=self.args.freer,
+                cycles=cycles,
+                phases=self.args.phases if use_phases else None,
+                twinned=self.args.twinned,
+            ).run(self)
+        else:
+            result = RefmacEm(
+                structure=structure,
+                fphi=self.args.fphi,
+                freer=self.args.freer,
+                cycles=cycles,
+            ).run(self)
         if auto_accept or result.rfree < self.last_refmac.rfree:
             self.update_current_from_refmac_result(result)
 
