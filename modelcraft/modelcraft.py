@@ -133,7 +133,7 @@ class ModelCraft(Pipeline):
             fsigf=self.args.fsigf,
             freer=self.args.freer,
             phases=self.current_phases,
-            fphi=self.current_fphi_best,
+            fphi=self.current_fphi_best if self.args.xray else None,
             input_structure=self.current_structure,
             mr_structure=self.args.model,
             use_mr=True,
@@ -143,8 +143,7 @@ class ModelCraft(Pipeline):
             em=self.args.em,
             executable=self.args.buccaneer,
         ).run(self)
-        stats = ModelStats(result.structure)
-        if stats.residues == 0:
+        if len(result.structure) == 0:
             self.terminate(reason="Buccaneer did not build any residues")
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
@@ -157,7 +156,7 @@ class ModelCraft(Pipeline):
             fsigf=self.args.fsigf,
             freer=self.args.freer,
             phases=self.current_phases,
-            fphi=self.current_fphi_best,
+            fphi=self.current_fphi_best if self.args.xray else None,
             structure=self.current_structure,
         ).run(self)
         self.refmac(result.structure, cycles=5, auto_accept=True)
