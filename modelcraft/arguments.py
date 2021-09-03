@@ -4,43 +4,41 @@ import os
 import gemmi
 import numpy
 import pandas
+from modelcraft import __version__
 from modelcraft.contents import AsuContents
 from modelcraft.jobs.freerflag import FreeRFlag
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 
 
-_PARSER = argparse.ArgumentParser(add_help=False)
+_PARSER = argparse.ArgumentParser()
+_PARSER.add_argument("-v", "--version", action="version", version=__version__)
 
-_req = _PARSER.add_argument_group("Required arguments")
-_req.add_argument("--contents", metavar="FILE", required=True)
+_PARENT = argparse.ArgumentParser(add_help=False)
+_PARENT.add_argument("--contents", required=True)
+_PARENT.add_argument("--model")
+_PARENT.add_argument("--cycles", default=25, type=int)
+_PARENT.add_argument("--convergence-cycles", default=4, type=int)
+_PARENT.add_argument("--convergence-tolerance", default=0, type=float)
+_PARENT.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
+_PARENT.add_argument("--directory", default=".")
+_PARENT.add_argument("--keep-jobs", action="store_true")
+_PARENT.add_argument("--keep-logs", action="store_true")
 
-_opt = _PARSER.add_argument_group("Optional arguments")
-_opt.add_argument("--basic", action="store_true")
-_opt.add_argument("--convergence-cycles", metavar="N", default=4, type=int)
-_opt.add_argument("--convergence-tolerance", metavar="X", default=0.1, type=float)
-_opt.add_argument("--cycles", metavar="N", default=25, type=int)
-_opt.add_argument("--data", metavar="FILE")
-_opt.add_argument("--directory", metavar="PATH", default=".")
-_opt.add_argument("--em", action="store_true")
-_opt.add_argument("--freerflag", metavar="COL")
-_opt.add_argument("--help", action="help")
-_opt.add_argument("--keep-jobs", action="store_true")
-_opt.add_argument("--keep-logs", action="store_true")
-_opt.add_argument("--map", metavar="FILE")
-_opt.add_argument("--model", metavar="FILE")
-_opt.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
-_opt.add_argument("--observations", metavar="COLS")
-_opt.add_argument("--phases", metavar="COLS")
-_opt.add_argument("--resolution", metavar="X", type=float)
-_opt.add_argument("--twinned", action="store_true")
-_opt.add_argument("--unbiased", action="store_true")
-_opt.add_argument("--xray", action="store_true")
+_SUB_PARSERS = _PARSER.add_subparsers(title="mode", required=True)
 
-_dev = _PARSER.add_argument_group("Developer arguments")
-_dev.add_argument("--buccaneer", metavar="FILE")
-_dev.add_argument("--parrot", metavar="FILE")
-_dev.add_argument("--sheetbend", metavar="FILE")
+_XRAY = _SUB_PARSERS.add_parser("xray", parents=[_PARENT])
+_XRAY.add_argument("--data", required=True)
+_XRAY.add_argument("--observations")
+_XRAY.add_argument("--freerflag")
+_XRAY.add_argument("--phases")
+_XRAY.add_argument("--unbiased", action="store_true")
+_XRAY.add_argument("--twinned", action="store_true")
+_XRAY.add_argument("--basic", action="store_true")
+
+_EM = _SUB_PARSERS.add_parser("em", parents=[_PARENT])
+_EM.add_argument("--map", required=True)
+_EM.add_argument("--resolution", type=float, required=True)
 
 
 def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
