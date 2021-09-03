@@ -109,5 +109,6 @@ class RefmacEm(_Refmac):
         labin += " PHIB=" + self.fphi.label(1)
         labin += " FREE=" + self.freer.label()
         self._stdin.append("LABIN " + labin)
+        self._stdin.append("SOURCE EM MB")
         self._stdin.append("SOLVENT NO")
         super()._setup()
