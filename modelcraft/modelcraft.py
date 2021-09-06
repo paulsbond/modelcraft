@@ -22,9 +22,7 @@ from .structure import ModelStats, write_mmcif
 class ModelCraft(Pipeline):
     def __init__(self, args):
         self.args = parse(args)
-        print(f"# ModelCraft {__version__}\n")
-        print("Arguments:")
-        print(" %s\n" % " ".join(args))
+        print(f"# ModelCraft {__version__}")
         super().__init__(keep_jobs=self.args.keep_jobs, keep_logs=self.args.keep_logs)
         self.cycle = 0
         self.current_structure: gemmi.Structure = self.args.model
@@ -74,7 +72,7 @@ class ModelCraft(Pipeline):
             ):
                 break
         if (
-            args.xray
+            args.mode == "xray"
             and not args.basic
             and self.best_refmac.rwork < 30
             and self.resolution < 2.5
@@ -89,7 +87,7 @@ class ModelCraft(Pipeline):
         self.terminate(reason="Normal")
 
     def run_cycle(self):
-        if self.args.em:
+        if self.args.mode == "em":
             self.buccaneer()
             self.nautilus()
         elif self.args.basic:
@@ -120,7 +118,6 @@ class ModelCraft(Pipeline):
             fsigf=self.args.fsigf,
             freer=self.args.freer,
             structure=self.current_structure,
-            executable=self.args.sheetbend,
         ).run(self)
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
@@ -133,15 +130,14 @@ class ModelCraft(Pipeline):
             fsigf=self.args.fsigf,
             freer=self.args.freer,
             phases=self.current_phases,
-            fphi=self.current_fphi_best if self.args.xray else None,
+            fphi=self.current_fphi_best if self.args.mode == "xray" else None,
             input_structure=self.current_structure,
             mr_structure=self.args.model,
             use_mr=True,
             filter_mr=True,
             seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
-            em=self.args.em,
-            executable=self.args.buccaneer,
+            em=self.args.mode == "em",
         ).run(self)
         if len(result.structure) == 0:
             self.terminate(reason="Buccaneer did not build any residues")
@@ -156,14 +152,14 @@ class ModelCraft(Pipeline):
             fsigf=self.args.fsigf,
             freer=self.args.freer,
             phases=self.current_phases,
-            fphi=self.current_fphi_best if self.args.xray else None,
+            fphi=self.current_fphi_best if self.args.mode == "xray" else None,
             structure=self.current_structure,
         ).run(self)
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
         print("REFMAC")
-        if self.args.xray:
+        if self.args.mode == "xray":
             use_phases = self.args.unbiased and (
                 self.best_refmac is None or self.best_refmac.rwork > 35
             )
@@ -179,7 +175,6 @@ class ModelCraft(Pipeline):
             result = RefmacEm(
                 structure=structure,
                 fphi=self.args.fphi,
-                freer=self.args.freer,
                 cycles=cycles,
             ).run(self)
         if auto_accept or result.rfree < self.last_refmac.rfree:
@@ -202,7 +197,6 @@ class ModelCraft(Pipeline):
             phases=self.current_phases,
             fphi=self.current_fphi_best,
             structure=self.current_structure,
-            executable=self.args.parrot,
         ).run(self)
         self.current_phases = result.abcd
         self.current_fphi_best = result.fphi

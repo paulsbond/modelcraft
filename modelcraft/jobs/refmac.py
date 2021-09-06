@@ -96,18 +96,15 @@ class RefmacEm(_Refmac):
         self,
         structure: gemmi.Structure,
         fphi: DataItem,
-        freer: DataItem,
         cycles: int = 5,
     ):
         super().__init__(structure=structure, cycles=cycles)
         self.fphi = fphi
-        self.freer = freer
 
     def _setup(self) -> None:
-        write_mtz(self._path("hklin.mtz"), [self.fphi, self.freer])
+        write_mtz(self._path("hklin.mtz"), [self.fphi])
         labin = "FP=" + self.fphi.label(0)
         labin += " PHIB=" + self.fphi.label(1)
-        labin += " FREE=" + self.freer.label()
         self._stdin.append("LABIN " + labin)
         self._stdin.append("SOURCE EM MB")
         self._stdin.append("SOLVENT NO")

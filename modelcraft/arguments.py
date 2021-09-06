@@ -51,9 +51,9 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     _basic_check(args)
     _check_paths(args)
     args.contents = AsuContents.from_file(args.contents)
-    if args.xray:
+    if args.mode == "xray":
         _parse_data_items(args)
-    else:
+    if args.mode == "em":
         _parse_map(args)
     if args.model:
         args.model = read_structure(args.model)
@@ -72,21 +72,14 @@ def _basic_check(args: argparse.Namespace):
 
 
 def _check_paths(args: argparse.Namespace):
-    for arg in (
-        "buccaneer",
-        "contents",
-        "data",
-        "map",
-        "model",
-        "parrot",
-        "sheetbend",
-    ):
-        path = getattr(args, arg)
-        if path is not None:
-            path = os.path.abspath(path)
-            setattr(args, arg, path)
-            if not os.path.exists(path):
-                _PARSER.error("File not found: %s" % path)
+    for arg in ("contents", "data", "map", "model"):
+        if hasattr(args, arg):
+            path = getattr(args, arg)
+            if path is not None:
+                if not os.path.exists(path):
+                    _PARSER.error("File not found: %s" % path)
+                path = os.path.abspath(path)
+                setattr(args, arg, path)
 
 
 def _parse_data_items(args: argparse.Namespace):

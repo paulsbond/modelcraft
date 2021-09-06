@@ -27,9 +27,8 @@ class Buccaneer(Job):
         seed_mr: bool = True,
         cycles: int = 2,
         em: bool = False,
-        executable: str = None,
     ):
-        super().__init__(executable or "cbuccaneer")
+        super().__init__("cbuccaneer")
         self.contents = contents
         self.fsigf = fsigf
         self.freer = freer
