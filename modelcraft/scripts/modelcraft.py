@@ -1,13 +1,10 @@
-import sys
 from ..environ import setup_environ
 from ..modelcraft import ModelCraft
 
 
-def main(argument_list=None):
+def main(args=None):
     setup_environ()
-    if argument_list is None:
-        argument_list = sys.argv[1:]
-    ModelCraft(argument_list).run()
+    ModelCraft(args).run()
 
 
 if __name__ == "__main__":

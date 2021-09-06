@@ -20,11 +20,11 @@ from .structure import ModelStats, write_mmcif
 
 
 class ModelCraft(Pipeline):
-    def __init__(self, argument_list):
+    def __init__(self, args):
+        self.args = parse(args)
         print(f"# ModelCraft {__version__}\n")
         print("Arguments:")
-        print(" %s\n" % " ".join(argument_list).replace(" --", "\n --"))
-        self.args = parse(argument_list)
+        print(" %s\n" % " ".join(args))
         super().__init__(keep_jobs=self.args.keep_jobs, keep_logs=self.args.keep_logs)
         self.cycle = 0
         self.current_structure: gemmi.Structure = self.args.model

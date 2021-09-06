@@ -4,41 +4,46 @@ import os
 import gemmi
 import numpy
 import pandas
-from modelcraft import __version__
-from modelcraft.contents import AsuContents
-from modelcraft.jobs.freerflag import FreeRFlag
-from modelcraft.reflections import DataItem
-from modelcraft.structure import read_structure
+from . import __version__
+from .contents import AsuContents
+from .jobs.freerflag import FreeRFlag
+from .reflections import DataItem
+from .structure import read_structure
 
 
 _PARSER = argparse.ArgumentParser()
 _PARSER.add_argument("-v", "--version", action="version", version=__version__)
 
 _PARENT = argparse.ArgumentParser(add_help=False)
-_PARENT.add_argument("--contents", required=True)
-_PARENT.add_argument("--model")
-_PARENT.add_argument("--cycles", default=25, type=int)
-_PARENT.add_argument("--convergence-cycles", default=4, type=int)
-_PARENT.add_argument("--convergence-tolerance", default=0, type=float)
-_PARENT.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
-_PARENT.add_argument("--directory", default=".")
-_PARENT.add_argument("--keep-jobs", action="store_true")
-_PARENT.add_argument("--keep-logs", action="store_true")
+_GROUP = _PARENT.add_argument_group("required arguments (common)")
+_GROUP.add_argument("--contents", required=True)
+_GROUP = _PARENT.add_argument_group("optional arguments (common)")
+_GROUP.add_argument("--model")
+_GROUP.add_argument("--cycles", default=25, type=int)
+_GROUP.add_argument("--convergence-cycles", default=4, type=int)
+_GROUP.add_argument("--convergence-tolerance", default=0, type=float)
+_GROUP.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
+_GROUP.add_argument("--directory", default=".")
+_GROUP.add_argument("--keep-jobs", action="store_true")
+_GROUP.add_argument("--keep-logs", action="store_true")
 
-_SUB_PARSERS = _PARSER.add_subparsers(title="mode", required=True)
+_SUB_PARSERS = _PARSER.add_subparsers(dest="mode", required=True)
 
 _XRAY = _SUB_PARSERS.add_parser("xray", parents=[_PARENT])
-_XRAY.add_argument("--data", required=True)
-_XRAY.add_argument("--observations")
-_XRAY.add_argument("--freerflag")
-_XRAY.add_argument("--phases")
-_XRAY.add_argument("--unbiased", action="store_true")
-_XRAY.add_argument("--twinned", action="store_true")
-_XRAY.add_argument("--basic", action="store_true")
+_GROUP = _XRAY.add_argument_group("required arguments (xray)")
+_GROUP.add_argument("--data", required=True)
+_GROUP = _XRAY.add_argument_group("optional arguments (xray)")
+_GROUP.add_argument("--observations")
+_GROUP.add_argument("--freerflag")
+_GROUP.add_argument("--phases")
+_GROUP.add_argument("--unbiased", action="store_true")
+_GROUP.add_argument("--twinned", action="store_true")
+_GROUP.add_argument("--basic", action="store_true")
 
 _EM = _SUB_PARSERS.add_parser("em", parents=[_PARENT])
-_EM.add_argument("--map", required=True)
-_EM.add_argument("--resolution", type=float, required=True)
+_GROUP = _EM.add_argument_group("required arguments (em)")
+_GROUP.add_argument("--map", required=True)
+_GROUP.add_argument("--resolution", type=float, required=True)
 
 
 def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
@@ -56,34 +61,14 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
 
 
 def _basic_check(args: argparse.Namespace):
-    if not args.xray and not args.em:
-        _PARSER.error("Either --xray or --em must be specified")
-    if args.xray and args.em:
-        _PARSER.error("Either --xray or --em must be specified (not both)")
-    if args.xray:
-        if args.data is None:
-            _PARSER.error("--data is required in X-ray mode")
-        if args.map is not None:
-            _PARSER.error("--map is not used in X-ray mode")
-        if args.resolution is not None:
-            _PARSER.error("--resolution is not used in X-ray mode")
-    else:
-        if args.map is None:
-            _PARSER.error("--map is required in EM mode")
-        if args.resolution is None:
-            _PARSER.error("--resolution is required in EM mode")
-        if args.data is not None:
-            _PARSER.error("--data is not used in EM mode")
-        if args.basic:
-            _PARSER.error("--basic is not used in EM mode")
-        if args.resolution <= 0:
-            _PARSER.error("--resolution must be greater than 0")
     if args.cycles < 1:
         _PARSER.error("--cycles must be greater than 0")
     if args.convergence_cycles < 1:
         _PARSER.error("--convergence-cycles must be greater than 0")
     if args.convergence_tolerance < 0:
         _PARSER.error("--convergence-tolerance cannot be negative")
+    if args.mode == "em" and args.resolution <= 0:
+        _PARSER.error("--resolution must be greater than 0")
 
 
 def _check_paths(args: argparse.Namespace):
