@@ -6,7 +6,6 @@ import numpy
 import pandas
 from . import __version__
 from .contents import AsuContents
-from .jobs.freerflag import FreeRFlag
 from .reflections import DataItem
 from .structure import read_structure
 
@@ -20,9 +19,7 @@ _GROUP.add_argument("--contents", required=True)
 _GROUP = _PARENT.add_argument_group("optional arguments (common)")
 _GROUP.add_argument("--model")
 _GROUP.add_argument("--cycles", default=25, type=int)
-_GROUP.add_argument("--convergence-cycles", default=4, type=int)
-_GROUP.add_argument("--convergence-tolerance", default=0, type=float)
-_GROUP.add_argument("--no-auto-stop", dest="auto_stop", action="store_false")
+_GROUP.add_argument("--auto-stop-cycles", default=4, type=int)
 _GROUP.add_argument("--directory", default=".")
 _GROUP.add_argument("--keep-jobs", action="store_true")
 _GROUP.add_argument("--keep-logs", action="store_true")
@@ -63,10 +60,6 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
 def _basic_check(args: argparse.Namespace):
     if args.cycles < 1:
         _PARSER.error("--cycles must be greater than 0")
-    if args.convergence_cycles < 1:
-        _PARSER.error("--convergence-cycles must be greater than 0")
-    if args.convergence_tolerance < 0:
-        _PARSER.error("--convergence-tolerance cannot be negative")
     if args.mode == "em" and args.resolution <= 0:
         _PARSER.error("--resolution must be greater than 0")
 
@@ -108,7 +101,6 @@ def _parse_data_item(
             for option in options:
                 message += f"\n--{name} {option.label()}"
             _PARSER.error(message)
-        print(f"Using {options[0].label()} for the {name}")
         return options[0]
     item = DataItem(mtz, label)
     if item.types not in accepted_types:
@@ -145,6 +137,6 @@ def _parse_map(args: argparse.Namespace):
     data_frame["FOM"] = 1.0
     mtz.set_data(data_frame.to_numpy())
     args.observations = DataItem(mtz, "F,SIGF")
-    args.freer = FreeRFlag(mtz).run().freer
     args.phases = DataItem(mtz, "PHI,FOM")
     args.fphi = DataItem(mtz, "F,PHI")
+    args.freer = None

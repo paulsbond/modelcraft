@@ -16,18 +16,18 @@ class Nautilus(Job):
         self,
         contents: AsuContents,
         fsigf: DataItem,
-        freer: DataItem,
         phases: DataItem,
         fphi: DataItem = None,
+        freer: DataItem = None,
         structure: gemmi.Structure = None,
         cycles: int = 3,
     ):
         super().__init__("cnautilus")
         self.contents = contents
         self.fsigf = fsigf
-        self.freer = freer
         self.phases = phases
         self.fphi = fphi
+        self.freer = freer
         self.structure = structure
         self.cycles = cycles
 
@@ -35,17 +35,18 @@ class Nautilus(Job):
         types = [PolymerType.RNA, PolymerType.DNA]
         self.contents.write_sequence_file(self._path("seqin.seq"), types)
         self._args += ["-seqin", "seqin.seq"]
-        data_items = [self.fsigf, self.freer, self.phases, self.fphi]
+        data_items = [self.fsigf, self.phases, self.fphi, self.freer]
         write_mtz(self._path("hklin.mtz"), data_items)
         self._args += ["-mtzin", "hklin.mtz"]
         self._args += ["-colin-fo", self.fsigf.label()]
-        self._args += ["-colin-free", self.freer.label()]
         if self.phases.types == "AAAA":
             self._args += ["-colin-hl", self.phases.label()]
         else:
             self._args += ["-colin-phifom", self.phases.label()]
         if self.fphi is not None:
             self._args += ["-colin-fc", self.fphi.label()]
+        if self.freer is not None:
+            self._args += ["-colin-free", self.freer.label()]
         if self.structure is not None:
             write_mmcif(self._path("xyzin.cif"), self.structure)
             self._args += ["-pdbin", "xyzin.cif"]

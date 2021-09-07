@@ -17,33 +17,33 @@ class Buccaneer(Job):
         self,
         contents: AsuContents,
         fsigf: DataItem,
-        freer: DataItem,
         phases: DataItem,
         fphi: DataItem = None,
+        freer: DataItem = None,
         input_structure: gemmi.Structure = None,
         mr_structure: gemmi.Structure = None,
         use_mr: bool = True,
         filter_mr: bool = True,
         seed_mr: bool = True,
         cycles: int = 2,
-        em: bool = False,
+        em_mode: bool = False,
     ):
         super().__init__("cbuccaneer")
         self.contents = contents
         self.fsigf = fsigf
-        self.freer = freer
         self.phases = phases
         self.fphi = fphi
+        self.freer = freer
         self.input_structure = input_structure
         self.mr_structure = mr_structure
         self.use_mr = use_mr
         self.filter_mr = filter_mr
         self.seed_mr = seed_mr
         self.cycles = cycles
-        self.em = em
+        self.em_mode = em_mode
 
     def _setup(self) -> None:
-        if self.em:
+        if self.em_mode:
             ref_dir = os.path.join(os.environ["CLIBD"], "reference_structures")
             ref_mtz = os.path.join(ref_dir, "reference-EMD-4116.mtz")
             ref_pdb = os.path.join(ref_dir, "reference-EMD-4116.pdb")
@@ -52,17 +52,18 @@ class Buccaneer(Job):
         types = [PolymerType.PROTEIN]
         self.contents.write_sequence_file(self._path("seqin.seq"), types)
         self._args += ["-seqin", "seqin.seq"]
-        data_items = [self.fsigf, self.freer, self.phases, self.fphi]
+        data_items = [self.fsigf, self.phases, self.fphi, self.freer]
         write_mtz(self._path("hklin.mtz"), data_items)
         self._args += ["-mtzin", "hklin.mtz"]
         self._args += ["-colin-fo", self.fsigf.label()]
-        self._args += ["-colin-free", self.freer.label()]
         if self.phases.types == "AAAA":
             self._args += ["-colin-hl", self.phases.label()]
         else:
             self._args += ["-colin-phifom", self.phases.label()]
         if self.fphi is not None:
             self._args += ["-colin-fc", self.fphi.label()]
+        if self.freer is not None:
+            self._args += ["-colin-free", self.freer.label()]
         if self.input_structure is not None:
             write_mmcif(self._path("xyzin.cif"), self.input_structure)
             self._args += ["-pdbin", "xyzin.cif"]

@@ -49,6 +49,8 @@ def fix_side_chains(imol, imap, imap_diff):
     model = Model(imol, imap, imap_diff)
     main_median = median([r.main_chain_correctness for r in model.residues])
     side_median = median([r.side_chain_correctness for r in model.residues if r.truncatable])
+    if side_median is None:
+        return
     main_threshold = main_median * 0.25
     side_threshold = side_median * 0.25
     for residue in model.residues:

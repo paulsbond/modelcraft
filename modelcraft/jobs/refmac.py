@@ -15,6 +15,7 @@ class RefmacResult:
     fphi_calc: DataItem
     rwork: float
     rfree: float
+    fsc: float
 
 
 class _Refmac(Job):
@@ -44,14 +45,16 @@ class _Refmac(Job):
         xml = ET.parse(self._path("xmlout.xml")).getroot()
         rworks = list(xml.iter("r_factor"))
         rfrees = list(xml.iter("r_free"))
+        fscs = list(xml.iter("fscAver"))
         return RefmacResult(
             structure=read_structure(self._path("xyzout.cif")),
             abcd=DataItem(mtz, "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB"),
             fphi_best=DataItem(mtz, "FWT,PHWT"),
             fphi_diff=DataItem(mtz, "DELFWT,PHDELWT"),
             fphi_calc=DataItem(mtz, "FC_ALL,PHIC_ALL"),
-            rwork=float(rworks[-1].text) * 100,
-            rfree=float(rfrees[-1].text) * 100,
+            rwork=float(rworks[-1].text),
+            rfree=float(rfrees[-1].text),
+            fsc=float(fscs[-1].text),
         )
 
 

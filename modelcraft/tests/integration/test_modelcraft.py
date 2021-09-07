@@ -26,7 +26,7 @@ def test_insulin_from_phases():
     write_mtz("data.mtz", [fsigf, freer, refmac.abcd])
     contents = insulin_contents()
     contents.write_json_file("contents.json")
-    args = []
+    args = ["xray"]
     args += ["--data", "data.mtz"]
     args += ["--contents", "contents.json"]
     args += ["--cycles", "1"]
@@ -48,7 +48,7 @@ def test_1rxf_from_model():
     xyzin = ccp4_path("examples", "data", "1rxf_randomise.pdb")
     contents = pdb1rxf_contents()
     contents.write_sequence_file("sequence.fasta")
-    args = []
+    args = ["xray"]
     args += ["--data", hklin]
     args += ["--observations", "I,SIGI"]
     args += ["--freerflag", "FreeR_flag"]

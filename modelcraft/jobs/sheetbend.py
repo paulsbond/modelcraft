@@ -13,21 +13,22 @@ class SheetbendResult:
 class Sheetbend(Job):
     def __init__(
         self,
-        fsigf: DataItem,
-        freer: DataItem,
         structure: gemmi.Structure,
+        fsigf: DataItem,
+        freer: DataItem = None,
     ):
         super().__init__("csheetbend")
+        self.structure = structure
         self.fsigf = fsigf
         self.freer = freer
-        self.structure = structure
 
     def _setup(self) -> None:
-        write_mtz(self._path("hklin.mtz"), [self.fsigf, self.freer])
         write_mmcif(self._path("xyzin.cif"), self.structure)
+        write_mtz(self._path("hklin.mtz"), [self.fsigf, self.freer])
         self._args += ["-mtzin", "hklin.mtz"]
         self._args += ["-colin-fo", self.fsigf.label()]
-        self._args += ["-colin-free", self.freer.label()]
+        if self.freer is not None:
+            self._args += ["-colin-free", self.freer.label()]
         self._args += ["-pdbin", "xyzin.cif"]
         self._args += ["-pdbout", "xyzout.cif"]
         self._args += ["-cycles", "12"]
