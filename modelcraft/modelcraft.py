@@ -23,7 +23,7 @@ class ModelCraft(Pipeline):
     def __init__(self, args):
         self.args = parse(args)
         print(f"# ModelCraft {__version__}")
-        super().__init__(keep_jobs=self.args.keep_jobs, keep_logs=self.args.keep_logs)
+        super().__init__(keep_jobs=self.args.keep_files, keep_logs=self.args.keep_logs)
         self.cycle = 0
         self.current_structure: gemmi.Structure = self.args.model
         self.current_phases: DataItem = self.args.phases

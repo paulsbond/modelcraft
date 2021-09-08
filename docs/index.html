@@ -20,9 +20,6 @@
     <nav>
         <ol>
             <li><a href="#getting-started">Getting Started</a></li>
-            <li><a href="#required-arguments">Required Arguments</a></li>
-            <li><a href="#optional-arguments">Optional Arguments</a></li>
-            <li><a href="#developer-arguments">Developer Arguments</a></li>
             <li><a href="#contents">ASU Contents Description</a></li>
             <li><a href="#links">Links</a></li>
             <li><a href="#citations">Citations</a></li>
@@ -53,123 +50,6 @@
             instead of starting from phases in the data file.
         </p>
         <pre><code>modelcraft --data data.mtz --contents contents.json --model model.cif</code></pre>
-    </section>
-
-    <section id="required-arguments">
-        <h2 class="heading">Required Arguments</h2>
-        <p>
-            <code>--data FILE</code><br>
-            Input reflection data in MTZ format.
-            This must contain observations and a free-R flag.
-            If a starting model has not been provided then it must also contain phases
-            as a phase and figure-of-merit or Hendrickson-Lattman coefficients.
-            An attempt will be made to automatically identify column labels
-            unless they are specified using the
-            <code>--observations</code>,
-            <code>--phases</code> and
-            <code>--freerflag</code> arguments.
-        </p>
-        <p>
-            <code>--contents FILE</code><br>
-            A description of the assymetric unit contents,
-            either as a sequence file (in FASTA or PIR format)
-            or a more detailed contents file in JSON format.
-            See the <a href="#contents">ASU Contents Description</a>
-            section of the documentation for more details.
-        </p>
-    </section>
-
-    <section id="optional-arguments">
-        <h2 class="heading">Optional Arguments</h2>
-        <p>
-            <code>--basic</code><br>
-            Run a basic pipeline using only Buccaneer and Refmac.
-            Parrot density modification is still used on the first cycle
-            and input models are still refined using Sheetbend and Refmac.
-        </p>
-        <p>
-            <code>--convergence-cycles N</code> default: <code>4</code><br>
-            Number of cycles without improvement
-            needed to stop the pipeline automatically.
-            <code>--convergence-tolerance</code> is used to determine whether
-            a cycle gave an improvement.
-        </p>
-        <p>
-            <code>--convergence-tolerance</code> default: <code>0.1</code><br>
-            R-free difference needed to mark a cycle as an improvement.
-            If the model at the end of a cycle
-            has an R-free that is this much better than the previous best R-free
-            then the cycle is marked as an improvement.
-            <code>--convergence-cycles</code> states
-            how many cycles without improvement are needed to stop automatically.
-        </p>
-        <p>
-            <code>--cycles N</code> default: <code>25</code><br>
-            Maximum number of pipeline cycles.
-        </p>
-        <p>
-            <code>--freerflag COL</code> e.g. <code>FreeR_flag</code><br>
-            Column label for the free-R flag.
-        </p>
-        <p>
-            <code>--help</code><br>
-            Show an automatically generated help message.
-        </p>
-        <p>
-            <code>--keep-jobs</code><br>
-            Keep the files from intermediate jobs instead of deleting them.
-            This can lead to large directory sizes.
-        </p>
-        <p>
-            <code>--keep-logs</code><br>
-            Keep log files if not using the full <code>--keep-jobs</code> argument.
-        </p>
-        <p>
-            <code>--model FILE</code><br>
-            Starting model, which will be refined using Sheetbend then Refmac.
-            If input phases are not specified the refined model phases will be used.
-        </p>
-        <p>
-            <code>--no-auto-stop</code><br>
-            Run the maximum number of cycles even if the model is not improving.
-        </p>
-        <p>
-            <code>--observations COLS</code> e.g. <code>FP,SIGFP</code><br>
-            Column labels for the observations
-            as either amplitudes or intensities
-            (both can be mean or anomalous).
-        </p>
-        <p>
-            <code>--phases COLS</code>
-            e.g. <code>PHIB,FOM</code> or <code>HLA,HLB,HLC,HLD</code><br>
-            Column labels for input phases as either
-            a phase and figure of merit or Hendrickson-Lattman coefficients.
-        </p>
-        <p>
-            <code>--twinned</code><br>
-            Turn on twinned refinement.
-            Only do this if you are sure your data are twinned.
-        </p>
-        <p>
-            <code>--unbiased</code><br>
-            Pass input phases to Refmac for MLHL refinement.
-        </p>
-    </section>
-
-    <section id="developer-arguments">
-        <h2 class="heading">Developer Arguments</h2>
-        <p>
-            <code>--buccaneer FILE</code><br>
-            Path to an alternative buccaneer executable.
-        </p>
-        <p>
-            <code>--parrot FILE</code><br>
-            Path to an alternative parrot executable.
-        </p>
-        <p>
-            <code>--sheetbend FILE</code><br>
-            Path to an alternative sheetbend executable.
-        </p>
     </section>
 
     <section id="contents">
