@@ -15,20 +15,24 @@
     <img src="img/modelcraft.png" alt="Logo" class="logo">
 
     <h1>ModelCraft</h1>
-    <h5>An automated model building pipeline for X-ray crystallography</h5>
+    <h5>
+        An automated model building pipeline<br>
+        for X-ray crystallography and cryo-EM
+    </h5>
 
     <nav>
         <ol>
-            <li><a href="#getting-started">Getting Started</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#usage">Usage</a></li>
             <li><a href="#contents">ASU Contents Description</a></li>
             <li><a href="#links">Links</a></li>
             <li><a href="#citations">Citations</a></li>
         </ol>
     </nav>
 
-    <section id="getting-started">
-        <h2 class="heading">Getting Started</h2>
-        <p>ModelCraft can be installed using pip, e.g.</p>
+    <section id="installation">
+        <h2 class="heading">Installation</h2>
+        <p>ModelCraft can be installed using pip for Python 3.7 or newer, e.g.</p>
         <pre><code>python3 -m pip install --user modelcraft</code></pre>
         <p>
             Refer to the
@@ -38,18 +42,36 @@
             The CCP4 environment needs to be set up
             so that programs such as Buccaneer and Refmac
             can be called from the command line.
-            The simplest execution requires only
-            a reflection data file in MTZ format
-            (with observations, a free-R flag and starting phases)
-            and a description of the asymmetric unit contents.
         </p>
-        <pre><code>modelcraft --data data.mtz --contents contents.json</code></pre>
+    </section>
+    <section id="usage">
+        <h2 class="heading">Usage</h2>
         <p>
-            Alternatively, a model can be provided (in PDB or mmCIF format),
+            The first argument must be either <code>xray</code> or <code>em</code>
+            for X-ray crystallography or cryo-EM.
+            The simplest execution for X-ray crystallography
+            requires only a description of the asymmetric unit contents
+            (see the next section)
+            and a reflection data file in MTZ format
+            (with observations, a free-R flag and starting phases).
+        </p>
+        <pre><code>modelcraft xray --contents contents.json --data data.mtz</code></pre>
+        <p>
+            Alternatively, a model can be provided (in PDB, mmCIF or mmJSON format),
             which will be refined and used as a starting point
             instead of starting from phases in the data file.
         </p>
-        <pre><code>modelcraft --data data.mtz --contents contents.json --model model.cif</code></pre>
+        <pre><code>modelcraft xray --contents contents.json --data data.mtz --model model.cif</code></pre>
+        <p>
+            For cryo-EM, a map and a resolution must be provided instead of a reflection data file.
+        </p>
+        <pre><code>modelcraft em --contents contents.json --map map.mrc --resolution 2.5</code></pre>
+        <p>
+            The command line documentation
+            has more detailed information on individual arguments.
+        </p>
+        <pre><code>modelcraft xray --help
+modelcraft em --help</code></pre>
     </section>
 
     <section id="contents">
