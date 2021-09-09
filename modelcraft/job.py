@@ -3,6 +3,7 @@ import os
 import distutils.spawn
 import shutil
 import subprocess
+import textwrap
 import time
 import pathlib
 from .pipeline import Pipeline
@@ -89,6 +90,21 @@ class Job(abc.ABC):
         else:
             script += "\n"
         return script
+
+    def _check_files_exist(self, *filenames: str) -> None:
+        for filename in filenames:
+            path = self._path(filename)
+            if not os.path.exists(path):
+                message = textwrap.dedent(
+                    f"""
+                    The following file does not exist:
+                    {path}
+                    This indicates that something went wrong with this job.
+                    Please check the log files for details:
+                    {self._path("stdout.txt")}
+                    {self._path("stderr.txt")}"""
+                )
+                raise FileNotFoundError(message)
 
     def _remove_files(self, keep_logs: bool = False) -> None:
         if keep_logs:

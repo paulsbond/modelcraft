@@ -22,6 +22,7 @@ class FreeRFlag(Job):
         self._stdin.append("END")
 
     def _result(self) -> FreeRFlagResult:
+        self._check_files_exist("hklout.mtz")
         mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
         freer = DataItem(mtz, "FreeR_flag")
         return FreeRFlagResult(freer=freer)

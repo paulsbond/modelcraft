@@ -56,4 +56,5 @@ class Nautilus(Job):
         self._args += ["-cif"]
 
     def _result(self) -> NautilusResult:
+        self._check_files_exist("xyzout.cif")
         return NautilusResult(structure=read_structure(self._path("xyzout.cif")))

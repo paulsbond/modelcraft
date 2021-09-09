@@ -53,6 +53,7 @@ class Parrot(Job):
         self._args += ["-mtzout", "hklout.mtz"]
 
     def _result(self) -> ParrotResult:
+        self._check_files_exist("hklout.mtz")
         mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
         return ParrotResult(
             abcd=DataItem(mtz, "parrot.ABCD"),

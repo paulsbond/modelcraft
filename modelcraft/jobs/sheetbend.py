@@ -35,4 +35,5 @@ class Sheetbend(Job):
         self._args += ["-resolution-by-cycle", "6,3"]
 
     def _result(self) -> SheetbendResult:
+        self._check_files_exist("xyzout.cif")
         return SheetbendResult(structure=read_structure(self._path("xyzout.cif")))

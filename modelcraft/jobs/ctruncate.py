@@ -26,6 +26,7 @@ class CTruncate(Job):
             self._args += ["-Imean"]
 
     def _result(self) -> CTruncateResult:
+        self._check_files_exist("hklout.mtz")
         result = CTruncateResult(fmean=None, fanom=None, imean=None, ianom=None)
         mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
         if self.observations.types == "KMKM":

@@ -24,6 +24,7 @@ class Comit(Job):
         self._args += ["-mtzout", "hklout.mtz"]
 
     def _result(self) -> ComitResult:
+        self._check_files_exist("hklout.mtz")
         mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
         return ComitResult(
             abcd=DataItem(mtz, "omit.ABCD"),

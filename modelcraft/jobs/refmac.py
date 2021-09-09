@@ -41,6 +41,7 @@ class _Refmac(Job):
         self._stdin.append("END")
 
     def _result(self) -> RefmacResult:
+        self._check_files_exist("xyzout.cif", "hklout.mtz", "xmlout.xml")
         mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
         xml = ET.parse(self._path("xmlout.xml")).getroot()
         rworks = list(xml.iter("r_factor"))

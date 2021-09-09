@@ -91,6 +91,5 @@ class Buccaneer(Job):
         self._args += ["-cif"]
 
     def _result(self) -> BuccaneerResult:
-        if not os.path.exists(self._path("xyzout.cif")):
-            raise RuntimeError("Buccaneer did not produce an output structure")
+        self._check_files_exist("xyzout.cif")
         return BuccaneerResult(structure=read_structure(self._path("xyzout.cif")))

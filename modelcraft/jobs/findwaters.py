@@ -29,6 +29,7 @@ class FindWaters(Job):
         self._args += ["--pdbout", "water.pdb"]
 
     def _result(self) -> FindWatersResult:
+        self._check_files_exist("water.pdb")
         water_residues = []
         water_model = read_structure(self._path("water.pdb"))[0]
         for water_chain in water_model:

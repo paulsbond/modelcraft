@@ -25,5 +25,6 @@ class Acedrg(Job):
             self._args += ["-i", self.smiles]
 
     def _result(self) -> AcedrgResult:
+        self._check_files_exist("output.cif")
         block = gemmi.cif.read(self._path("output.cif"))[-1]
         return AcedrgResult(chemcomp=gemmi.make_chemcomp_from_block(block))

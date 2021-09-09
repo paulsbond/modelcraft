@@ -55,6 +55,7 @@ class Coot(Job):
         self._args += ["--script", "script.py"]
 
     def _result(self) -> CootResult:
+        self._check_files_exist("xyzout.cif")
         return CootResult(structure=read_structure(self._path("xyzout.cif")))
 
 

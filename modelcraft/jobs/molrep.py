@@ -59,6 +59,7 @@ class Molrep(Job):
         self._stdin += [f"NMON {self.number_of_monomers}"]
 
     def _result(self) -> MolrepResult:
+        self._check_files_exist("molrep.pdb", "molrep.xml")
         xml = ET.parse(self._path("molrep.xml")).getroot()
         return MolrepResult(
             structure=read_structure(self._path("molrep.pdb")),
