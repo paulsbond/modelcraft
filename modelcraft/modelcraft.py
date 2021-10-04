@@ -101,7 +101,7 @@ class ModelCraft(Pipeline):
             self.parrot()
             if self.current_structure is not None:
                 self.findwaters(dummy=True)
-            remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
+                remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
             self.buccaneer()
             self.prune(chains_only=True)
             self.nautilus()
