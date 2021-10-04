@@ -194,15 +194,12 @@ def _smiles(code: str) -> str:
         if descriptor["type"] == "SMILES_CANONICAL":
             if descriptor["program"] == "OpenEye OEToolkits":
                 return descriptor["descriptor"]
-            else:
-                canonical = descriptor["descriptor"]
+            canonical = descriptor["descriptor"]
         elif descriptor["type"] == "SMILES":
             smiles = descriptor["descriptor"]
-    if canonical is not None:
-        return canonical
-    if smiles is None:
+    if canonical is None and smiles is None:
         raise RuntimeError("Could not get SMILES from RCSB for " + code)
-    return smiles
+    return canonical or smiles
 
 
 def main(argument_list=None):
