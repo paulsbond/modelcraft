@@ -16,7 +16,7 @@ from .jobs.refmac import RefmacXray, RefmacEm, RefmacResult
 from .jobs.sheetbend import Sheetbend
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
-from .structure import ModelStats, write_mmcif
+from .structure import ModelStats, remove_residues, write_mmcif
 
 
 class ModelCraft(Pipeline):
@@ -101,6 +101,7 @@ class ModelCraft(Pipeline):
             self.parrot()
             if self.current_structure is not None:
                 self.findwaters(dummy=True)
+            remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
             self.buccaneer()
             self.prune(chains_only=True)
             self.nautilus()

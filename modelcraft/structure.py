@@ -36,6 +36,15 @@ def contains_residue(structure: gemmi.Structure, name: str) -> bool:
     return False
 
 
+def remove_residues(structure: gemmi.Structure, names) -> None:
+    for model in structure:
+        for chain in model:
+            for i, residue in reversed(list(enumerate(chain))):
+                if residue.name in names:
+                    del chain[i]
+    structure.remove_empty_chains()
+
+
 def write_mmcif(path: str, structure: gemmi.Structure) -> None:
     structure.make_mmcif_document().write_file(path)
 
