@@ -158,7 +158,6 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
-        print("REFMAC")
         if self.args.mode == "xray":
             use_phases = self.args.unbiased and (
                 self.best_refmac is None or self.best_refmac.rwork > 35
@@ -171,18 +170,25 @@ class ModelCraft(Pipeline):
                 phases=self.args.phases if use_phases else None,
                 twinned=self.args.twinned,
             ).run(self)
+            message = f"REFMAC - R-free {result.rfree:.4f}"
         else:
             result = RefmacEm(
                 structure=structure,
                 fphi=self.args.fphi,
                 cycles=cycles,
             ).run(self)
+            message = f"REFMAC - FSC {result.fsc:.4f}"
         if (
             auto_accept
             or (self.args.mode == "xray" and result.rfree < self.last_refmac.rfree)
             or (self.args.mode == "em" and result.fsc > self.last_refmac.fsc)
         ):
+            if not auto_accept:
+                message += " (accepted)"
             self.update_current_from_refmac_result(result)
+        else:
+            message += " (rejected)"
+        print(message)
 
     def update_current_from_refmac_result(self, result: RefmacResult):
         self.current_structure = result.structure
