@@ -9,6 +9,17 @@ from ..contents import AsuContents, Carb, Ligand, Polymer, PolymerType
 from ..environ import setup_environ
 
 
+def _response_json(url, data=None):
+    print("Requesting:", url)
+    if data is None:
+        response = requests.get(url)
+    else:
+        response = requests.post(url, data=data)
+    if response.status_code != 200:
+        raise ConnectionError(response.text)
+    return response.json()
+
+
 def _add_smiles(contents: AsuContents) -> None:
     codes = contents.monomer_codes()
     codes = {code for code in codes if not _in_library(code)}
@@ -35,11 +46,8 @@ def _carb_codes(entry: str) -> dict:
     query = "pdb_id:" + entry
     filter_list = "carb_compound_id_entity"
     request_data = {"q": query, "fl": filter_list, "wt": "json"}
-    print("Requesting carbohydrate details for", entry)
-    response = requests.post(url, data=request_data)
-    if response.status_code != 200:
-        raise ConnectionError(response.text)
-    docs = response.json()["response"]["docs"]
+    json = _response_json(url, data=request_data)
+    docs = json["response"]["docs"]
     codes = {}
     for doc in docs:
         for line in doc["carb_compound_id_entity"]:
@@ -140,12 +148,14 @@ def _modifications_in_pdbe_molecule_dict(mol: dict) -> list:
 
 def _pdbe_molecules(entry: str) -> list:
     entry = entry.lower()
+    url = "https://www.ebi.ac.uk/pdbe/api/pdb/entry/status/" + entry
+    json = _response_json(url)
+    superceded_by = json[entry][0].get("superceded_by", [])
+    if len(superceded_by) > 0:
+        entry = superceded_by[-1]
     url = "https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/" + entry
-    print("Requesting PDBe molecule data for", entry)
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise ConnectionError(response.text)
-    mols = response.json()[entry]
+    json = _response_json(url)
+    mols = json[entry]
     if any(mol["molecule_type"] == "carbohydrate polymer" for mol in mols):
         codes = _carb_codes(entry)
         for mol in mols:
@@ -183,11 +193,8 @@ def _smiles(code: str) -> str:
         "}" % code
     )
     url = "https://data.rcsb.org/graphql?query=" + requests.utils.quote(query)
-    print("Requesting SMILES for", code)
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise RuntimeError("Could not get SMILES from RCSB for " + code)
-    descriptors = response.json()["data"]["chem_comp"]["pdbx_chem_comp_descriptor"]
+    json = _response_json(url)
+    descriptors = json["data"]["chem_comp"]["pdbx_chem_comp_descriptor"]
     canonical = None
     smiles = None
     for descriptor in descriptors:
