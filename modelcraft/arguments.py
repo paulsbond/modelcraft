@@ -201,7 +201,7 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
         _parse_data_items(args)
     if args.mode == "em":
         _parse_map(args)
-    if args.model:
+    if args.model is not None:
         args.model = read_structure(args.model)
     return args
 
