@@ -21,6 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - Command line arguments.
 - Ignoring file extensions when reading structures.
+- Input phases not overwritten by dummy atom phases in first cycle.
 - Cycles into a list in the JSON output.
 
 ### Removed
