@@ -15,6 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - FREERFLAG job.
 - Function to contract common column labels.
 - Function to remove residues by name.
+- Support for obsolete entries in modelcraft-contents
 
 ### Changed
 
