@@ -2,6 +2,7 @@ import functools
 import os
 import shutil
 import uuid
+import urllib.request
 import gemmi
 from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
 from modelcraft.jobs.refmac import RefmacXray
@@ -23,6 +24,11 @@ def in_temp_directory(func):
         shutil.rmtree(tmp_dir)
 
     return wrapper
+
+
+def pdbe_download(filename: str) -> None:
+    url = f"https://www.ebi.ac.uk/pdbe/entry-files/download/{filename}"
+    urllib.request.urlretrieve(url, filename)
 
 
 @functools.lru_cache(maxsize=None)

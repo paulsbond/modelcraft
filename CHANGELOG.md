@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Function to remove residues by name.
 - Support for obsolete entries in modelcraft-contents.
 - Decorator to run test functions in a temporary directory.
+- Function to download files from PDBe
 
 ### Changed
 
