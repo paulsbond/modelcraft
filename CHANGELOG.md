@@ -18,6 +18,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Support for obsolete entries in modelcraft-contents.
 - Decorator to run test functions in a temporary directory.
 - Function to download files from PDBe
+- Nautilus test
 
 ### Changed
 
