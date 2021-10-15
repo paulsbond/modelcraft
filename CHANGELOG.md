@@ -11,11 +11,12 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Command line documentation.
 - Printing of Refmac results to the log file.
 - Generic checks that output files exist after running jobs.
-- MOLREP job.
-- FREERFLAG job.
+- MOLREP job and tests.
+- FREERFLAG job and test.
 - Function to contract common column labels.
 - Function to remove residues by name.
-- Support for obsolete entries in modelcraft-contents
+- Support for obsolete entries in modelcraft-contents.
+- Decorator to run test functions in a temporary directory.
 
 ### Changed
 

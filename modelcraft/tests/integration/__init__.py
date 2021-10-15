@@ -1,5 +1,7 @@
 import functools
 import os
+import shutil
+import uuid
 import gemmi
 from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
 from modelcraft.jobs.refmac import RefmacXray
@@ -9,6 +11,18 @@ from modelcraft.structure import read_structure
 
 def ccp4_path(*paths: str) -> str:
     return os.path.join(os.environ["CCP4"], *paths)
+
+
+def in_temp_directory(func):
+    def wrapper():
+        tmp_dir = "tmp%s" % uuid.uuid4()
+        os.mkdir(tmp_dir)
+        os.chdir(tmp_dir)
+        func()
+        os.chdir("..")
+        shutil.rmtree(tmp_dir)
+
+    return wrapper
 
 
 @functools.lru_cache(maxsize=None)

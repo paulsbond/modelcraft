@@ -1,13 +1,11 @@
 import json
-import os
-import shutil
-import uuid
 import pytest
 from modelcraft.scripts.modelcraft import main
 from modelcraft.reflections import write_mtz
 from modelcraft.structure import contains_residue, read_structure
 from . import (
     ccp4_path,
+    in_temp_directory,
     insulin_contents,
     insulin_fsigf,
     insulin_freer,
@@ -16,10 +14,8 @@ from . import (
 )
 
 
+@in_temp_directory
 def test_insulin_from_phases():
-    tmp_dir = "tmp%s" % uuid.uuid4()
-    os.mkdir(tmp_dir)
-    os.chdir(tmp_dir)
     fsigf = insulin_fsigf()
     freer = insulin_freer()
     refmac = insulin_refmac()
@@ -36,14 +32,10 @@ def test_insulin_from_phases():
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
-    os.chdir("..")
-    shutil.rmtree(tmp_dir)
 
 
+@in_temp_directory
 def test_1rxf_from_model():
-    tmp_dir = "tmp%s" % uuid.uuid4()
-    os.mkdir(tmp_dir)
-    os.chdir(tmp_dir)
     hklin = ccp4_path("examples", "data", "1rxf.mtz")
     xyzin = ccp4_path("examples", "data", "1rxf_randomise.pdb")
     contents = pdb1rxf_contents()
@@ -63,5 +55,3 @@ def test_1rxf_from_model():
     assert report["termination_reason"] == "Normal"
     structure = read_structure("modelcraft.cif")
     assert contains_residue(structure, "FE")
-    os.chdir("..")
-    shutil.rmtree(tmp_dir)
