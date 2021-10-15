@@ -74,7 +74,7 @@ class ModelCraft(Pipeline):
         if (
             args.mode == "xray"
             and not args.basic
-            and self.best_refmac.rwork < 30
+            and self.best_refmac.rwork < 0.3
             and self.resolution < 2.5
         ):
             print("\n## Finalisations\n")
@@ -162,7 +162,7 @@ class ModelCraft(Pipeline):
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
         if self.args.mode == "xray":
             use_phases = self.args.unbiased and (
-                self.best_refmac is None or self.best_refmac.rwork > 35
+                self.best_refmac is None or self.best_refmac.rwork > 0.35
             )
             result = RefmacXray(
                 structure=structure,
