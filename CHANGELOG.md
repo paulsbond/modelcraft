@@ -19,6 +19,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Decorator to run test functions in a temporary directory.
 - Function to download files from PDBe
 - Nautilus test
+- Cryo-EM test
 
 ### Changed
 
