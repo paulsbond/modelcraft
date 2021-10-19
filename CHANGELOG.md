@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Generic checks that output files exist after running jobs.
 - MOLREP job and tests.
 - FREERFLAG job and test.
+- Coot RSR morph job and test.
 - Function to contract common column labels.
 - Function to remove residues by name.
 - Support for obsolete entries in modelcraft-contents.
