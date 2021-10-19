@@ -57,6 +57,8 @@ class ModelCraft(Pipeline):
             self.args.fsigf = result.fmean
         if args.mode == "xray" and args.model is not None:
             print("\n## Refining Input Model\n")
+            args.model.cell = args.fsigf.cell
+            args.model.spacegroup_hm = args.fsigf.spacegroup.hm
             self.sheetbend()
             args.model = self.current_structure
             if args.phases is not None:

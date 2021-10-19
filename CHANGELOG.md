@@ -28,6 +28,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Ignoring file extensions when reading structures.
 - Input phases not overwritten by dummy atom phases in first cycle.
 - Cycles into a list in the JSON output.
+- Setting model cell and spacegroup to the same as the MTZ file.
 
 ### Removed
 
