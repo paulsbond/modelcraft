@@ -21,6 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Function to download files from PDBe
 - Nautilus test
 - Cryo-EM test
+- Refmac jelly-body restraints option
 
 ### Changed
 

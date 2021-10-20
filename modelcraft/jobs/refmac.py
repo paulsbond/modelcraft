@@ -19,10 +19,11 @@ class RefmacResult:
 
 
 class _Refmac(Job):
-    def __init__(self, structure: gemmi.Structure, cycles: int):
+    def __init__(self, structure: gemmi.Structure, cycles: int, jelly_body: bool):
         super().__init__("refmac5")
         self.structure = structure
         self.cycles = cycles
+        self.jelly_body = jelly_body
 
     def _setup(self) -> None:
         write_mmcif(self._path("xyzin.cif"), self.structure)
@@ -33,6 +34,8 @@ class _Refmac(Job):
         self._args += ["XMLOUT", "./xmlout.xml"]
         self._stdin.append("NCYCLES %d" % self.cycles)
         self._stdin.append("WEIGHT AUTO")
+        if self.jelly_body:
+            self._stdin.append("RIDGE DISTANCE SIGMA 0.02")
         self._stdin.append("MAKE HYDR NO")
         self._stdin.append("MAKE NEWLIGAND NOEXIT")
         self._stdin.append("PHOUT")
@@ -68,8 +71,9 @@ class RefmacXray(_Refmac):
         phases: DataItem = None,
         cycles: int = 5,
         twinned: bool = False,
+        jelly_body: bool = False,
     ):
-        super().__init__(structure=structure, cycles=cycles)
+        super().__init__(structure=structure, cycles=cycles, jelly_body=jelly_body)
         self.fsigf = fsigf
         self.freer = freer
         self.phases = phases
@@ -101,8 +105,9 @@ class RefmacEm(_Refmac):
         structure: gemmi.Structure,
         fphi: DataItem,
         cycles: int = 5,
+        jelly_body: bool = False,
     ):
-        super().__init__(structure=structure, cycles=cycles)
+        super().__init__(structure=structure, cycles=cycles, jelly_body=jelly_body)
         self.fphi = fphi
 
     def _setup(self) -> None:
