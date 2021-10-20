@@ -22,6 +22,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Nautilus test
 - Cryo-EM test
 - Refmac jelly-body restraints option
+- Sheetbend regularise option
 
 ### Changed
 
