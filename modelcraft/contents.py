@@ -61,13 +61,11 @@ class Polymer:
     def __init__(
         self,
         sequence: str,
-        start: int = None,
         stoichiometry: int = None,
         polymer_type: PolymerType = None,
         modifications: list = None,
     ):
         self.sequence = sequence.upper()
-        self.start = start or 1
         self.stoichiometry = stoichiometry
         self.type = polymer_type or guess_sequence_type(self.sequence)
         self.modifications = modifications or []
@@ -85,7 +83,6 @@ class Polymer:
     def from_json(cls, component: dict) -> "Polymer":
         return cls(
             sequence=component["sequence"],
-            start=component.get("start"),
             stoichiometry=component.get("stoichiometry"),
             modifications=component.get("modifications"),
         )
@@ -100,7 +97,6 @@ class Polymer:
     def to_json(self) -> dict:
         return {
             "sequence": self.sequence,
-            "start": self.start,
             "stoichiometry": self.stoichiometry,
             "modifications": self.modifications,
         }
@@ -111,7 +107,7 @@ class Polymer:
             for mod in self.modifications:
                 source, code = mod.split("->")
                 if source[0].isdigit():
-                    index = int(source) - self.start
+                    index = int(source) - 1
                     codes[index] = code
                 else:
                     for index, code1 in enumerate(self.sequence):

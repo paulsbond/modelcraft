@@ -34,6 +34,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ### Removed
 
+- Polymer start parameter in the ASU contents description.
 - Support for custom Buccaneer, Parrot and Sheetbend paths.
 
 ### Fixed
