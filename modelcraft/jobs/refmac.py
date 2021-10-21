@@ -16,6 +16,7 @@ class RefmacResult:
     rwork: float
     rfree: float
     fsc: float
+    seconds: float
 
 
 class _Refmac(Job):
@@ -59,6 +60,7 @@ class _Refmac(Job):
             rwork=float(rworks[-1].text),
             rfree=float(rfrees[-1].text),
             fsc=float(fscs[-1].text),
+            seconds=self._seconds,
         )
 
 

@@ -6,6 +6,7 @@ from ..job import Job
 @dataclasses.dataclass
 class AcedrgResult:
     chemcomp: gemmi.ChemComp
+    seconds: float
 
 
 class Acedrg(Job):
@@ -27,4 +28,7 @@ class Acedrg(Job):
     def _result(self) -> AcedrgResult:
         self._check_files_exist("output.cif")
         block = gemmi.cif.read(self._path("output.cif"))[-1]
-        return AcedrgResult(chemcomp=gemmi.make_chemcomp_from_block(block))
+        return AcedrgResult(
+            chemcomp=gemmi.make_chemcomp_from_block(block),
+            seconds=self._seconds,
+        )

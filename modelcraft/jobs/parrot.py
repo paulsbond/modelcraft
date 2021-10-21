@@ -11,6 +11,7 @@ from ..structure import write_mmcif
 class ParrotResult:
     abcd: DataItem
     fphi: DataItem
+    seconds: float
 
 
 class Parrot(Job):
@@ -58,4 +59,5 @@ class Parrot(Job):
         return ParrotResult(
             abcd=DataItem(mtz, "parrot.ABCD"),
             fphi=DataItem(mtz, "parrot.F_phi"),
+            seconds=self._seconds,
         )

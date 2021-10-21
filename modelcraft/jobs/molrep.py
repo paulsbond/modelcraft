@@ -14,6 +14,7 @@ class MolrepResult:
     n_solution: int
     mr_score: float
     mr_zscore: float
+    seconds: float
 
 
 class Molrep(Job):
@@ -68,4 +69,5 @@ class Molrep(Job):
             n_solution=int(xml.find("n_solution").text),
             mr_score=float(xml.find("mr_score").text),
             mr_zscore=float(xml.find("mr_zscore").text),
+            seconds=self._seconds,
         )

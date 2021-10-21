@@ -10,6 +10,7 @@ class CTruncateResult:
     fanom: DataItem
     imean: DataItem
     ianom: DataItem
+    seconds: float
 
 
 class CTruncate(Job):
@@ -27,7 +28,13 @@ class CTruncate(Job):
 
     def _result(self) -> CTruncateResult:
         self._check_files_exist("hklout.mtz")
-        result = CTruncateResult(fmean=None, fanom=None, imean=None, ianom=None)
+        result = CTruncateResult(
+            fmean=None,
+            fanom=None,
+            imean=None,
+            ianom=None,
+            seconds=self._seconds,
+        )
         mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
         if self.observations.types == "KMKM":
             result.fmean = DataItem(mtz, "FMEAN,SIGFMEAN")

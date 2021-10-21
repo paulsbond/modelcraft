@@ -9,6 +9,7 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class NautilusResult:
     structure: gemmi.Structure
+    seconds: float
 
 
 class Nautilus(Job):
@@ -57,4 +58,7 @@ class Nautilus(Job):
 
     def _result(self) -> NautilusResult:
         self._check_files_exist("xyzout.cif")
-        return NautilusResult(structure=read_structure(self._path("xyzout.cif")))
+        return NautilusResult(
+            structure=read_structure(self._path("xyzout.cif")),
+            seconds=self._seconds,
+        )

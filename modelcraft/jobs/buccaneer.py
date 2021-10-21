@@ -10,6 +10,7 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class BuccaneerResult:
     structure: gemmi.Structure
+    seconds: float
 
 
 class Buccaneer(Job):
@@ -92,4 +93,7 @@ class Buccaneer(Job):
 
     def _result(self) -> BuccaneerResult:
         self._check_files_exist("xyzout.cif")
-        return BuccaneerResult(structure=read_structure(self._path("xyzout.cif")))
+        return BuccaneerResult(
+            structure=read_structure(self._path("xyzout.cif")),
+            seconds=self._seconds,
+        )

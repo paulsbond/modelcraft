@@ -9,6 +9,7 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class CootResult:
     structure: gemmi.Structure
+    seconds: float
 
 
 class Coot(Job):
@@ -50,7 +51,10 @@ class Coot(Job):
 
     def _result(self) -> CootResult:
         self._check_files_exist("xyzout.cif")
-        return CootResult(structure=read_structure(self._path("xyzout.cif")))
+        return CootResult(
+            structure=read_structure(self._path("xyzout.cif")),
+            seconds=self._seconds,
+        )
 
 
 class Prune(Coot):

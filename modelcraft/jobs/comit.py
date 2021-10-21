@@ -8,6 +8,7 @@ from ..reflections import DataItem, write_mtz
 class ComitResult:
     abcd: DataItem
     fphi: DataItem
+    seconds: float
 
 
 class Comit(Job):
@@ -29,4 +30,5 @@ class Comit(Job):
         return ComitResult(
             abcd=DataItem(mtz, "omit.ABCD"),
             fphi=DataItem(mtz, "omit.F_phi"),
+            seconds=self._seconds,
         )

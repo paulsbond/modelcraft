@@ -8,6 +8,7 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class FindWatersResult:
     structure: gemmi.Structure
+    seconds: float
 
 
 class FindWaters(Job):
@@ -43,4 +44,7 @@ class FindWaters(Job):
                 model.add_chain(chain)
             for residue in water_residues:
                 model[chain].add_residue(residue)
-        return FindWatersResult(structure=structure)
+        return FindWatersResult(
+            structure=structure,
+            seconds=self._seconds,
+        )
