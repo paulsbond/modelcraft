@@ -302,18 +302,17 @@ class ModelCraft(Pipeline):
     def update_model_cell(self):
         structure = self.args.model
         mtz = self.args.fsigf
-        if structure.spacegroup_hm != mtz.spacegroup.hm:
-            print("Input model and data space groups are not the same")
-            print("Model:", structure.spacegroup_hm)
-            print("Data: ", mtz.spacegroup.hm)
-            self.terminate("Model space group is different")
-        distortion = max_distortion(old_cell=structure.cell, new_cell=mtz.cell)
-        if distortion > 0.05:
-            print("Input model and data cell dimensions are too different")
-            print("Model:", " ".join(f"{x:7.2f}" for x in structure.cell.parameters))
-            print("Data: ", " ".join(f"{x:7.2f}" for x in mtz.cell.parameters))
+        if (
+            structure.spacegroup_hm != mtz.spacegroup.hm
+            or max_distortion(old_cell=structure.cell, new_cell=mtz.cell) > 0.05
+        ):
+            print("The model cell is incompatible with the data cell")
+            cell1 = " ".join(f"{x:7.2f}" for x in structure.cell.parameters)
+            cell2 = " ".join(f"{x:7.2f}" for x in mtz.cell.parameters)
+            print(f"Model: {cell1}  {structure.spacegroup_hm}")
+            print(f"Data:  {cell2}  {mtz.spacegroup.hm}")
             print("Molecular replacement should be used first")
-            self.terminate("Model cell dimensions are too different")
+            self.terminate("Model cell is incompatible")
         remove_scale(structure=structure)
         update_cell(structure=structure, new_cell=mtz.cell)
 
