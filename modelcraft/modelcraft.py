@@ -14,6 +14,7 @@ from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.refmac import RefmacXray, RefmacEm, RefmacResult
 from .jobs.sheetbend import Sheetbend
+from .cell import max_distortion, remove_scale, update_cell
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
 from .structure import ModelStats, remove_residues, write_mmcif
@@ -57,8 +58,7 @@ class ModelCraft(Pipeline):
             self.args.fsigf = result.fmean
         if args.mode == "xray" and args.model is not None:
             print("\n## Refining Input Model\n")
-            args.model.cell = args.fsigf.cell
-            args.model.spacegroup_hm = args.fsigf.spacegroup.hm
+            self.update_model_cell()
             self.sheetbend()
             args.model = self.current_structure
             if args.phases is not None:
@@ -298,6 +298,24 @@ class ModelCraft(Pipeline):
             print(f"R-free:   {result.rfree:6.4f}")
         if self.args.mode == "em":
             print(f"FSC:      {result.fsc:6.4f}")
+
+    def update_model_cell(self):
+        structure = self.args.model
+        mtz = self.args.fsigf
+        if structure.spacegroup_hm != mtz.spacegroup.hm:
+            print("Input model and data space groups are not the same")
+            print("Model:", structure.spacegroup_hm)
+            print("Data: ", mtz.spacegroup.hm)
+            self.terminate("Model space group is different")
+        distortion = max_distortion(old_cell=structure.cell, new_cell=mtz.cell)
+        if distortion > 0.05:
+            print("Input model and data cell dimensions are too different")
+            print("Model:", " ".join(f"{x:7.2f}" for x in structure.cell.parameters))
+            print("Data: ", " ".join(f"{x:7.2f}" for x in mtz.cell.parameters))
+            print("Molecular replacement should be used first")
+            self.terminate("Model cell dimensions are too different")
+        remove_scale(structure=structure)
+        update_cell(structure=structure, new_cell=mtz.cell)
 
 
 def _check_for_files_that_could_be_overwritten():
