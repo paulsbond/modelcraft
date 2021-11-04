@@ -2,7 +2,7 @@ import json
 import pytest
 from modelcraft.scripts.modelcraft import main
 from modelcraft.reflections import write_mtz
-from modelcraft.structure import contains_residue, read_structure
+from modelcraft.structure import contains_residue, read_structure, write_mmcif
 from . import (
     ccp4_path,
     in_temp_directory,
@@ -38,6 +38,9 @@ def test_insulin_from_phases():
 def test_1rxf_from_model():
     hklin = ccp4_path("examples", "data", "1rxf.mtz")
     xyzin = ccp4_path("examples", "data", "1rxf_randomise.pdb")
+    structure = read_structure(xyzin)
+    structure.spacegroup_hm = "R 3"
+    write_mmcif("model.cif", structure)
     contents = pdb1rxf_contents()
     contents.write_sequence_file("sequence.fasta")
     args = ["xray"]
@@ -45,7 +48,7 @@ def test_1rxf_from_model():
     args += ["--observations", "I,SIGI"]
     args += ["--freerflag", "FreeR_flag"]
     args += ["--contents", "sequence.fasta"]
-    args += ["--model", xyzin]
+    args += ["--model", "model.cif"]
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):
         main(args)
