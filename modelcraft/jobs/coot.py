@@ -9,53 +9,52 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class CootResult:
     structure: gemmi.Structure
+    seconds: float
 
 
 class Coot(Job):
-    def __init__(
-        self,
-        structure: gemmi.Structure,
-        fphi_best: DataItem,
-        fphi_diff: DataItem,
-        script: str,
-    ):
+    def __init__(self, script: str, structures: list, fphis: list):
         super().__init__("coot")
-        self.structure = structure
-        self.fphi_best = fphi_best
-        self.fphi_diff = fphi_diff
         self.script = script
+        self.structures = structures
+        self.fphis = fphis
 
     def _setup(self) -> None:
-        script_lines = [
-            "handle_read_draw_molecule('xyzin.cif')\n",
-            "make_and_draw_map('hklin.mtz',",
-            f"    '{self.fphi_best.label(0)}', '{self.fphi_best.label(1)}', '', 0, 0)\n",
-            "make_and_draw_map('hklin.mtz',",
-            f"    '{self.fphi_diff.label(0)}', '{self.fphi_diff.label(1)}', '', 0, 1)\n",
-            "turn_off_backup(0)\n",
-            "try:\n",
-        ]
+        script_lines = ["try:\n", "    turn_off_backup(0)\n"]
+        for i, structure in enumerate(self.structures):
+            write_mmcif(self._path(f"xyzin{i}.cif"), structure)
+            script_lines += [
+                f"    IMOL{i} = handle_read_draw_molecule('xyzin{i}.cif')\n"
+            ]
+        for i, fphi in enumerate(self.fphis):
+            write_mtz(self._path(f"hklin{i}.mtz"), [fphi])
+            script_lines += [
+                f"    IMAP{i} = make_and_draw_map('hklin{i}.mtz', "
+                f"'{fphi.label(0)}', '{fphi.label(1)}', '', 0, 0)\n"
+            ]
         for line in self.script.split("\n"):
-            script_lines.append("    %s\n" % line)
+            script_lines += [f"    {line}\n"]
         script_lines += [
             "    write_cif_file(0, 'xyzout.cif')\n",
+            "    coot_real_exit(0)\n",
             "except:\n",
             "    import traceback\n",
             "    traceback.print_exc()\n",
             "    coot_real_exit(1)\n",
-            "coot_real_exit(0)\n",
         ]
         with open(self._path("script.py"), "w") as script_file:
             script_file.writelines(script_lines)
-        write_mtz(self._path("hklin.mtz"), [self.fphi_best, self.fphi_diff])
-        write_mmcif(self._path("xyzin.cif"), self.structure)
         self._args += ["--no-graphics"]
         self._args += ["--no-guano"]
         self._args += ["--no-state-script"]
         self._args += ["--script", "script.py"]
 
     def _result(self) -> CootResult:
-        return CootResult(structure=read_structure(self._path("xyzout.cif")))
+        self._check_files_exist("xyzout.cif")
+        return CootResult(
+            structure=read_structure(self._path("xyzout.cif")),
+            seconds=self._seconds,
+        )
 
 
 class Prune(Coot):
@@ -70,18 +69,17 @@ class Prune(Coot):
         with open(path) as stream:
             script = stream.read()
         if chains_only:
-            script += "prune(0, 1, 2, residues=False, sidechains=False)\n"
+            script += "prune(IMOL0, IMAP0, IMAP1, residues=False, sidechains=False)\n"
         else:
-            script += "prune(0, 1, 2)\n"
-        super().__init__(structure, fphi_best, fphi_diff, script)
+            script += "prune(IMOL0, IMAP0, IMAP1)\n"
+        super().__init__(
+            script=script, structures=[structure], fphis=[fphi_best, fphi_diff]
+        )
 
 
 class FixSideChains(Coot):
     def __init__(
-        self,
-        structure: gemmi.Structure,
-        fphi_best: DataItem,
-        fphi_diff: DataItem,
+        self, structure: gemmi.Structure, fphi_best: DataItem, fphi_diff: DataItem
     ):
         path = os.path.join(os.path.dirname(__file__), "..", "coot", "prune.py")
         with open(path) as stream:
@@ -89,5 +87,16 @@ class FixSideChains(Coot):
         path = os.path.join(os.path.dirname(__file__), "..", "coot", "sidechains.py")
         with open(path) as stream:
             script += "\n\n%s\n" % stream.read()
-        script += "fix_side_chains(0, 1, 2)\n"
-        super().__init__(structure, fphi_best, fphi_diff, script)
+        script += "fix_side_chains(IMOL0, IMAP0, IMAP1)\n"
+        super().__init__(
+            script=script, structures=[structure], fphis=[fphi_best, fphi_diff]
+        )
+
+
+class RsrMorph(Coot):
+    def __init__(self, structure: gemmi.Structure, fphi_best: DataItem):
+        path = os.path.join(os.path.dirname(__file__), "..", "coot", "morph.py")
+        with open(path) as stream:
+            script = stream.read()
+        script += "rsr_morph(IMOL0, IMAP0)\n"
+        super().__init__(script=script, structures=[structure], fphis=[fphi_best])

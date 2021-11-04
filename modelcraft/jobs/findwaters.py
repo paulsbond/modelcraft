@@ -8,6 +8,7 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class FindWatersResult:
     structure: gemmi.Structure
+    seconds: float
 
 
 class FindWaters(Job):
@@ -29,6 +30,7 @@ class FindWaters(Job):
         self._args += ["--pdbout", "water.pdb"]
 
     def _result(self) -> FindWatersResult:
+        self._check_files_exist("water.pdb")
         water_residues = []
         water_model = read_structure(self._path("water.pdb"))[0]
         for water_chain in water_model:
@@ -42,4 +44,7 @@ class FindWaters(Job):
                 model.add_chain(chain)
             for residue in water_residues:
                 model[chain].add_residue(residue)
-        return FindWatersResult(structure=structure)
+        return FindWatersResult(
+            structure=structure,
+            seconds=self._seconds,
+        )

@@ -12,20 +12,19 @@ from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
-from .jobs.refmac import Refmac, RefmacResult
+from .jobs.refmac import RefmacXray, RefmacEm, RefmacResult
 from .jobs.sheetbend import Sheetbend
+from .cell import max_distortion, remove_scale, update_cell
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
-from .structure import ModelStats, write_mmcif
+from .structure import ModelStats, remove_residues, write_mmcif
 
 
 class ModelCraft(Pipeline):
-    def __init__(self, argument_list):
-        print(f"# ModelCraft {__version__}\n")
-        print("Arguments:")
-        print(" %s\n" % " ".join(argument_list).replace(" --", "\n --"))
-        self.args = parse(argument_list)
-        super().__init__(keep_jobs=self.args.keep_jobs, keep_logs=self.args.keep_logs)
+    def __init__(self, args):
+        self.args = parse(args)
+        print(f"# ModelCraft {__version__}")
+        super().__init__(keep_jobs=self.args.keep_files, keep_logs=self.args.keep_logs)
         self.cycle = 0
         self.current_structure: gemmi.Structure = self.args.model
         self.current_phases: DataItem = self.args.phases
@@ -38,7 +37,7 @@ class ModelCraft(Pipeline):
         self.start_time = None
         self.report = {
             "seconds": self.seconds,
-            "cycles": {},
+            "cycles": [],
         }
 
     @property
@@ -57,34 +56,43 @@ class ModelCraft(Pipeline):
             print("\n## Converting input observations to mean amplitudes\n")
             result = CTruncate(observations=self.args.observations).run(self)
             self.args.fsigf = result.fmean
-        if args.model is not None:
+        if args.mode == "xray" and args.model is not None:
             print("\n## Refining Input Model\n")
+            self.update_model_cell()
             self.sheetbend()
             args.model = self.current_structure
             if args.phases is not None:
                 self.current_phases = args.phases
-            _print_refmac_result(self.last_refmac)
+            self.print_refmac_result(self.last_refmac)
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
             self.process_cycle_output()
             if (
-                args.auto_stop
-                and self.cycles_without_improvement == args.convergence_cycles
+                self.cycles_without_improvement == args.auto_stop_cycles
+                and args.auto_stop_cycles > 0
             ):
                 break
-        if not args.basic and self.best_refmac.rwork < 30 and self.resolution < 2.5:
+        if (
+            args.mode == "xray"
+            and not args.basic
+            and self.best_refmac.rwork < 0.3
+            and self.resolution < 2.5
+        ):
             print("\n## Finalisations\n")
             self.cycle += 1
             self.update_current_from_refmac_result(self.best_refmac)
             self.fixsidechains()
             self.process_cycle_output()
         print("\n## Best Model:")
-        _print_refmac_result(self.best_refmac)
+        self.print_refmac_result(self.best_refmac)
         self.terminate(reason="Normal")
 
     def run_cycle(self):
-        if self.args.basic:
+        if self.args.mode == "em":
+            self.buccaneer()
+            self.nautilus()
+        elif self.args.basic:
             if self.cycle == 1:
                 self.parrot()
             self.buccaneer()
@@ -94,7 +102,9 @@ class ModelCraft(Pipeline):
                 self.prune()
             self.parrot()
             if self.current_structure is not None:
-                self.findwaters(dummy=True)
+                if self.cycle > 1 or self.args.phases is None:
+                    self.findwaters(dummy=True)
+                remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
             self.buccaneer()
             self.prune(chains_only=True)
             self.nautilus()
@@ -112,7 +122,6 @@ class ModelCraft(Pipeline):
             fsigf=self.args.fsigf,
             freer=self.args.freer,
             structure=self.current_structure,
-            executable=self.args.sheetbend,
         ).run(self)
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
@@ -123,19 +132,18 @@ class ModelCraft(Pipeline):
         result = Buccaneer(
             contents=self.args.contents,
             fsigf=self.args.fsigf,
-            freer=self.args.freer,
             phases=self.current_phases,
-            fphi=self.current_fphi_best,
+            fphi=self.current_fphi_best if self.args.mode == "xray" else None,
+            freer=self.args.freer if self.args.mode == "xray" else None,
             input_structure=self.current_structure,
             mr_structure=self.args.model,
             use_mr=True,
             filter_mr=True,
             seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
-            executable=self.args.buccaneer,
+            em_mode=self.args.mode == "em",
         ).run(self)
-        stats = ModelStats(result.structure)
-        if stats.residues == 0:
+        if len(result.structure) == 0:
             self.terminate(reason="Buccaneer did not build any residues")
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
@@ -146,28 +154,45 @@ class ModelCraft(Pipeline):
         result = Nautilus(
             contents=self.args.contents,
             fsigf=self.args.fsigf,
-            freer=self.args.freer,
             phases=self.current_phases,
-            fphi=self.current_fphi_best,
+            fphi=self.current_fphi_best if self.args.mode == "xray" else None,
+            freer=self.args.freer if self.args.mode == "xray" else None,
             structure=self.current_structure,
         ).run(self)
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
-        print("REFMAC")
-        use_phases = self.args.unbiased and (
-            self.best_refmac is None or self.best_refmac.rwork > 35
-        )
-        result = Refmac(
-            structure=structure,
-            fsigf=self.args.fsigf,
-            freer=self.args.freer,
-            cycles=cycles,
-            phases=self.args.phases if use_phases else None,
-            twinned=self.args.twinned,
-        ).run(self)
-        if auto_accept or result.rfree < self.last_refmac.rfree:
+        if self.args.mode == "xray":
+            use_phases = self.args.unbiased and (
+                self.best_refmac is None or self.best_refmac.rwork > 0.35
+            )
+            result = RefmacXray(
+                structure=structure,
+                fsigf=self.args.fsigf,
+                freer=self.args.freer,
+                cycles=cycles,
+                phases=self.args.phases if use_phases else None,
+                twinned=self.args.twinned,
+            ).run(self)
+            message = f"REFMAC - R-free {result.rfree:.4f}"
+        else:
+            result = RefmacEm(
+                structure=structure,
+                fphi=self.args.fphi,
+                cycles=cycles,
+            ).run(self)
+            message = f"REFMAC - FSC {result.fsc:.4f}"
+        if (
+            auto_accept
+            or (self.args.mode == "xray" and result.rfree < self.last_refmac.rfree)
+            or (self.args.mode == "em" and result.fsc > self.last_refmac.fsc)
+        ):
+            if not auto_accept:
+                message += " (accepted)"
             self.update_current_from_refmac_result(result)
+        else:
+            message += " (rejected)"
+        print(message)
 
     def update_current_from_refmac_result(self, result: RefmacResult):
         self.current_structure = result.structure
@@ -186,7 +211,6 @@ class ModelCraft(Pipeline):
             phases=self.current_phases,
             fphi=self.current_fphi_best,
             structure=self.current_structure,
-            executable=self.args.parrot,
         ).run(self)
         self.current_phases = result.abcd
         self.current_fphi_best = result.fphi
@@ -224,22 +248,24 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self):
-        _print_refmac_result(self.last_refmac)
+        self.print_refmac_result(self.last_refmac)
         model_stats = ModelStats(self.last_refmac.structure)
-        stats = {
-            "residues": model_stats.residues,
-            "waters": model_stats.waters,
-            "r_work": self.last_refmac.rwork,
-            "r_free": self.last_refmac.rfree,
-        }
-        self.report["cycles"][self.cycle] = stats
-        if self.best_refmac is not None:
-            diff = self.best_refmac.rfree - self.last_refmac.rfree
-            if diff >= self.args.convergence_tolerance:
-                self.cycles_without_improvement = 0
-            else:
-                self.cycles_without_improvement += 1
-        if self.best_refmac is None or self.last_refmac.rfree < self.best_refmac.rfree:
+        stats = {"cycle": self.cycle, "residues": model_stats.residues}
+        if self.args.mode == "xray":
+            stats["waters"] = model_stats.waters
+            stats["r_work"] = self.last_refmac.rwork
+            stats["r_free"] = self.last_refmac.rfree
+        if self.args.mode == "em":
+            stats["fsc"] = self.last_refmac.fsc
+        self.report["cycles"].append(stats)
+        if self.best_refmac is None:
+            improved = True
+        elif self.args.mode == "xray":
+            improved = self.last_refmac.rfree < self.best_refmac.rfree
+        elif self.args.mode == "em":
+            improved = self.last_refmac.fsc > self.best_refmac.fsc
+        if improved:
+            self.cycles_without_improvement = 0
             self.best_refmac = self.last_refmac
             write_mmcif("modelcraft.cif", self.last_refmac.structure)
             write_mtz(
@@ -254,6 +280,8 @@ class ModelCraft(Pipeline):
                 ],
             )
             self.report["final"] = stats
+        else:
+            self.cycles_without_improvement += 1
         self.write_report()
 
     def write_report(self):
@@ -261,14 +289,32 @@ class ModelCraft(Pipeline):
         with open("modelcraft.json", "w") as report_file:
             json.dump(self.report, report_file, indent=4)
 
+    def print_refmac_result(self, result: RefmacResult):
+        model_stats = ModelStats(result.structure)
+        print(f"\nResidues: {model_stats.residues:6d}")
+        if self.args.mode == "xray":
+            print(f"Waters:   {model_stats.waters:6d}")
+            print(f"R-work:   {result.rwork:6.4f}")
+            print(f"R-free:   {result.rfree:6.4f}")
+        if self.args.mode == "em":
+            print(f"FSC:      {result.fsc:6.4f}")
 
-def _print_refmac_result(result: RefmacResult):
-    model_stats = ModelStats(result.structure)
-    print("")
-    print(f"Residues: {model_stats.residues:5d}")
-    print(f"Waters:   {model_stats.waters:5d}")
-    print(f"R-work:   {result.rwork:5.1f}")
-    print(f"R-free:   {result.rfree:5.1f}")
+    def update_model_cell(self):
+        structure = self.args.model
+        mtz = self.args.fsigf
+        if (
+            structure.spacegroup_hm != mtz.spacegroup.hm
+            or max_distortion(old_cell=structure.cell, new_cell=mtz.cell) > 0.05
+        ):
+            print("The model cell is incompatible with the data cell")
+            cell1 = " ".join(f"{x:7.2f}" for x in structure.cell.parameters)
+            cell2 = " ".join(f"{x:7.2f}" for x in mtz.cell.parameters)
+            print(f"Model: {cell1}  {structure.spacegroup_hm}")
+            print(f"Data:  {cell2}  {mtz.spacegroup.hm}")
+            print("Molecular replacement should be used first")
+            self.terminate("Model cell is incompatible")
+        remove_scale(structure=structure)
+        update_cell(structure=structure, new_cell=mtz.cell)
 
 
 def _check_for_files_that_could_be_overwritten():

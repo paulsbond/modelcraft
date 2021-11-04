@@ -5,33 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="author" content="Paul Bond" />
 <meta name="description" content="Automated model building pipeline for X-ray crystallography" />
-
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,300,600" />
+<link rel="icon" href="img/modelcraft.png" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,700" />
 <link rel="stylesheet" href="css/normalize.min.css" />
-<link rel="stylesheet" href="css/skeleton.min.css" />
+<link rel="stylesheet" href="css/milligram.min.css" />
 <link rel="stylesheet" href="css/custom.css" />
 
 <div class="container">
     <img src="img/modelcraft.png" alt="Logo" class="logo">
 
     <h1>ModelCraft</h1>
-    <h5>An automated model building pipeline for X-ray crystallography</h5>
+    <h4>
+        An automated model building pipeline
+        for X-ray crystallography and cryo-EM
+    </h4>
 
     <nav>
         <ol>
-            <li><a href="#getting-started">Getting Started</a></li>
-            <li><a href="#required-arguments">Required Arguments</a></li>
-            <li><a href="#optional-arguments">Optional Arguments</a></li>
-            <li><a href="#developer-arguments">Developer Arguments</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#usage">Usage</a></li>
             <li><a href="#contents">ASU Contents Description</a></li>
             <li><a href="#links">Links</a></li>
             <li><a href="#citations">Citations</a></li>
         </ol>
     </nav>
 
-    <section id="getting-started">
-        <h2 class="heading">Getting Started</h2>
-        <p>ModelCraft can be installed using pip, e.g.</p>
+    <section id="installation">
+        <h2 class="heading">Installation</h2>
+        <p>ModelCraft can be installed using pip for Python 3.7 or newer, e.g.</p>
         <pre><code>python3 -m pip install --user modelcraft</code></pre>
         <p>
             Refer to the
@@ -41,136 +42,36 @@
             The CCP4 environment needs to be set up
             so that programs such as Buccaneer and Refmac
             can be called from the command line.
-            The simplest execution requires only
-            a reflection data file in MTZ format
-            (with observations, a free-R flag and starting phases)
-            and a description of the asymmetric unit contents.
         </p>
-        <pre><code>modelcraft --data data.mtz --contents contents.json</code></pre>
+    </section>
+    <section id="usage">
+        <h2 class="heading">Usage</h2>
         <p>
-            Alternatively, a model can be provided (in PDB or mmCIF format),
+            The first argument must be either <code>xray</code> or <code>em</code>
+            for X-ray crystallography or cryo-EM.
+            The simplest execution for X-ray crystallography
+            requires only a description of the asymmetric unit contents
+            (see the next section)
+            and a reflection data file in MTZ format
+            (with observations, a free-R flag and starting phases).
+        </p>
+        <pre><code>modelcraft xray --contents contents.json --data data.mtz</code></pre>
+        <p>
+            Alternatively, a model can be provided (in PDB, mmCIF or mmJSON format),
             which will be refined and used as a starting point
             instead of starting from phases in the data file.
         </p>
-        <pre><code>modelcraft --data data.mtz --contents contents.json --model model.cif</code></pre>
-    </section>
-
-    <section id="required-arguments">
-        <h2 class="heading">Required Arguments</h2>
+        <pre><code>modelcraft xray --contents contents.json --data data.mtz --model model.cif</code></pre>
         <p>
-            <code>--data FILE</code><br>
-            Input reflection data in MTZ format.
-            This must contain observations and a free-R flag.
-            If a starting model has not been provided then it must also contain phases
-            as a phase and figure-of-merit or Hendrickson-Lattman coefficients.
-            An attempt will be made to automatically identify column labels
-            unless they are specified using the
-            <code>--observations</code>,
-            <code>--phases</code> and
-            <code>--freerflag</code> arguments.
+            For cryo-EM, a map and a resolution must be provided instead of a reflection data file.
         </p>
+        <pre><code>modelcraft em --contents contents.json --map map.mrc --resolution 2.5</code></pre>
         <p>
-            <code>--contents FILE</code><br>
-            A description of the assymetric unit contents,
-            either as a sequence file (in FASTA or PIR format)
-            or a more detailed contents file in JSON format.
-            See the <a href="#contents">ASU Contents Description</a>
-            section of the documentation for more details.
+            The command line documentation
+            has more detailed information on individual arguments.
         </p>
-    </section>
-
-    <section id="optional-arguments">
-        <h2 class="heading">Optional Arguments</h2>
-        <p>
-            <code>--basic</code><br>
-            Run a basic pipeline using only Buccaneer and Refmac.
-            Parrot density modification is still used on the first cycle
-            and input models are still refined using Sheetbend and Refmac.
-        </p>
-        <p>
-            <code>--convergence-cycles N</code> default: <code>4</code><br>
-            Number of cycles without improvement
-            needed to stop the pipeline automatically.
-            <code>--convergence-tolerance</code> is used to determine whether
-            a cycle gave an improvement.
-        </p>
-        <p>
-            <code>--convergence-tolerance</code> default: <code>0.1</code><br>
-            R-free difference needed to mark a cycle as an improvement.
-            If the model at the end of a cycle
-            has an R-free that is this much better than the previous best R-free
-            then the cycle is marked as an improvement.
-            <code>--convergence-cycles</code> states
-            how many cycles without improvement are needed to stop automatically.
-        </p>
-        <p>
-            <code>--cycles N</code> default: <code>25</code><br>
-            Maximum number of pipeline cycles.
-        </p>
-        <p>
-            <code>--freerflag COL</code> e.g. <code>FreeR_flag</code><br>
-            Column label for the free-R flag.
-        </p>
-        <p>
-            <code>--help</code><br>
-            Show an automatically generated help message.
-        </p>
-        <p>
-            <code>--keep-jobs</code><br>
-            Keep the files from intermediate jobs instead of deleting them.
-            This can lead to large directory sizes.
-        </p>
-        <p>
-            <code>--keep-logs</code><br>
-            Keep log files if not using the full <code>--keep-jobs</code> argument.
-        </p>
-        <p>
-            <code>--model FILE</code><br>
-            Starting model.
-            If input phases are not specified this will be refined
-            using Sheetbend followed by Refmac.
-        </p>
-        <p>
-            <code>--no-auto-stop</code><br>
-            Run the maximum number of cycles even if the model is not improving.
-        </p>
-        <p>
-            <code>--observations COLS</code> e.g. <code>FP,SIGFP</code><br>
-            Column labels for the observations
-            as either amplitudes or intensities
-            (both can be mean or anomalous).
-        </p>
-        <p>
-            <code>--phases COLS</code>
-            e.g. <code>PHIB,FOM</code> or <code>HLA,HLB,HLC,HLD</code><br>
-            Column labels for input phases as either
-            a phase and figure of merit or Hendrickson-Lattman coefficients.
-        </p>
-        <p>
-            <code>--twinned</code><br>
-            Turn on twinned refinement.
-            Only do this if you are sure your data are twinned.
-        </p>
-        <p>
-            <code>--unbiased</code><br>
-            Pass input phases to Refmac for MLHL refinement.
-        </p>
-    </section>
-
-    <section id="developer-arguments">
-        <h2 class="heading">Developer Arguments</h2>
-        <p>
-            <code>--buccaneer FILE</code><br>
-            Path to an alternative buccaneer executable.
-        </p>
-        <p>
-            <code>--parrot FILE</code><br>
-            Path to an alternative parrot executable.
-        </p>
-        <p>
-            <code>--sheetbend FILE</code><br>
-            Path to an alternative sheetbend executable.
-        </p>
+        <pre><code>modelcraft xray --help
+modelcraft em --help</code></pre>
     </section>
 
     <section id="contents">
@@ -204,7 +105,6 @@
             "sequence": "LPGECSVNVIPKMNLDKAKFFSGTWYETHYLDMDPQATEKFCFSFAPRESGGTVMEALYHFNVDSKV",
             "stoichiometry": 1,
             "modifications": ["M->MSE"]
-            "start": 1,
         },
         {
             "sequence": "GGG"
@@ -214,8 +114,7 @@
         {
             "sequence": "GGUAACUGUUACAGUUACC",
             "stoichiometry": 2,
-            "modifications": ["5->GTP", "23->CCC"]
-            "start": 5,
+            "modifications": ["1->GTP", "19->CCC"]
         }
     ],
     "dnas": [],
@@ -257,11 +156,8 @@
             a list of <code>modifications</code>,
             e.g. <code>M->MSE</code> to specify that
             all methionine residues are actually selenomethionine
-            or <code>5->GTP</code> to specify that
-            the residue 5 is guanosine triphosphate.
-            The <code>start</code> property
-            changes the residue numbers in modifications,
-            e.g. residue 5 in the RNA chain is actually the first residue.
+            or <code>1->GTP</code> to specify that
+            the residue 1 is guanosine triphosphate.
         </p>
         <p>
             <b>Note:</b> ModelCraft does not yet build carbohydrates, ligands,

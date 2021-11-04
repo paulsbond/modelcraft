@@ -1,5 +1,6 @@
 from typing import Iterator, Iterable, List, Optional, Union
 import itertools
+import re
 import gemmi
 import numpy
 import pandas
@@ -50,6 +51,20 @@ def expand_label(label: str) -> str:
     return label
 
 
+def contract_label(label: str) -> str:
+    for name, pattern in (
+        ("ABCD", r"(.*)ABCD\.A,(.*)ABCD\.B,(.*)ABCD\.C,(.*)ABCD\.D"),
+        ("F_phi", r"(.*)F_phi\.F,(.*)F_phi\.phi"),
+        ("F_sigF", r"(.*)F_sigF\.F,(.*)F_sigF\.sigF"),
+        ("I_sigI", r"(.*)I_sigI\.I,(.*)I_sigI\.sigI"),
+        ("phi_fom", r"(.*)phi_fom\.phi,(.*)phi_fom\.fom"),
+    ):
+        match = re.match(pattern, label)
+        if match and len(set(match.groups())) == 1:
+            return match.group(1) + name
+    return label
+
+
 def column_refs(columns: str) -> List[ColumnRef]:
     columns = columns.replace("*", "")
     columns = columns.rstrip("/")
@@ -84,8 +99,8 @@ class DataItem(gemmi.Mtz):
             return ",".join(column.label for column in self.columns[3:])
         return self.columns[index + 3].label
 
-    def data_frame(self) -> pandas.DataFrame:
-        data = numpy.array(self, copy=False)
+    def data_frame(self, copy=False) -> pandas.DataFrame:
+        data = numpy.array(self, copy=copy)
         return pandas.DataFrame(data=data, columns=self.column_labels())
 
     @classmethod

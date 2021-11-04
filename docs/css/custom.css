@@ -1,16 +1,18 @@
 body {
+  font-size: 1.8rem;
   margin: 3em auto;
+}
+
+li > a {
+  padding: 0.5rem;
+  margin: 0.5rem;
 }
 
 .heading {
   text-transform: uppercase;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   letter-spacing: 0.2rem;
   font-weight: 600;
-}
-
-code {
-  overflow-x: auto;
 }
 
 .logo {

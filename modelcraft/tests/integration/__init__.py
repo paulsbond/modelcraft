@@ -1,14 +1,34 @@
 import functools
 import os
+import shutil
+import uuid
+import urllib.request
 import gemmi
 from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
-from modelcraft.jobs.refmac import Refmac
+from modelcraft.jobs.refmac import RefmacXray
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 
 
 def ccp4_path(*paths: str) -> str:
     return os.path.join(os.environ["CCP4"], *paths)
+
+
+def in_temp_directory(func):
+    def wrapper():
+        tmp_dir = "tmp%s" % uuid.uuid4()
+        os.mkdir(tmp_dir)
+        os.chdir(tmp_dir)
+        func()
+        os.chdir("..")
+        shutil.rmtree(tmp_dir)
+
+    return wrapper
+
+
+def pdbe_download(filename: str) -> None:
+    url = f"https://www.ebi.ac.uk/pdbe/entry-files/download/{filename}"
+    urllib.request.urlretrieve(url, filename)
 
 
 @functools.lru_cache(maxsize=None)
@@ -36,7 +56,7 @@ def insulin_refmac():
     fsigf = insulin_fsigf()
     freer = insulin_freer()
     structure = insulin_structure()
-    refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0)
+    refmac = RefmacXray(structure=structure, fsigf=fsigf, freer=freer, cycles=0)
     return refmac.run()
 
 

@@ -1,5 +1,5 @@
 import pytest
-from modelcraft.reflections import column_refs, expand_label
+from modelcraft.reflections import column_refs, expand_label, contract_label
 
 
 @pytest.mark.parametrize(
@@ -23,6 +23,22 @@ from modelcraft.reflections import column_refs, expand_label
 )
 def test_expand_label(label: str, expanded: str):
     assert expand_label(label) == expanded
+
+
+@pytest.mark.parametrize(
+    "label,contracted",
+    [
+        ("FreeR_flag", "FreeR_flag"),
+        ("prefix.FreeR_flag", "prefix.FreeR_flag"),
+        ("prefix.F_phi.F,prefix.F_phi.phi", "prefix.F_phi"),
+        ("prefix.F_sigF.F,prefix.F_sigF.sigF", "prefix.F_sigF"),
+        ("prefix.I_sigI.I,prefix.I_sigI.sigI", "prefix.I_sigI"),
+        ("prefix.phi_fom.phi,prefix.phi_fom.fom", "prefix.phi_fom"),
+        ("prefix.ABCD.A,prefix.ABCD.B,prefix.ABCD.C,prefix.ABCD.D", "prefix.ABCD"),
+    ],
+)
+def test_contract_label(label: str, contracted: str):
+    assert contract_label(label) == contracted
 
 
 @pytest.mark.parametrize(
