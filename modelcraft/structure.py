@@ -1,4 +1,5 @@
 import gemmi
+from .monlib import atom_ids, in_library
 
 
 def read_structure(path: str) -> gemmi.Structure:
@@ -42,6 +43,17 @@ def remove_residues(structure: gemmi.Structure, names) -> None:
             for i, residue in reversed(list(enumerate(chain))):
                 if residue.name in names:
                     del chain[i]
+    structure.remove_empty_chains()
+
+
+def remove_non_library_atoms(structure: gemmi.Structure) -> None:
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                if in_library(residue.name):
+                    for i, atom in reversed(list(enumerate(residue))):
+                        if atom.name not in atom_ids(residue.name):
+                            del residue[i]
     structure.remove_empty_chains()
 
 

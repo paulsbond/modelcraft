@@ -2,10 +2,10 @@ import collections
 import dataclasses
 import functools
 import math
-import os
 import re
 import gemmi
 from .contents import AsuContents, Polymer, PolymerType
+from .monlib import chemcomp
 
 
 def solvent_fraction(contents: AsuContents, mtz: gemmi.Mtz) -> float:
@@ -16,23 +16,13 @@ def solvent_fraction(contents: AsuContents, mtz: gemmi.Mtz) -> float:
 
 
 @functools.lru_cache(maxsize=None)
-def _library_chemcomp(code: str) -> gemmi.ChemComp:
-    code = code.upper()
-    path = os.path.join(os.environ["CLIBD_MON"], code[0].lower(), code + ".cif")
-    if not os.path.exists(path):
-        raise RuntimeError(f"Monomer {code} not found at {path}")
-    block = gemmi.cif.read(path)[-1]
-    return gemmi.make_chemcomp_from_block(block)
-
-
-@functools.lru_cache(maxsize=None)
 def _library_weight(code: str) -> float:
-    return sum(atom.el.weight for atom in _library_chemcomp(code).atoms)
+    return sum(atom.el.weight for atom in chemcomp(code).atoms)
 
 
 @functools.lru_cache(maxsize=None)
 def _library_volume(code: str) -> float:
-    return sum(18 for atom in _library_chemcomp(code).atoms if not atom.is_hydrogen())
+    return sum(18 for atom in chemcomp(code).atoms if not atom.is_hydrogen())
 
 
 def _polymer_weight(polymer: Polymer) -> float:
