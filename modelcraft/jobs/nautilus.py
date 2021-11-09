@@ -64,4 +64,3 @@ class Nautilus(Job):
             structure=structure,
             seconds=self._seconds,
         )
-    
