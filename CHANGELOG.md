@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ## [2.0.1] - Unreleased
 
+### Added
+
+- Cell module test.
+
 ### Fixed
 
 - Removing atoms not in the monomer library after Nautilus
