@@ -3,7 +3,7 @@ import gemmi
 from ..contents import AsuContents, PolymerType
 from ..job import Job
 from ..reflections import DataItem, write_mtz
-from ..structure import read_structure, write_mmcif
+from ..structure import read_structure, remove_non_library_atoms, write_mmcif
 
 
 @dataclasses.dataclass
@@ -58,7 +58,9 @@ class Nautilus(Job):
 
     def _result(self) -> NautilusResult:
         self._check_files_exist("xyzout.cif")
+        structure = read_structure(self._path("xyzout.cif"))
+        remove_non_library_atoms(structure)
         return NautilusResult(
-            structure=read_structure(self._path("xyzout.cif")),
+            structure=structure,
             seconds=self._seconds,
         )
