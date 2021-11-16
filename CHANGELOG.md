@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.0.2] - 2021-11-16
+
+### Fixed
+
+- Reading structures with gemmi versions between 0.4.8 and 0.5.0.
+
 ## [2.0.1] - 2021-11-15
 
 ### Added
@@ -11,8 +17,8 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ### Fixed
 
-- Removing atoms not in the monomer library after Nautilus
-- Updated PIP requirements
+- Removing atoms not in the monomer library after Nautilus.
+- Updated PIP requirements.
 
 ## [2.0.0] - 2021-11-04
 

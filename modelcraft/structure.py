@@ -6,9 +6,9 @@ def read_structure(path: str) -> gemmi.Structure:
     structure = None
     errors = {}
     for format_ in (
-        gemmi.CoorFormat.Pdb,
         gemmi.CoorFormat.Mmcif,
         gemmi.CoorFormat.Mmjson,
+        gemmi.CoorFormat.Pdb,
     ):
         try:
             structure = gemmi.read_structure(path, format=format_)
