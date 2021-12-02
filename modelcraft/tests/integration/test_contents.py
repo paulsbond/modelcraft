@@ -1,4 +1,4 @@
-from modelcraft.scripts.contents import _entry_contents
+from modelcraft.scripts.contents import _entry_contents, _smiles
 
 
 def _test_contents(entry: str, expected_json: list, selenomet: bool):
@@ -167,36 +167,6 @@ def test_1cag():
     assert codes == ppg * 4 + ppa + ppg * 5
 
 
-def test_6eem():
-    expected = {
-        "copies": 1,
-        "proteins": [
-            {
-                "sequence": "MGSLPTNNLESISLCSQNPLDPDEFRRQGHMIIDFLADYYKNVEKYPVRSQVEPGYLKKRLPESAPYNPESIETILEDVTNDIIPGLTHWQSPNYFAYFPSSGSIAGFLGEMLSTGFNVVGFNWMSSPAATELESIVMNWLGQMLTLPKSFLFSSDGSSGGGGVLQGTTCEAILCTLTAARDKMLNKIGRENINKLVVYASDQTHCALQKAAQIAGINPKNVRAIKTSKATNFGLSPNSLQSAILADIESGLVPLFLCATVGTTSSTAVDPIGPLCAVAKLYGIWVHIDAAYAGSACICPEFRHFIDGVEDADSFSLNAHKWFFTTLDCCCLWVKDSDSLVKALSTSPEYLKNKATESKQVIDYKDWQIALSRRFRSMKLWLVLRSYGVANLRTFLRSHVKMAKHFQGLIGMDNRFEIVVPRTFAMVCFRLKPTAIFKQKIVDNDYIEDQTNEVNVKLLESVNASGKIYMTHAVVGGVYMIRFAVGATLTEERHVTGAWKVVQEHTDAILGA",
-                "stoichiometry": 1,
-                "modifications": [],
-            },
-            {
-                "sequence": "MGSLPTNNLESISLCSQNPLDPDEFRRQGHMIIDFLADYYKNVEKYPVRSQVEPGYLKKRLPESAPYNPESIETILEDVTNDIIPGLTHWQSPNYFAYFPSSGSIAGFLGEMLSTGFNVVGFNWMSSPAATELESIVMNWLGQMLTLPKSFLFSSDGSSGGGGVLQGTTCEAILCTLTAARDKMLNKIGRENINKLVVYASDQTHCALQKAAQIAGINPKNVRAIKTSKATNFGLSPNSLQSAILADIESGLVPLFLCATVGTTSSTAVDPIGPLCAVAKLYGIWVHIDAAYAGSACICPEFRHFIDGVEDADSFSLNAHKWFFTTLDCCCLWVKDSDSLVKALSTSPEYLKNKATESKQVIDYKDWQIALSRRFRSMKLWLVLRSYGVANLRTFLRSHVKMAKHFQGLIGMDNRFEIVVPRTFAMVCFRLKPTAIFKQKIVDNDYIEDQTNEVNVKLLESVNASGKIYMTHAVVGGVYMIRFAVGATLTEERHVTGAWKVVQEHTDAILGA",
-                "stoichiometry": 1,
-                "modifications": ["321->LLP"],
-            },
-        ],
-        "rnas": [],
-        "dnas": [],
-        "carbs": [],
-        "ligands": [
-            {"code": "0PR", "stoichiometry": 1},
-            {"code": "TYR", "stoichiometry": 1},
-        ],
-        "buffers": ["SO4"],
-        "smiles": {
-            "0PR": "Cc1c(c(c(cn1)COP(=O)(O)O)CN[C@@H](Cc2ccc(cc2)O)C(=O)O)O",
-        },
-    }
-    _test_contents("6eem", expected, selenomet=False)
-
-
 def test_1iha():
     expected = {
         "copies": 2,
@@ -215,3 +185,7 @@ def test_1iha():
         "smiles": {},
     }
     _test_contents("1iha", expected, selenomet=False)
+
+
+def test_0pr_smiles():
+    assert _smiles("0PR") == "Cc1c(c(c(cn1)COP(=O)(O)O)CN[C@@H](Cc2ccc(cc2)O)C(=O)O)O"
