@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.0.4] - Unreleased
+
+### Removed
+
+- Check on identical space groups due to differences such as R 3 vs H 3
+
 ## [2.0.3] - 2021-12-02
 
 ### Fixed

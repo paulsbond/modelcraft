@@ -302,10 +302,7 @@ class ModelCraft(Pipeline):
     def update_model_cell(self):
         structure = self.args.model
         mtz = self.args.fsigf
-        if (
-            structure.spacegroup_hm != mtz.spacegroup.hm
-            or max_distortion(old_cell=structure.cell, new_cell=mtz.cell) > 0.05
-        ):
+        if max_distortion(old_cell=structure.cell, new_cell=mtz.cell) > 0.05:
             print("The model cell is incompatible with the data cell")
             cell1 = " ".join(f"{x:7.2f}" for x in structure.cell.parameters)
             cell2 = " ".join(f"{x:7.2f}" for x in mtz.cell.parameters)
