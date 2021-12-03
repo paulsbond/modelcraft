@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="modelcraft",
-    version="2.0.3",
+    version="2.0.4",
     author="Paul Bond",
     author_email="paul.bond@york.ac.uk",
     description="Automated model building pipeline for X-ray crystallography",
