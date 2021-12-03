@@ -302,11 +302,15 @@ class ModelCraft(Pipeline):
     def update_model_cell(self):
         structure = self.args.model
         mtz = self.args.fsigf
-        if max_distortion(old_cell=structure.cell, new_cell=mtz.cell) > 0.05:
+        structure_spacegroup = gemmi.SpaceGroup(structure.spacegroup_hm)
+        if (
+            structure_spacegroup.number != mtz.spacegroup.number
+            or max_distortion(old_cell=structure.cell, new_cell=mtz.cell) > 0.05
+        ):
             print("The model cell is incompatible with the data cell")
             cell1 = " ".join(f"{x:7.2f}" for x in structure.cell.parameters)
             cell2 = " ".join(f"{x:7.2f}" for x in mtz.cell.parameters)
-            print(f"Model: {cell1}  {structure.spacegroup_hm}")
+            print(f"Model: {cell1}  {structure_spacegroup.hm}")
             print(f"Data:  {cell2}  {mtz.spacegroup.hm}")
             print("Molecular replacement should be used first")
             self.terminate("Model cell is incompatible")
