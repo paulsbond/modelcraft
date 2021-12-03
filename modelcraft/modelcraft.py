@@ -302,7 +302,11 @@ class ModelCraft(Pipeline):
     def update_model_cell(self):
         structure = self.args.model
         mtz = self.args.fsigf
-        structure_spacegroup = gemmi.SpaceGroup(structure.spacegroup_hm)
+        structure_spacegroup = gemmi.find_spacegroup_by_name(
+            structure.spacegroup_hm,
+            alpha=structure.cell.alpha,
+            gamma=structure.cell.gamma,
+        )
         if (
             structure_spacegroup.number != mtz.spacegroup.number
             or max_distortion(old_cell=structure.cell, new_cell=mtz.cell) > 0.05
