@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ## [2.0.6] - Unreleased
 
+### Added
+
+- Phase match job and tests
+
 ### Fixed
 
 - Termination after Buccaneer builds no residues
