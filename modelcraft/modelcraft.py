@@ -143,7 +143,7 @@ class ModelCraft(Pipeline):
             cycles=3 if self.cycle == 1 else 2,
             em_mode=self.args.mode == "em",
         ).run(self)
-        if len(result.structure) == 0:
+        if result.residues_built == 0:
             self.terminate(reason="Buccaneer did not build any residues")
         self.refmac(result.structure, cycles=10, auto_accept=True)
 

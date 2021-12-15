@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.0.6] - Unreleased
+
+### Fixed
+
+- Termination after Buccaneer builds no residues
+
 ## [2.0.5] - 2021-12-03
 
 ### Added
