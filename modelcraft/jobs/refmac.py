@@ -16,6 +16,9 @@ class RefmacResult:
     rwork: float
     rfree: float
     fsc: float
+    data_completeness: float
+    resolution_low: float
+    resolution_high: float
     seconds: float
 
 
@@ -60,6 +63,9 @@ class _Refmac(Job):
             rwork=float(rworks[-1].text),
             rfree=float(rfrees[-1].text),
             fsc=float(fscs[-1].text),
+            data_completeness=float(xml.find("Overall_stats/data_completeness").text),
+            resolution_low=float(xml.find("Overall_stats/resolution_low").text),
+            resolution_high=float(xml.find("Overall_stats/resolution_high").text),
             seconds=self._seconds,
         )
 

@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 ### Added
 
 - Phase match job and tests
+- Refmac resolution and completeness
 
 ### Fixed
 
