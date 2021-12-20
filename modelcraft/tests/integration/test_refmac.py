@@ -22,5 +22,4 @@ def test_1rxf():
     assert 0 < refmac.rfree < 0.32
     assert 0.73 < refmac.fsc < 1
     assert refmac.data_completeness == 95.261
-    assert refmac.resolution_low == 53.106
     assert refmac.resolution_high == 1.501
