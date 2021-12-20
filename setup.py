@@ -26,7 +26,7 @@ setuptools.setup(
     ],
     python_requires="~=3.7",
     install_requires=[
-        "gemmi >=0.4.0",
+        "gemmi >=0.4.8",
         "numpy",
         "pandas",
         "requests",
