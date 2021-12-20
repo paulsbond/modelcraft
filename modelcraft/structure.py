@@ -58,7 +58,10 @@ def remove_non_library_atoms(structure: gemmi.Structure) -> None:
 
 
 def write_mmcif(path: str, structure: gemmi.Structure) -> None:
-    structure.make_mmcif_document().write_file(path)
+    groups = gemmi.MmcifOutputGroups(True)
+    groups.title_keywords = False
+    doc = structure.make_mmcif_document(groups)
+    doc.write_file(path)
 
 
 class ModelStats:
