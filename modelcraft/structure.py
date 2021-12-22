@@ -57,6 +57,15 @@ def remove_non_library_atoms(structure: gemmi.Structure) -> None:
     structure.remove_empty_chains()
 
 
+def remove_non_protein(structure: gemmi.Structure) -> None:
+    for model in structure:
+        for chain in model:
+            for subchain in chain.subchains():
+                if subchain.check_polymer_type() != gemmi.PolymerType.PeptideL:
+                    for i in reversed(range(len(subchain))):
+                        del subchain[i]
+
+
 def write_mmcif(path: str, structure: gemmi.Structure) -> None:
     groups = gemmi.MmcifOutputGroups(True)
     groups.title_keywords = False
