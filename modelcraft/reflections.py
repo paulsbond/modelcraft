@@ -131,18 +131,19 @@ def write_mtz(
     labels = labels or [None] * len(items)
     column_labels = ["H", "K", "L"]
     column_types = ["H", "H", "H"]
+    data = None
     for item, label in zip(items, labels):
         if item is not None:
+            if data is None:
+                data = item.data_frame()
+            else:
+                data = data.merge(item.data_frame(), on=["H", "K", "L"], how="outer")
             column_labels.extend(
                 (col.label for col in item.columns[3:])
                 if label is None
                 else label.split(",")
             )
             column_types.extend(col.type for col in item.columns[3:])
-    data = items[0].data_frame()
-    for item in items[1:]:
-        if item is not None:
-            data = data.merge(item.data_frame(), on=["H", "K", "L"], how="outer")
     mtz = gemmi.Mtz()
     mtz.cell = items[0].cell
     mtz.spacegroup = items[0].spacegroup
