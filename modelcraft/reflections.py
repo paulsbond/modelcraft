@@ -125,27 +125,30 @@ class DataItem(gemmi.Mtz):
                 yield cls(mtz, combination)
 
 
-def _combine_data_items(items: List[DataItem]) -> gemmi.Mtz:
+def write_mtz(
+    path: str, items: List[DataItem], labels: Optional[List[str]] = None
+) -> None:
+    labels = labels or [None] * len(items)
     column_labels = ["H", "K", "L"]
     column_types = ["H", "H", "H"]
-    for item in items:
-        for column in item.columns[3:]:
-            column_labels.append(column.label)
-            column_types.append(column.type)
-    data = items[0].data_frame()
-    for item in items[1:]:
-        data = data.merge(item.data_frame(), on=["H", "K", "L"], how="outer")
+    data = None
+    for item, label in zip(items, labels):
+        if item is not None:
+            if data is None:
+                data = item.data_frame()
+            else:
+                data = data.merge(item.data_frame(), on=["H", "K", "L"], how="outer")
+            column_labels.extend(
+                (col.label for col in item.columns[3:])
+                if label is None
+                else label.split(",")
+            )
+            column_types.extend(col.type for col in item.columns[3:])
     mtz = gemmi.Mtz()
     mtz.cell = items[0].cell
     mtz.spacegroup = items[0].spacegroup
     mtz.add_dataset("HKL_base")
-    for i, label in enumerate(column_labels):
-        mtz.add_column(label, column_types[i])
+    for label, type_ in zip(column_labels, column_types):
+        mtz.add_column(label, type_)
     mtz.set_data(data.to_numpy())
-    return mtz
-
-
-def write_mtz(path: str, items: List[DataItem]) -> None:
-    items = [item for item in items if item is not None]
-    mtz = _combine_data_items(items)
     mtz.write_to_file(path)

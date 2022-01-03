@@ -32,7 +32,7 @@ class ModelCraft(Pipeline):
         self.current_fphi_diff: DataItem = None
         self.current_fphi_calc: DataItem = None
         self.last_refmac: RefmacResult = None
-        self.best_refmac: RefmacResult = None
+        self.output_refmac: RefmacResult = None
         self.cycles_without_improvement = 0
         self.start_time = None
         self.report = {
@@ -76,16 +76,16 @@ class ModelCraft(Pipeline):
         if (
             args.mode == "xray"
             and not args.basic
-            and self.best_refmac.rwork < 0.3
+            and self.output_refmac.rwork < 0.3
             and self.resolution < 2.5
         ):
             print("\n## Finalisations\n")
             self.cycle += 1
-            self.update_current_from_refmac_result(self.best_refmac)
+            self.update_current_from_refmac_result(self.output_refmac)
             self.fixsidechains()
             self.process_cycle_output()
         print("\n## Best Model:")
-        self.print_refmac_result(self.best_refmac)
+        self.print_refmac_result(self.output_refmac)
         self.terminate(reason="Normal")
 
     def run_cycle(self):
@@ -143,7 +143,7 @@ class ModelCraft(Pipeline):
             cycles=3 if self.cycle == 1 else 2,
             em_mode=self.args.mode == "em",
         ).run(self)
-        if len(result.structure) == 0:
+        if result.residues_built == 0:
             self.terminate(reason="Buccaneer did not build any residues")
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
@@ -164,7 +164,7 @@ class ModelCraft(Pipeline):
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
         if self.args.mode == "xray":
             use_phases = self.args.unbiased and (
-                self.best_refmac is None or self.best_refmac.rwork > 0.35
+                self.output_refmac is None or self.output_refmac.rwork > 0.35
             )
             result = RefmacXray(
                 structure=structure,
@@ -182,17 +182,20 @@ class ModelCraft(Pipeline):
                 cycles=cycles,
             ).run(self)
             message = f"REFMAC - FSC {result.fsc:.4f}"
-        if (
-            auto_accept
-            or (self.args.mode == "xray" and result.rfree < self.last_refmac.rfree)
-            or (self.args.mode == "em" and result.fsc > self.last_refmac.fsc)
-        ):
+        if auto_accept or self._is_better(result, self.last_refmac):
             if not auto_accept:
                 message += " (accepted)"
             self.update_current_from_refmac_result(result)
         else:
             message += " (rejected)"
         print(message)
+
+    def _is_better(self, new_result: RefmacResult, old_result: RefmacResult):
+        return (
+            old_result is None
+            or (self.args.mode == "xray" and new_result.rfree < old_result.rfree)
+            or (self.args.mode == "em" and new_result.fsc > old_result.fsc)
+        )
 
     def update_current_from_refmac_result(self, result: RefmacResult):
         self.current_structure = result.structure
@@ -258,15 +261,9 @@ class ModelCraft(Pipeline):
         if self.args.mode == "em":
             stats["fsc"] = self.last_refmac.fsc
         self.report["cycles"].append(stats)
-        if self.best_refmac is None:
-            improved = True
-        elif self.args.mode == "xray":
-            improved = self.last_refmac.rfree < self.best_refmac.rfree
-        elif self.args.mode == "em":
-            improved = self.last_refmac.fsc > self.best_refmac.fsc
-        if improved:
+        if self._is_better(self.last_refmac, self.output_refmac):
             self.cycles_without_improvement = 0
-            self.best_refmac = self.last_refmac
+            self.output_refmac = self.last_refmac
             write_mmcif("modelcraft.cif", self.last_refmac.structure)
             write_mtz(
                 "modelcraft.mtz",

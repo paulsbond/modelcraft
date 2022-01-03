@@ -1,5 +1,6 @@
 import dataclasses
 import os
+import xml.etree.ElementTree as ET
 import gemmi
 from ..contents import AsuContents, PolymerType
 from ..job import Job
@@ -10,6 +11,14 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class BuccaneerResult:
     structure: gemmi.Structure
+    completeness_res: float
+    completeness_chn: float
+    chains_built: int
+    fragments_built: int
+    residues_built: int
+    residues_sequenced: int
+    residues_unique: int
+    longest_fragment: int
     seconds: float
 
 
@@ -89,11 +98,23 @@ class Buccaneer(Job):
         self._args += ["-anisotropy-correction"]
         self._args += ["-resolution", "2.0"]
         self._args += ["-pdbout", "xyzout.cif"]
+        self._args += ["-xmlout", "xmlout.xml"]
         self._args += ["-cif"]
 
     def _result(self) -> BuccaneerResult:
-        self._check_files_exist("xyzout.cif")
+        self._check_files_exist("xmlout.xml")
+        xml = ET.parse(self._path("xmlout.xml")).getroot()
+        residues = int(xml.find("Final/ResiduesBuilt").text)
+        structure = read_structure(self._path("xyzout.cif")) if residues > 0 else None
         return BuccaneerResult(
-            structure=read_structure(self._path("xyzout.cif")),
+            structure=structure,
+            completeness_res=float(xml.find("Final/CompletenessByResiduesBuilt").text),
+            completeness_chn=float(xml.find("Final/CompletenessByChainsBuilt").text),
+            chains_built=int(xml.find("Final/ChainsBuilt").text),
+            fragments_built=int(xml.find("Final/FragmentsBuilt").text),
+            residues_built=residues,
+            residues_sequenced=int(xml.find("Final/ResiduesSequenced").text),
+            residues_unique=int(xml.find("Final/ResiduesUnique").text),
+            longest_fragment=int(xml.find("Final/ResiduesLongestFragment").text),
             seconds=self._seconds,
         )

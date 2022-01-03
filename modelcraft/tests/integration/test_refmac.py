@@ -18,6 +18,8 @@ def test_1rxf():
     assert refmac.fphi_best.nreflections == mtz.nreflections
     assert refmac.fphi_diff.nreflections == mtz.nreflections
     assert refmac.fphi_calc.nreflections == mtz.nreflections
-    assert 0 < refmac.rwork < 1
-    assert 0 < refmac.rfree < 1
-    assert 0 < refmac.fsc < 1
+    assert 0 < refmac.rwork < 0.30
+    assert 0 < refmac.rfree < 0.32
+    assert 0.73 < refmac.fsc < 1
+    assert refmac.data_completeness == 95.261
+    assert refmac.resolution_high == 1.501
