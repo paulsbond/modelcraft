@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.1.1] - Unreleased
+
+### Fixed
+
+- Main module execution using -m
+
 ## [2.1.0] - 2022-01-03
 
 ### Added

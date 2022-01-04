@@ -1,6 +1,7 @@
 from typing import List, Optional
 import argparse
 import os
+import sys
 import gemmi
 import numpy
 import pandas
@@ -10,7 +11,10 @@ from .reflections import DataItem
 from .structure import read_structure
 
 
-_PARSER = argparse.ArgumentParser()
+_PROG = None
+if os.path.basename(sys.argv[0]) == "__main__.py":
+    _PROG = f"{sys.executable} -m modelcraft"
+_PARSER = argparse.ArgumentParser(prog=_PROG)
 _PARSER.add_argument("-v", "--version", action="version", version=__version__)
 
 _PARENT = argparse.ArgumentParser(add_help=False)
