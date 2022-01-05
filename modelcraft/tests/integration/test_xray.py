@@ -1,4 +1,5 @@
 import json
+import os
 import pytest
 from modelcraft.scripts.modelcraft import main
 from modelcraft.reflections import write_mtz
@@ -28,7 +29,7 @@ def test_insulin_from_phases():
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
         main(args)
-    with open("modelcraft.json") as report_file:
+    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
@@ -52,9 +53,9 @@ def test_1rxf_from_model():
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):
         main(args)
-    with open("modelcraft.json") as report_file:
+    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
-    structure = read_structure("modelcraft.cif")
+    structure = read_structure(os.path.join("modelcraft", "modelcraft.cif"))
     assert contains_residue(structure, "FE")

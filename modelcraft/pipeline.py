@@ -13,5 +13,8 @@ class Pipeline:
         self.keep_logs = keep_logs
         self.seconds = collections.defaultdict(float)
 
+    def path(self, *paths: str) -> str:
+        return os.path.join(self.directory, *paths)
+
     def next_job_directory(self, name: str) -> str:
-        return os.path.join(self.directory, f"job_{next(self._numbers)}_{name}")
+        return self.path(f"job_{next(self._numbers)}_{name}")

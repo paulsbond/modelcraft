@@ -73,12 +73,12 @@ _GROUP.add_argument(
 )
 _GROUP.add_argument(
     "--directory",
-    default=".",
+    default="modelcraft",
     metavar="X",
     help=(
         "The directory where files will be written. "
         "It will be created (along with any intermediate directories) "
-        "if it does not exist."
+        "and can not already exist."
     ),
 )
 _GROUP.add_argument(

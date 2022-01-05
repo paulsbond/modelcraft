@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import sys
 import time
 import gemmi
@@ -23,8 +22,11 @@ from .structure import ModelStats, remove_residues, write_mmcif
 class ModelCraft(Pipeline):
     def __init__(self, args):
         self.args = parse(args)
-        print(f"# ModelCraft {__version__}")
-        super().__init__(keep_jobs=self.args.keep_files, keep_logs=self.args.keep_logs)
+        super().__init__(
+            directory=self.args.directory,
+            keep_jobs=self.args.keep_files,
+            keep_logs=self.args.keep_logs,
+        )
         self.cycle = 0
         self.current_structure: gemmi.Structure = self.args.model
         self.current_phases: DataItem = self.args.phases
@@ -47,9 +49,8 @@ class ModelCraft(Pipeline):
     def run(self):
         self.start_time = time.time()
         args = self.args
-        os.makedirs(args.directory, exist_ok=True)
-        os.chdir(args.directory)
-        _check_for_files_that_could_be_overwritten()
+        print(f"# ModelCraft {__version__}")
+        os.makedirs(args.directory, exist_ok=False)
         if self.args.observations.types == "FQ":
             self.args.fsigf = self.args.observations
         else:
@@ -264,9 +265,9 @@ class ModelCraft(Pipeline):
         if self._is_better(self.last_refmac, self.output_refmac):
             self.cycles_without_improvement = 0
             self.output_refmac = self.last_refmac
-            write_mmcif("modelcraft.cif", self.last_refmac.structure)
+            write_mmcif(self.path("modelcraft.cif"), self.last_refmac.structure)
             write_mtz(
-                "modelcraft.mtz",
+                self.path("modelcraft.mtz"),
                 [
                     self.args.fsigf,
                     self.args.freer,
@@ -283,7 +284,7 @@ class ModelCraft(Pipeline):
 
     def write_report(self):
         self.seconds["total"] = time.time() - self.start_time
-        with open("modelcraft.json", "w") as report_file:
+        with open(self.path("modelcraft.json"), "w") as report_file:
             json.dump(self.report, report_file, indent=4)
 
     def print_refmac_result(self, result: RefmacResult):
@@ -317,21 +318,3 @@ class ModelCraft(Pipeline):
             self.terminate("Model cell is incompatible")
         remove_scale(structure=structure)
         update_cell(structure=structure, new_cell=mtz.cell)
-
-
-def _check_for_files_that_could_be_overwritten():
-    patterns = [
-        r"modelcraft\.cif",
-        r"modelcraft\.json",
-        r"modelcraft\.mtz",
-        r"job_[A-Za-z0-9]+_[A-Za-z0-9]{20}",
-        r"job_\d+_[A-Za-z0-9]+",
-    ]
-    paths = os.listdir(".")
-    paths = [p for p in paths if any(re.fullmatch(pattern, p) for pattern in patterns)]
-    if paths:
-        print("\nThe following files may be from a previous run:\n")
-        for path in paths:
-            print("-", path)
-        print("\nPlease run in a different directory or remove these files.")
-        sys.exit()
