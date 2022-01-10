@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ## [2.1.1] - Unreleased
 
+### Added
+
+- Argument tests
+
 ### Changed
 
 - Runs inside a new directory to remove the chance of overwriting files
