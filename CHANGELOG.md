@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ### Added
 
+- Function to calculate geometry RMSZ for residues in the monomer library
 - Argument tests
 
 ### Changed
