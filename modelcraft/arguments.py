@@ -271,6 +271,10 @@ def _parse_freerflag(args: argparse.Namespace, mtz: gemmi.Mtz):
         args.freer = freers[0]
     else:
         args.freer = _item_from_label(mtz, args.freerflag_label, ["I"])
+    values = list(args.freer.columns[-1])
+    percentage = values.count(0) / len(values) * 100
+    if percentage == 0 or percentage > 50:
+        _PARSER.error(f"{percentage}% of the reflections are in the free set (flag 0)")
 
 
 def _parse_phases(args: argparse.Namespace, mtz: gemmi.Mtz):

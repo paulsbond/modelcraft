@@ -1,5 +1,7 @@
+import subprocess
+import pytest
 from modelcraft.arguments import parse
-from . import ccp4_path
+from . import ccp4_path, in_temp_directory, pdbe_download
 
 
 def test1():
@@ -30,3 +32,15 @@ def test2():
     args += ["--twinned"]
     args += ["--basic"]
     parse(args)
+
+
+@in_temp_directory
+def test_freer_fraction_error():
+    pdbe_download("r102dsf.ent")
+    subprocess.call(["gemmi", "cif2mtz", "r102dsf.ent", "r102dsf.mtz"])
+    seqin = ccp4_path("examples", "data", "1mzr_1a80.pir")
+    args = ["xray"]
+    args += ["--contents", seqin]
+    args += ["--data", "r102dsf.mtz"]
+    with pytest.raises(SystemExit):
+        parse(args)

@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - Runs inside a new directory to remove the chance of overwriting files
 - Read multiple observation types (e.g. F,SIGF and I,SIGI) at once by default
+- Errors if 0% or >50% of the reflections are in the free set
 
 ### Fixed
 
