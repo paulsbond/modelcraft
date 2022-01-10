@@ -19,7 +19,11 @@ def in_temp_directory(func):
         tmp_dir = "tmp%s" % uuid.uuid4()
         os.mkdir(tmp_dir)
         os.chdir(tmp_dir)
-        func()
+        try:
+            func()
+        except Exception as exception:
+            os.chdir("..")
+            raise exception
         os.chdir("..")
         shutil.rmtree(tmp_dir)
 

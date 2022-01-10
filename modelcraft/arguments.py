@@ -1,6 +1,7 @@
 from typing import List, Optional
 import argparse
 import os
+import sys
 import gemmi
 import numpy
 import pandas
@@ -10,7 +11,10 @@ from .reflections import DataItem
 from .structure import read_structure
 
 
-_PARSER = argparse.ArgumentParser()
+_PROG = None
+if os.path.basename(sys.argv[0]) == "__main__.py":
+    _PROG = f"{sys.executable} -m modelcraft"
+_PARSER = argparse.ArgumentParser(prog=_PROG)
 _PARSER.add_argument("-v", "--version", action="version", version=__version__)
 
 _PARENT = argparse.ArgumentParser(add_help=False)
@@ -69,12 +73,12 @@ _GROUP.add_argument(
 )
 _GROUP.add_argument(
     "--directory",
-    default=".",
+    default="modelcraft",
     metavar="X",
     help=(
         "The directory where files will be written. "
         "It will be created (along with any intermediate directories) "
-        "if it does not exist."
+        "and can not already exist."
     ),
 )
 _GROUP.add_argument(
@@ -118,6 +122,7 @@ _GROUP = _XRAY.add_argument_group("optional arguments (xray)")
 _GROUP.add_argument(
     "--observations",
     metavar="X",
+    dest="observations_label",
     help=(
         "Comma-separated column labels for the observations (e.g. FP,SIGFP). "
         "If anomalous amplitudes or intensities are provided "
@@ -128,6 +133,7 @@ _GROUP.add_argument(
 _GROUP.add_argument(
     "--phases",
     metavar="X",
+    dest="phases_label",
     help=(
         "Comma-separated column labels for the starting phases "
         "as either a phase and figure of merit (e.g. PHIB,FOM) "
@@ -142,6 +148,7 @@ _GROUP.add_argument(
 _GROUP.add_argument(
     "--freerflag",
     metavar="X",
+    dest="freerflag_label",
     help=(
         "Column label for the free-R flag (e.g. FreeR_flag). "
         "This is not required if the MTZ only contains one free-R flag."
@@ -226,37 +233,87 @@ def _check_paths(args: argparse.Namespace):
 
 def _parse_data_items(args: argparse.Namespace):
     mtz = gemmi.read_mtz_file(args.data)
-    args.observations = _parse_data_item(
-        mtz, args.observations, ["FQ", "GLGL", "JQ", "KMKM"], "observations"
-    )
-    args.freer = _parse_data_item(mtz, args.freerflag, ["I"], "freerflag")
-    if args.phases is not None or args.model is None:
-        args.phases = _parse_data_item(mtz, args.phases, ["PW", "AAAA"], "phases")
+    _parse_observations(args, mtz)
+    _parse_freerflag(args, mtz)
+    _parse_phases(args, mtz)
 
 
-def _parse_data_item(
-    mtz: gemmi.Mtz, label: Optional[str], accepted_types: List[str], name: str
-) -> DataItem:
+def _parse_observations(args: argparse.Namespace, mtz: gemmi.Mtz):
+    label = args.observations_label
     if label is None:
-        options = []
-        for types in accepted_types:
-            items = DataItem.search(mtz, types, sequential=(types != "PW"))
-            options.extend(items)
+        fmeans = list(DataItem.search(mtz, "FQ"))
+        fanoms = list(DataItem.search(mtz, "GLGL"))
+        imeans = list(DataItem.search(mtz, "JQ"))
+        ianoms = list(DataItem.search(mtz, "KMKM"))
+        if any(len(options) > 1 for options in [fmeans, fanoms, imeans, ianoms]):
+            _multiple_options_error("observations", fmeans + fanoms + imeans + ianoms)
+        if len(fmeans + fanoms + imeans + ianoms) == 0:
+            _no_columns_error("observations", ["FQ", "GLGL", "JQ", "KMKM"])
+        args.fmean = fmeans[0] if fmeans else None
+        args.fanom = fanoms[0] if fanoms else None
+        args.imean = imeans[0] if imeans else None
+        args.ianom = ianoms[0] if ianoms else None
+    else:
+        item = _item_from_label(mtz, label, ["FQ", "GLGL", "JQ", "KMKM"])
+        args.fmean = item if item.types == "FQ" else None
+        args.fanom = item if item.types == "GLGL" else None
+        args.imean = item if item.types == "JQ" else None
+        args.ianom = item if item.types == "KMKM" else None
+
+
+def _parse_freerflag(args: argparse.Namespace, mtz: gemmi.Mtz):
+    if args.freerflag_label is None:
+        freers = list(DataItem.search(mtz, "I"))
+        if len(freers) == 0:
+            _no_columns_error("free-R flag", ["I"])
+        if len(freers) > 1:
+            _multiple_options_error("freerflag", freers)
+        args.freer = freers[0]
+    else:
+        args.freer = _item_from_label(mtz, args.freerflag_label, ["I"])
+    values = list(args.freer.columns[-1])
+    percentage = values.count(0) / len(values) * 100
+    if percentage == 0 or percentage > 50:
+        _PARSER.error(f"{percentage}% of the reflections are in the free set (flag 0)")
+
+
+def _parse_phases(args: argparse.Namespace, mtz: gemmi.Mtz):
+    if args.phases_label is not None:
+        args.phases = _item_from_label(mtz, args.phases_label, ["PW", "AAAA"])
+    elif args.model is None:
+        phifoms = list(DataItem.search(mtz, "PW", sequential=False))
+        abcds = list(DataItem.search(mtz, "AAAA"))
+        options = phifoms + abcds
         if len(options) == 0:
-            _PARSER.error(f"No suitable columns found for the {name}")
+            _no_columns_error("phases", ["PW", "AAAA"])
         if len(options) > 1:
-            message = f"Multiple possible columns found for the {name}:"
-            message += "\nPlease add one of the following options:"
-            for option in options:
-                message += f"\n--{name} {option.label()}"
-            _PARSER.error(message)
-        return options[0]
+            _multiple_options_error("phases", options)
+        args.phases = options[0]
+    else:
+        args.phases = None
+
+
+def _item_from_label(mtz: gemmi.Mtz, label: str, accepted_types: List[str]) -> DataItem:
     item = DataItem(mtz, label)
     if item.types not in accepted_types:
-        message = f"Column label '{label}' does not match type "
+        message = f"Column label '{item.label()}' does not match type "
         message += " or ".join(accepted_types)
         _PARSER.error(message)
     return item
+
+
+def _no_columns_error(name: str, types: List[str]):
+    message = f"No suitable columns found for the {name}"
+    message += f" (with types {' or '.join(types)})"
+    _PARSER.error(message)
+
+
+def _multiple_options_error(argument: str, options: List[DataItem]):
+    message = f"Multiple possible columns found for the {argument}:"
+    message += "\nPlease add one of the following options:"
+    for option in options:
+        message += f"\n--{argument} {option.label()}"
+    _PARSER.error(message)
 
 
 def _parse_map(args: argparse.Namespace):
@@ -285,7 +342,7 @@ def _parse_map(args: argparse.Namespace):
     mtz.add_column("FOM", "W")
     data_frame["FOM"] = 1.0
     mtz.set_data(data_frame.to_numpy())
-    args.observations = DataItem(mtz, "F,SIGF")
+    args.fmean = DataItem(mtz, "F,SIGF")
     args.phases = DataItem(mtz, "PHI,FOM")
     args.fphi = DataItem(mtz, "F,PHI")
     args.freer = None

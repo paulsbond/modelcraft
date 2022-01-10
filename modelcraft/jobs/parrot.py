@@ -33,17 +33,19 @@ class Parrot(Job):
         self.structure = structure
 
     def _setup(self) -> None:
-        data_items = [self.fsigf, self.freer, self.phases, self.fphi]
-        write_mtz(self._path("hklin.mtz"), data_items)
         self._args += ["-mtzin", "hklin.mtz"]
-        self._args += ["-colin-fo", self.fsigf.label()]
-        self._args += ["-colin-free", self.freer.label()]
-        if self.phases.types == "AAAA":
-            self._args += ["-colin-hl", self.phases.label()]
-        else:
-            self._args += ["-colin-phifom", self.phases.label()]
+        self._args += ["-colin-fo", "F,SIGF"]
+        self._args += ["-colin-free", "FREE"]
+        phases_arg = "-colin-hl" if self.phases.types == "AAAA" else "-colin-phifom"
+        phases_label = "HLA,HLB,HLC,HLD" if self.phases.types == "AAAA" else "PHI,FOM"
+        self._args += [phases_arg, phases_label]
         if self.fphi is not None:
-            self._args += ["-colin-fc", self.fphi.label()]
+            self._args += ["-colin-fc", "FC,PHIC"]
+        write_mtz(
+            path=self._path("hklin.mtz"),
+            items=[self.fsigf, self.freer, self.phases, self.fphi],
+            labels=["F,SIGF", "FREE", phases_label, "FC,PHIC"],
+        )
         if self.structure is not None:
             write_mmcif(self._path("xyzin.cif"), self.structure)
             self._args += ["-pdbin-mr", "xyzin.cif"]

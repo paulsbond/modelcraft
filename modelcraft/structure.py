@@ -3,23 +3,7 @@ from .monlib import atom_ids, in_library
 
 
 def read_structure(path: str) -> gemmi.Structure:
-    structure = None
-    errors = {}
-    for format_ in (
-        gemmi.CoorFormat.Mmcif,
-        gemmi.CoorFormat.Mmjson,
-        gemmi.CoorFormat.Pdb,
-    ):
-        try:
-            structure = gemmi.read_structure(path, format=format_)
-            break
-        except (RuntimeError, ValueError) as error:
-            errors[format_] = error
-    if structure is None:
-        message = "Unable to read structure"
-        for format_, error in errors.items():
-            message += f"\nError for {format_}:\n{error}"
-        raise RuntimeError(message)
+    structure = gemmi.read_structure(path, format=gemmi.CoorFormat.Detect)
     structure.remove_empty_chains()
     structure.remove_hydrogens()
     # TODO: Currently altconfs appear in CIF auth_atom_id after sheetbend

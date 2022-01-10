@@ -1,4 +1,5 @@
 import json
+import os
 import urllib.request
 import pytest
 from modelcraft.scripts.modelcraft import main
@@ -21,7 +22,7 @@ def test_7dy0():
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
         main(args)
-    with open("modelcraft.json") as report_file:
+    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"

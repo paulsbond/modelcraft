@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.2.0] - Unreleased
+
+### Added
+
+- Function to calculate geometry RMSZ for residues in the monomer library
+- Argument tests
+
+### Changed
+
+- Runs inside a new directory to remove the chance of overwriting files
+- Read multiple observation types (e.g. F,SIGF and I,SIGI) at once by default
+- Errors if 0% or >50% of the reflections are in the free set
+
+### Fixed
+
+- Input phase labels for parrot and comit
+- Main module execution using -m
+
 ## [2.1.0] - 2022-01-03
 
 ### Added

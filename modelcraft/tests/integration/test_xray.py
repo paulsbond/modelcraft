@@ -1,4 +1,5 @@
 import json
+import os
 import pytest
 from modelcraft.scripts.modelcraft import main
 from modelcraft.reflections import write_mtz
@@ -28,7 +29,7 @@ def test_insulin_from_phases():
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
         main(args)
-    with open("modelcraft.json") as report_file:
+    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
@@ -38,9 +39,6 @@ def test_insulin_from_phases():
 def test_1rxf_from_model():
     hklin = ccp4_path("examples", "data", "1rxf.mtz")
     xyzin = ccp4_path("examples", "data", "1rxf_randomise.pdb")
-    structure = read_structure(xyzin)
-    structure.spacegroup_hm = "R 3"
-    write_mmcif("model.cif", structure)
     contents = pdb1rxf_contents()
     contents.write_sequence_file("sequence.fasta")
     args = ["xray"]
@@ -48,13 +46,13 @@ def test_1rxf_from_model():
     args += ["--observations", "I,SIGI"]
     args += ["--freerflag", "FreeR_flag"]
     args += ["--contents", "sequence.fasta"]
-    args += ["--model", "model.cif"]
+    args += ["--model", xyzin]
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):
         main(args)
-    with open("modelcraft.json") as report_file:
+    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
-    structure = read_structure("modelcraft.cif")
+    structure = read_structure(os.path.join("modelcraft", "modelcraft.cif"))
     assert contains_residue(structure, "FE")

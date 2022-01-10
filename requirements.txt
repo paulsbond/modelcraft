@@ -1,4 +1,4 @@
-gemmi >=0.4.8
+gemmi >=0.5.1
 numpy
 pandas
 requests
