@@ -44,27 +44,15 @@ class ModelCraft(Pipeline):
 
     @property
     def resolution(self):
-        return self.args.fsigf.resolution_high()
+        return self.args.fmean.resolution_high()
 
     def run(self):
         self.start_time = time.time()
         args = self.args
         print(f"# ModelCraft {__version__}")
         os.makedirs(args.directory, exist_ok=False)
-        if self.args.observations.types == "FQ":
-            self.args.fsigf = self.args.observations
-        else:
-            print("\n## Converting input observations to mean amplitudes\n")
-            result = CTruncate(observations=self.args.observations).run(self)
-            self.args.fsigf = result.fmean
-        if args.mode == "xray" and args.model is not None:
-            print("\n## Refining Input Model\n")
-            self.update_model_cell()
-            self.sheetbend()
-            args.model = self.current_structure
-            if args.phases is not None:
-                self.current_phases = args.phases
-            self.print_refmac_result(self.last_refmac)
+        self._convert_observations()
+        self._refine_input_model()
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
@@ -88,6 +76,27 @@ class ModelCraft(Pipeline):
         print("\n## Best Model:")
         self.print_refmac_result(self.output_refmac)
         self.terminate(reason="Normal")
+
+    def _convert_observations(self):
+        if self.args.fmean is None:
+            print("\n## Converting input observations to mean amplitudes\n")
+            observations = self.args.ianom or self.args.imean or self.args.fanom
+            ctruncate = CTruncate(observations=observations).run(self)
+            self.args.fmean = ctruncate.fmean
+            if self.args.fanom is None and ctruncate.fanom is not None:
+                self.args.fanom = ctruncate.fanom
+            if self.args.imean is None and ctruncate.imean is not None:
+                self.args.imean = ctruncate.imean
+
+    def _refine_input_model(self):
+        if self.args.mode == "xray" and self.args.model is not None:
+            print("\n## Refining Input Model\n")
+            self.update_model_cell()
+            self.sheetbend()
+            self.args.model = self.current_structure
+            if self.args.phases is not None:
+                self.current_phases = self.args.phases
+            self.print_refmac_result(self.last_refmac)
 
     def run_cycle(self):
         if self.args.mode == "em":
@@ -120,7 +129,7 @@ class ModelCraft(Pipeline):
     def sheetbend(self):
         print("Sheetbend")
         result = Sheetbend(
-            fsigf=self.args.fsigf,
+            fsigf=self.args.fmean,
             freer=self.args.freer,
             structure=self.current_structure,
         ).run(self)
@@ -132,7 +141,7 @@ class ModelCraft(Pipeline):
         print("Buccaneer")
         result = Buccaneer(
             contents=self.args.contents,
-            fsigf=self.args.fsigf,
+            fsigf=self.args.fmean,
             phases=self.current_phases,
             fphi=self.current_fphi_best if self.args.mode == "xray" else None,
             freer=self.args.freer if self.args.mode == "xray" else None,
@@ -154,7 +163,7 @@ class ModelCraft(Pipeline):
         print("Nautilus")
         result = Nautilus(
             contents=self.args.contents,
-            fsigf=self.args.fsigf,
+            fsigf=self.args.fmean,
             phases=self.current_phases,
             fphi=self.current_fphi_best if self.args.mode == "xray" else None,
             freer=self.args.freer if self.args.mode == "xray" else None,
@@ -169,7 +178,7 @@ class ModelCraft(Pipeline):
             )
             result = RefmacXray(
                 structure=structure,
-                fsigf=self.args.fsigf,
+                fsigf=self.args.fmean,
                 freer=self.args.freer,
                 cycles=cycles,
                 phases=self.args.phases if use_phases else None,
@@ -210,7 +219,7 @@ class ModelCraft(Pipeline):
         print("Parrot")
         result = Parrot(
             contents=self.args.contents,
-            fsigf=self.args.fsigf,
+            fsigf=self.args.fmean,
             freer=self.args.freer,
             phases=self.current_phases,
             fphi=self.current_fphi_best,
@@ -269,7 +278,7 @@ class ModelCraft(Pipeline):
             write_mtz(
                 self.path("modelcraft.mtz"),
                 [
-                    self.args.fsigf,
+                    self.args.fmean,
                     self.args.freer,
                     self.last_refmac.abcd,
                     self.last_refmac.fphi_best,
@@ -299,7 +308,7 @@ class ModelCraft(Pipeline):
 
     def update_model_cell(self):
         structure = self.args.model
-        mtz = self.args.fsigf
+        mtz = self.args.fmean
         structure_spacegroup = gemmi.find_spacegroup_by_name(
             structure.spacegroup_hm,
             alpha=structure.cell.alpha,

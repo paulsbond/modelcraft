@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 ### Changed
 
 - Runs inside a new directory to remove the chance of overwriting files
+- Read multiple observation types (e.g. F,SIGF and I,SIGI) at once by default
 
 ### Fixed
 
