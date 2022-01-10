@@ -18,10 +18,14 @@ class Comit(Job):
         self.fphi = fphi
 
     def _setup(self) -> None:
-        write_mtz(self._path("hklin.mtz"), [self.fsigf, self.fphi])
+        write_mtz(
+            path=self._path("hklin.mtz"),
+            items=[self.fsigf, self.fphi],
+            labels=["F,SIGF", "FC,PHIC"],
+        )
         self._args += ["-mtzin", "hklin.mtz"]
-        self._args += ["-colin-fo", self.fsigf.label()]
-        self._args += ["-colin-fc", self.fphi.label()]
+        self._args += ["-colin-fo", "F,SIGF"]
+        self._args += ["-colin-fc", "FC,PHIC"]
         self._args += ["-mtzout", "hklout.mtz"]
 
     def _result(self) -> ComitResult:

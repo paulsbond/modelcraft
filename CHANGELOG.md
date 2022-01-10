@@ -18,7 +18,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ### Fixed
 
-- Running with parrot input phase labels
+- Input phase labels for parrot and comit
 - Main module execution using -m
 
 ## [2.1.0] - 2022-01-03
