@@ -14,6 +14,14 @@ def ccp4_path(*paths: str) -> str:
     return os.path.join(os.environ["CCP4"], *paths)
 
 
+def i2_demo_path(*paths: str) -> str:
+    ccp4_7_dir = ccp4_path("share", "ccp4i2", "demo_data")
+    ccp4_8_dir = ccp4_path("lib", "python3.7", "site-packages", "ccp4i2", "demo_data")
+    if os.path.exists(ccp4_7_dir):
+        return os.path.join(ccp4_7_dir, *paths)
+    return os.path.join(ccp4_8_dir, *paths)
+
+
 def in_temp_directory(func):
     def wrapper():
         tmp_dir = "tmp%s" % uuid.uuid4()
