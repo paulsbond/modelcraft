@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 ### Fixed
 
 - CCP4i2 demo data path for Molrep tests in CCP4 8.0
+- Expected R-factors and FSC for CCP4 8.0 Refmac test
 
 ## [2.2.0] - 2022-01-10
 
