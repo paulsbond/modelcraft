@@ -3,11 +3,11 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
-## [2.2.3] - Unreleased
+## [2.2.3] - 2022-01-20
 
 ### Fixed
 
-- Executable paths for Windows batch files (i.e. acedrg and coot)
+- Executable paths for Windows batch files (e.g. acedrg and coot)
 
 ## [2.2.2] - 2022-01-20
 
