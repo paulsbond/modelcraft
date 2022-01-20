@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.2.2] - 2022-01-20
+
+### Fixed
+
+- Removed the dependency on CCP4i2 demo data from Molrep tests
+
 ## [2.2.1] - 2022-01-19
 
 ### Fixed
