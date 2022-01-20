@@ -1,18 +1,17 @@
 import abc
 import os
-import distutils.spawn
 import shutil
 import subprocess
 import textwrap
 import time
-import pathlib
 from .pipeline import Pipeline
 from .utils import random_id
 
 
 class Job(abc.ABC):
     def __init__(self, executable: str):
-        self._executable = executable
+        self._exe_name = executable
+        self._exe_path = shutil.which(executable)
         self._args = []
         self._stdin = []
         self._environ = {}
@@ -20,15 +19,12 @@ class Job(abc.ABC):
         self._seconds = None
 
     def run(self, pipeline: Pipeline = None):
-        exe_path = distutils.spawn.find_executable(self._executable)
-        if exe_path is None:
-            raise ValueError(f"Executable '{self._executable}' not found")
-        self._executable = os.path.abspath(exe_path)
-        name = pathlib.Path(self._executable).stem
+        if self._exe_path is None:
+            raise ValueError(f"Executable '{self._exe_name}' not found")
         if pipeline is None:
-            self._directory = f"job_{name}_{random_id(length=20)}"
+            self._directory = f"job_{self._exe_name}_{random_id(length=20)}"
         else:
-            self._directory = pipeline.next_job_directory(name)
+            self._directory = pipeline.next_job_directory(self._exe_name)
         os.makedirs(self._directory)
         self._setup()
         with open(self._path("script.sh"), "w") as stream:
@@ -41,7 +37,7 @@ class Job(abc.ABC):
         if pipeline is None:
             self._remove_files()
         else:
-            pipeline.seconds[self._executable] += self._seconds
+            pipeline.seconds[self._exe_path] += self._seconds
             if not pipeline.keep_jobs:
                 self._remove_files(keep_logs=pipeline.keep_logs)
         return result
@@ -61,7 +57,7 @@ class Job(abc.ABC):
         with open(self._path("stdout.txt"), "w") as out_stream:
             with open(self._path("stderr.txt"), "w") as err_stream:
                 process = subprocess.Popen(
-                    args=[self._executable] + self._args,
+                    args=[self._exe_path] + self._args,
                     stdin=subprocess.PIPE if self._stdin else None,
                     stdout=out_stream,
                     stderr=err_stream,
@@ -81,7 +77,7 @@ class Job(abc.ABC):
             for variable, value in self._environ.items():
                 script += f"export {variable}={value}\n"
             script += "\n"
-        script += self._executable
+        script += self._exe_path
         script += f" {' '.join(self._args)} \\\n> stdout.txt 2> stderr.txt"
         if self._stdin:
             script += " << EOF\n"
