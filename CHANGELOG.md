@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - Functions and classes available at the top package level
 
+### Fixed
+
+- Monomer library paths for windows reserved words
+
 ## [2.2.3] - 2022-01-20
 
 ### Fixed
