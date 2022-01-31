@@ -1,3 +1,5 @@
+__version__ = "2.3.0"
+
 from .cell import max_distortion as max_cell_distortion
 from .cell import remove_scale
 from .cell import update_cell
@@ -72,4 +74,3 @@ __all__ = [
     "write_mmcif",
     "write_mtz",
 ]
-__version__ = "2.3.0"
