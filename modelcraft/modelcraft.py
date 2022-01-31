@@ -127,13 +127,16 @@ class ModelCraft(Pipeline):
         sys.exit()
 
     def sheetbend(self):
-        print("Sheetbend")
-        result = Sheetbend(
-            fsigf=self.args.fmean,
-            freer=self.args.freer,
-            structure=self.current_structure,
-        ).run(self)
-        self.refmac(result.structure, cycles=10, auto_accept=True)
+        if self.args.disable_sheetbend:
+            self.refmac(self.current_structure, cycles=10, auto_accept=True)
+        else:
+            print("Sheetbend")
+            result = Sheetbend(
+                fsigf=self.args.fmean,
+                freer=self.args.freer,
+                structure=self.current_structure,
+            ).run(self)
+            self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
         if not self.args.contents.proteins:
@@ -216,6 +219,8 @@ class ModelCraft(Pipeline):
         self.last_refmac = result
 
     def parrot(self):
+        if self.args.disable_parrot:
+            return
         print("Parrot")
         result = Parrot(
             contents=self.args.contents,
@@ -229,7 +234,7 @@ class ModelCraft(Pipeline):
         self.current_fphi_best = result.fphi
 
     def prune(self, chains_only=False):
-        if not self.args.contents.proteins:
+        if self.args.disable_pruning or not self.args.contents.proteins:
             return
         print("Pruning chains" if chains_only else "Pruning model")
         result = Prune(
@@ -241,7 +246,7 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def fixsidechains(self):
-        if not self.args.contents.proteins:
+        if self.args.disable_side_chain_fixing or not self.args.contents.proteins:
             return
         print("Fixing side chains")
         result = FixSideChains(
@@ -252,6 +257,10 @@ class ModelCraft(Pipeline):
         self.refmac(result.structure, cycles=5, auto_accept=False)
 
     def findwaters(self, dummy=False):
+        if dummy and self.args.disable_dummy_atoms:
+            return
+        if not dummy and self.args.disable_waters:
+            return
         print("Adding dummy atoms" if dummy else "Adding waters")
         result = FindWaters(
             structure=self.current_structure,

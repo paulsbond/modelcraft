@@ -181,6 +181,36 @@ _GROUP.add_argument(
         "and starting models are still refined using Sheetbend and Refmac."
     ),
 )
+_GROUP.add_argument(
+    "--disable-sheetbend",
+    action="store_true",
+    help="Disable Sheetbend and only refine the input model with Refmac.",
+)
+_GROUP.add_argument(
+    "--disable-pruning",
+    action="store_true",
+    help="Disable both the residue and chain pruning steps.",
+)
+_GROUP.add_argument(
+    "--disable-parrot",
+    action="store_true",
+    help="Disable the Parrot density modification step.",
+)
+_GROUP.add_argument(
+    "--disable-dummy-atoms",
+    action="store_true",
+    help="Disable the addition of dummy atoms for phase improvement before Buccaneer.",
+)
+_GROUP.add_argument(
+    "--disable-waters",
+    action="store_true",
+    help="Disable the addition of waters at the end of each cycle.",
+)
+_GROUP.add_argument(
+    "--disable-side-chain-fixing",
+    action="store_true",
+    help="Disable the side-chain fixing step at the end of the pipeline.",
+)
 
 _EM = _SUB_PARSERS.add_parser("em", parents=[_PARENT], formatter_class=_FORMATTER)
 _GROUP = _EM.add_argument_group("required arguments (em)")
