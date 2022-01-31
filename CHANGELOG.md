@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.3.0] - Unreleased
+
+### Added
+
+- Functions and classes available at the top package level
+
 ## [2.2.3] - 2022-01-20
 
 ### Fixed
