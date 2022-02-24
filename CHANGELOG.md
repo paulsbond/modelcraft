@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - Command line arguments to disable individual steps
 - Functions and classes available at the top package level
+- Job information to the log and JSON file
 
 ### Fixed
 
