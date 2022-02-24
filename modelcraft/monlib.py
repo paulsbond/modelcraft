@@ -3,8 +3,19 @@ import os
 import gemmi
 
 
+@functools.lru_cache(maxsize=None)
+def _windows_reserved_words():
+    path = os.path.join(os.environ["CLIBD_MON"], "windows_reserved_words.txt")
+    with open(path) as stream:
+        return {line.strip() for line in stream}
+
+
+@functools.lru_cache(maxsize=None)
 def _path(code: str) -> str:
-    return os.path.join(os.environ["CLIBD_MON"], code[0].lower(), f"{code.upper()}.cif")
+    directory = os.path.join(os.environ["CLIBD_MON"], code[0].lower())
+    if code in _windows_reserved_words():
+        return os.path.join(directory, f"{code.upper()}_{code.upper()}.cif")
+    return os.path.join(directory, f"{code.upper()}.cif")
 
 
 @functools.lru_cache(maxsize=None)

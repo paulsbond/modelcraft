@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.3.0] - 2022-02-24
+
+### Added
+
+- Command line arguments to disable individual steps
+- Functions and classes available at the top package level
+- Job information to the log and JSON file
+- Residue and fragment metrics from Nautilus
+
+### Fixed
+
+- Monomer library paths for windows reserved words
+
 ## [2.2.3] - 2022-01-20
 
 ### Fixed

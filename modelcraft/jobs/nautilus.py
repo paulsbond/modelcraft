@@ -1,4 +1,5 @@
 import dataclasses
+import xml.etree.ElementTree as ET
 import gemmi
 from ..contents import AsuContents, PolymerType
 from ..job import Job
@@ -9,6 +10,10 @@ from ..structure import read_structure, remove_non_library_atoms, write_mmcif
 @dataclasses.dataclass
 class NautilusResult:
     structure: gemmi.Structure
+    fragments_built: int
+    residues_built: int
+    residues_sequenced: int
+    longest_fragment: int
     seconds: float
 
 
@@ -55,12 +60,18 @@ class Nautilus(Job):
         self._args += ["-anisotropy-correction"]
         self._args += ["-pdbout", "xyzout.cif"]
         self._args += ["-cif"]
+        self._args += ["-xmlout", "xmlout.xml"]
 
     def _result(self) -> NautilusResult:
-        self._check_files_exist("xyzout.cif")
+        self._check_files_exist("xmlout.xml", "xyzout.cif")
+        xml = ET.parse(self._path("xmlout.xml")).getroot()
         structure = read_structure(self._path("xyzout.cif"))
         remove_non_library_atoms(structure)
         return NautilusResult(
             structure=structure,
+            fragments_built=int(xml.find("Final/FragmentsBuilt").text),
+            residues_built=int(xml.find("Final/ResiduesBuilt").text),
+            residues_sequenced=int(xml.find("Final/ResiduesSequenced").text),
+            longest_fragment=int(xml.find("Final/ResiduesLongestFragment").text),
             seconds=self._seconds,
         )

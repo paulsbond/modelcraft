@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import os
 import sys
@@ -40,6 +41,7 @@ class ModelCraft(Pipeline):
         self.report = {
             "seconds": self.seconds,
             "cycles": [],
+            "jobs": [],
         }
 
     @property
@@ -81,7 +83,9 @@ class ModelCraft(Pipeline):
         if self.args.fmean is None:
             print("\n## Converting input observations to mean amplitudes\n")
             observations = self.args.ianom or self.args.imean or self.args.fanom
+            self._running_job("CTruncate")
             ctruncate = CTruncate(observations=observations).run(self)
+            self._finished_job("CTruncate", ctruncate)
             self.args.fmean = ctruncate.fmean
             if self.args.fanom is None and ctruncate.fanom is not None:
                 self.args.fanom = ctruncate.fanom
@@ -127,18 +131,22 @@ class ModelCraft(Pipeline):
         sys.exit()
 
     def sheetbend(self):
-        print("Sheetbend")
-        result = Sheetbend(
-            fsigf=self.args.fmean,
-            freer=self.args.freer,
-            structure=self.current_structure,
-        ).run(self)
-        self.refmac(result.structure, cycles=10, auto_accept=True)
+        if self.args.disable_sheetbend:
+            self.refmac(self.current_structure, cycles=10, auto_accept=True)
+        else:
+            self._running_job("Sheetbend")
+            result = Sheetbend(
+                fsigf=self.args.fmean,
+                freer=self.args.freer,
+                structure=self.current_structure,
+            ).run(self)
+            self._finished_job("Sheetbend", result)
+            self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
         if not self.args.contents.proteins:
             return
-        print("Buccaneer")
+        self._running_job("Buccaneer")
         result = Buccaneer(
             contents=self.args.contents,
             fsigf=self.args.fmean,
@@ -153,6 +161,7 @@ class ModelCraft(Pipeline):
             cycles=3 if self.cycle == 1 else 2,
             em_mode=self.args.mode == "em",
         ).run(self)
+        self._finished_job("Buccaneer", result)
         if result.residues_built == 0:
             self.terminate(reason="Buccaneer did not build any residues")
         self.refmac(result.structure, cycles=10, auto_accept=True)
@@ -160,7 +169,7 @@ class ModelCraft(Pipeline):
     def nautilus(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):
             return
-        print("Nautilus")
+        self._running_job("Nautilus")
         result = Nautilus(
             contents=self.args.contents,
             fsigf=self.args.fmean,
@@ -169,9 +178,11 @@ class ModelCraft(Pipeline):
             freer=self.args.freer if self.args.mode == "xray" else None,
             structure=self.current_structure,
         ).run(self)
+        self._finished_job("Nautilus", result)
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
+        self._running_job("Refmac")
         if self.args.mode == "xray":
             use_phases = self.args.unbiased and (
                 self.output_refmac is None or self.output_refmac.rwork > 0.35
@@ -184,21 +195,19 @@ class ModelCraft(Pipeline):
                 phases=self.args.phases if use_phases else None,
                 twinned=self.args.twinned,
             ).run(self)
-            message = f"REFMAC - R-free {result.rfree:.4f}"
         else:
             result = RefmacEm(
                 structure=structure,
                 fphi=self.args.fphi,
                 cycles=cycles,
             ).run(self)
-            message = f"REFMAC - FSC {result.fsc:.4f}"
+        self._finished_job("Refmac", result)
         if auto_accept or self._is_better(result, self.last_refmac):
             if not auto_accept:
-                message += " (accepted)"
+                print("(accepted)")
             self.update_current_from_refmac_result(result)
         else:
-            message += " (rejected)"
-        print(message)
+            print("(rejected)")
 
     def _is_better(self, new_result: RefmacResult, old_result: RefmacResult):
         return (
@@ -216,7 +225,9 @@ class ModelCraft(Pipeline):
         self.last_refmac = result
 
     def parrot(self):
-        print("Parrot")
+        if self.args.disable_parrot:
+            return
+        self._running_job("Parrot")
         result = Parrot(
             contents=self.args.contents,
             fsigf=self.args.fmean,
@@ -225,39 +236,49 @@ class ModelCraft(Pipeline):
             fphi=self.current_fphi_best,
             structure=self.current_structure,
         ).run(self)
+        self._finished_job("Parrot", result)
         self.current_phases = result.abcd
         self.current_fphi_best = result.fphi
 
     def prune(self, chains_only=False):
-        if not self.args.contents.proteins:
+        if self.args.disable_pruning or not self.args.contents.proteins:
             return
-        print("Pruning chains" if chains_only else "Pruning model")
+        name = "Pruning chains" if chains_only else "Pruning model"
+        self._running_job(name)
         result = Prune(
             structure=self.current_structure,
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
             chains_only=chains_only,
         ).run(self)
+        self._finished_job(name, result)
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def fixsidechains(self):
-        if not self.args.contents.proteins:
+        if self.args.disable_side_chain_fixing or not self.args.contents.proteins:
             return
-        print("Fixing side chains")
+        self._running_job("Fixing side chains")
         result = FixSideChains(
             structure=self.current_structure,
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
         ).run(self)
+        self._finished_job("Fixing side chains", result)
         self.refmac(result.structure, cycles=5, auto_accept=False)
 
     def findwaters(self, dummy=False):
-        print("Adding dummy atoms" if dummy else "Adding waters")
+        if dummy and self.args.disable_dummy_atoms:
+            return
+        if not dummy and self.args.disable_waters:
+            return
+        name = "Adding dummy atoms" if dummy else "Adding waters"
+        self._running_job(name)
         result = FindWaters(
             structure=self.current_structure,
             fphi=self.current_fphi_best,
             dummy=dummy,
         ).run(self)
+        self._finished_job(name, result)
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self):
@@ -289,6 +310,26 @@ class ModelCraft(Pipeline):
             self.report["final"] = stats
         else:
             self.cycles_without_improvement += 1
+        self.write_report()
+
+    def _running_job(self, name):
+        print(name)
+        self.report["running_job"] = name
+        self.write_report()
+
+    def _finished_job(self, name, result):
+        self.report.pop("running_job", None)
+        result_dict = {}
+        for field in dataclasses.fields(result):
+            value = getattr(result, field.name)
+            try:
+                json.dumps(value)
+            except TypeError:
+                pass
+            else:
+                result_dict[field.name] = value
+        print(json.dumps(result_dict, indent=4))
+        self.report["jobs"].append({"name": name, **result_dict})
         self.write_report()
 
     def write_report(self):
