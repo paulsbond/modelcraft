@@ -52,4 +52,8 @@ def test_102d():
     stats = ModelStats(nautilus.structure)
     assert contains_residue(nautilus.structure, " DT")
     assert stats.residues > 22
+    assert nautilus.fragments_built == 2
+    assert nautilus.residues_built > 22
+    assert nautilus.residues_sequenced > 20
+    assert nautilus.longest_fragment > 11
     # TODO: assert contains_residue(nautilus.structure, "TNT")
