@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.3.1] - Unreleased
+
+### Changed
+
+- Reverted the 2.2.1 change to expected R-factors and FSC in the Refmac test
+
 ## [2.3.0] - 2022-02-24
 
 ### Added
