@@ -355,10 +355,8 @@ class ModelCraft(Pipeline):
             alpha=structure.cell.alpha,
             gamma=structure.cell.gamma,
         )
-        if (
-            structure_spacegroup.number != mtz.spacegroup.number
-            or max_distortion(old_cell=structure.cell, new_cell=mtz.cell) > 0.05
-        ):
+        distortion = max_distortion(old_cell=structure.cell, new_cell=mtz.cell)
+        if structure_spacegroup.number != mtz.spacegroup.number or distortion > 0.05:
             print("The model cell is incompatible with the data cell")
             cell1 = " ".join(f"{x:7.2f}" for x in structure.cell.parameters)
             cell2 = " ".join(f"{x:7.2f}" for x in mtz.cell.parameters)
@@ -367,4 +365,5 @@ class ModelCraft(Pipeline):
             print("Molecular replacement should be used first")
             self.terminate("Model cell is incompatible")
         remove_scale(structure=structure)
-        update_cell(structure=structure, new_cell=mtz.cell)
+        if distortion > 0:
+            update_cell(structure=structure, new_cell=mtz.cell)

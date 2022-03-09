@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - Reverted the 2.2.1 change to expected R-factors and FSC in the Refmac test
 
+### Fixed
+
+- Updating the cell when it is not needed or a chain has fewer than 3 atoms
+
 ## [2.3.0] - 2022-02-24
 
 ### Added
