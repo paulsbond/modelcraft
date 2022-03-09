@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 ### Fixed
 
 - Updating the cell when it is not needed or a chain has fewer than 3 atoms
+- Ligands with CA atoms are now part of the known structure in Buccaneer
 
 ## [2.3.0] - 2022-02-24
 

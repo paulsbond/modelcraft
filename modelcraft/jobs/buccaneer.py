@@ -2,7 +2,7 @@ import dataclasses
 import os
 import xml.etree.ElementTree as ET
 import gemmi
-from ..contents import AsuContents, PolymerType
+from ..contents import AsuContents, PolymerType, PROTEIN_CODES
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
@@ -80,6 +80,8 @@ class Buccaneer(Job):
             self._args += ["-model-filter"]
             self._args += ["-model-filter-sigma", "1.0"]
             self._args += ["-nonprotein-radius", "1.0"]
+            for known_id in _known_structure_ids(self.input_structure):
+                self._args += ["-known-structure", known_id]
         if self.mr_structure is not None:
             write_mmcif(self._path("xyzmr.cif"), self.mr_structure)
             self._args += ["-pdbin-mr", "xyzmr.cif"]
@@ -118,3 +120,19 @@ class Buccaneer(Job):
             longest_fragment=int(xml.find("Final/ResiduesLongestFragment").text),
             seconds=self._seconds,
         )
+
+
+def _known_structure_ids(structure: gemmi.Structure) -> list:
+    "Known structure IDs for ligands (but not modified residues) with a CA atom"
+    protein_residue_names = set(PROTEIN_CODES.values()) | {"MSE", "UNK"}
+    ids = []
+    for chain in structure[0]:
+        last_protein_num = None
+        for residue in chain:
+            if residue.name in protein_residue_names:
+                last_protein_num = residue.seqid.num
+            elif "CA" in residue and (
+                last_protein_num is None or residue.seqid.num > last_protein_num + 1
+            ):
+                ids.append(f"/{chain.name}/{str(residue.seqid)}/*/:1.0")
+    return ids
