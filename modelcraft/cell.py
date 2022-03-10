@@ -26,19 +26,24 @@ def max_distortion(old_cell: gemmi.UnitCell, new_cell: gemmi.UnitCell) -> float:
 
 
 def update_cell(structure: gemmi.Structure, new_cell: gemmi.UnitCell) -> None:
-    "Update the structure cell without distorting the chain structure"
+    "Update the structure cell without distorting the model structure"
     for model in structure:
-        for chain in model:
+        atoms = [atom for chain in model for residue in chain for atom in residue]
+        if len(atoms) > 2:
             old_positions = []
             aim_positions = []
-            for residue in chain:
-                for atom in residue:
-                    old_positions.append(atom.pos)
-                    fractional = structure.cell.fractionalize(atom.pos)
-                    orthogonal = new_cell.orthogonalize(fractional)
-                    aim_positions.append(orthogonal)
-            sup_result = gemmi.superpose_positions(aim_positions, old_positions)
-            for residue in chain:
-                for atom in residue:
-                    atom.pos = gemmi.Position(sup_result.transform.apply(atom.pos))
+            for atom in atoms:
+                old_positions.append(atom.pos)
+                fractional = structure.cell.fractionalize(atom.pos)
+                orthogonal = new_cell.orthogonalize(fractional)
+                aim_positions.append(orthogonal)
+            result = gemmi.superpose_positions(aim_positions, old_positions)
+            if not np.isnan(result.rmsd):
+                for atom in atoms:
+                    atom.pos = gemmi.Position(result.transform.apply(atom.pos))
+        else:
+            for atom in atoms:
+                fractional = structure.cell.fractionalize(atom.pos)
+                orthogonal = new_cell.orthogonalize(fractional)
+                atom.pos = orthogonal
     structure.cell = new_cell
