@@ -5,7 +5,7 @@ import gemmi
 from ..contents import AsuContents, PolymerType, PROTEIN_CODES
 from ..job import Job
 from ..reflections import DataItem, write_mtz
-from ..structure import read_structure, write_mmcif
+from ..structure import consecutive_residues, read_structure, write_mmcif
 
 
 @dataclasses.dataclass
@@ -125,14 +125,9 @@ class Buccaneer(Job):
 def _known_structure_ids(structure: gemmi.Structure) -> list:
     "Known structure IDs for ligands (but not modified residues) with a CA atom"
     protein_residue_names = set(PROTEIN_CODES.values()) | {"MSE", "UNK"}
-    ids = []
     for chain in structure[0]:
-        last_protein_num = None
-        for residue in chain:
-            if residue.name in protein_residue_names:
-                last_protein_num = residue.seqid.num
-            elif "CA" in residue and (
-                last_protein_num is None or residue.seqid.num > last_protein_num + 1
-            ):
-                ids.append(f"/{chain.name}/{str(residue.seqid)}/*/:1.0")
-    return ids
+        for residues in consecutive_residues(chain):
+            if not any(res.name in protein_residue_names for res in residues):
+                for residue in residues:
+                    if "CA" in residue:
+                        yield f"/{chain.name}/{str(residue.seqid)}/*/:1.0"
