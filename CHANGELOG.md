@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [?.?.?] - Unreleased
+
+### Added
+
+- Version and arguments in the output JSON file
+
 ## [2.3.2] - 2022-03-11
 
 ### Fixed

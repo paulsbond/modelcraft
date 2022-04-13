@@ -39,6 +39,8 @@ class ModelCraft(Pipeline):
         self.cycles_without_improvement = 0
         self.start_time = None
         self.report = {
+            "version": __version__,
+            "args": args or sys.argv[1:],
             "seconds": self.seconds,
             "cycles": [],
             "jobs": [],
