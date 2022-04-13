@@ -78,7 +78,6 @@ class Buccaneer(Job):
             write_mmcif(self._path("xyzin.cif"), self.input_structure)
             self._args += ["-pdbin", "xyzin.cif"]
             self._args += ["-model-filter"]
-            self._args += ["-model-filter-sigma", "1.0"]
             self._args += ["-nonprotein-radius", "1.0"]
             for known_id in _known_structure_ids(self.input_structure):
                 self._args += ["-known-structure", known_id]
