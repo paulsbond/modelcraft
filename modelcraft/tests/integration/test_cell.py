@@ -7,7 +7,7 @@ from . import in_temp_directory
 
 @in_temp_directory
 def test_1ana():
-    url = "https://ftp.ebi.ac.uk/pub/databases/pdb_versioned/data/entries/"
+    url = "https://ftp-versioned.wwpdb.org/pdb_versioned/data/entries/"
     url += "an/pdb_00001ana/pdb_00001ana_xyz_v1-2.cif.gz"
     urllib.request.urlretrieve(url, "1ana.cif.gz")
     structure = read_structure("1ana.cif.gz")
