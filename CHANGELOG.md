@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.3.3] - 2022-05-11
+
+### Added
+
+- Version and arguments in the output JSON file
+
+### Fixed
+
+- No longer using $CLIBD_MON/windows_reserved_words.txt
+
 ## [2.3.2] - 2022-03-11
 
 ### Fixed
