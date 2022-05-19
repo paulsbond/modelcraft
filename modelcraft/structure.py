@@ -23,6 +23,8 @@ def consecutive_residues(chain: gemmi.Chain):
             yield consecutive
             consecutive = [residue]
         last_seqnum = residue.seqid.num
+    if len(consecutive) > 0:
+        yield consecutive
 
 
 def contains_residue(structure: gemmi.Structure, name: str) -> bool:

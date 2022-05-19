@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.3.4] - 2022-05-19
+
+### Fixed
+
+- Consecutive residues function to yield last section for known structure IDs
+
 ## [2.3.3] - 2022-05-11
 
 ### Added
