@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.3.5] - 2022-05-23
+
+### Changed
+
+- Aligned columns in mmCIF output
+- CCP4 map setup in EM mode for Gemmi version 0.5.3+
+
 ## [2.3.4] - 2022-05-19
 
 ### Fixed
