@@ -347,20 +347,15 @@ def _multiple_options_error(argument: str, options: List[DataItem]):
 
 
 def _parse_map(args: argparse.Namespace):
-    args.map = gemmi.read_ccp4_map(args.map)
-    args.map.setup()
+    args.map = gemmi.read_ccp4_map(args.map, setup=True)
     array = numpy.array(args.map.grid, copy=False)
     if numpy.isnan(array).any():
         _PARSER.error("Map does not cover the full ASU")
     grid = gemmi.transform_map_to_f_phi(args.map.grid, half_l=True)
     data = grid.prepare_asu_data(dmin=args.resolution)
-    mtz = gemmi.Mtz()
-    mtz.cell = args.map.grid.unit_cell
-    mtz.spacegroup = args.map.grid.spacegroup
-    mtz.add_dataset("HKL_base")
-    mtz.add_column("H", "H")
-    mtz.add_column("K", "H")
-    mtz.add_column("L", "H")
+    mtz = gemmi.Mtz(with_base=True)
+    mtz.cell = grid.unit_cell
+    mtz.spacegroup = grid.spacegroup
     mtz.add_column("F", "F")
     mtz.add_column("PHI", "P")
     mtz.set_data(data)

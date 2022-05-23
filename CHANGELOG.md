@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 ### Changed
 
 - Aligned columns in mmCIF output
+- CCP4 map setup in EM mode for Gemmi version 0.5.3+
 
 ## [2.3.4] - 2022-05-19
 
