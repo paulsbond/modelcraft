@@ -69,7 +69,7 @@ def write_mmcif(path: str, structure: gemmi.Structure) -> None:
     groups = gemmi.MmcifOutputGroups(True)
     groups.title_keywords = False
     doc = structure.make_mmcif_document(groups)
-    doc.write_file(path)
+    doc.write_file(path, gemmi.cif.Style.Aligned)
 
 
 class ModelStats:
