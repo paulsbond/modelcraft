@@ -1,3 +1,4 @@
+from typing import Iterator
 import gemmi
 from .monlib import atom_ids, in_library
 
@@ -9,6 +10,7 @@ def read_structure(path: str) -> gemmi.Structure:
     # TODO: Currently altconfs appear in CIF auth_atom_id after sheetbend
     # TODO: Keep alternative conformations after problem is fixed
     structure.remove_alternative_conformations()
+    _trim_residue_names(structure)
     return structure
 
 
@@ -28,12 +30,7 @@ def consecutive_residues(chain: gemmi.Chain):
 
 
 def contains_residue(structure: gemmi.Structure, name: str) -> bool:
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                if residue.name == name:
-                    return True
-    return False
+    return any(residue.name == name for residue in _residues(structure))
 
 
 def remove_residues(structure: gemmi.Structure, names) -> None:
@@ -46,13 +43,11 @@ def remove_residues(structure: gemmi.Structure, names) -> None:
 
 
 def remove_non_library_atoms(structure: gemmi.Structure) -> None:
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                if in_library(residue.name):
-                    for i, atom in reversed(list(enumerate(residue))):
-                        if atom.name not in atom_ids(residue.name):
-                            del residue[i]
+    for residue in _residues(structure):
+        if in_library(residue.name):
+            for i, atom in reversed(list(enumerate(residue))):
+                if atom.name not in atom_ids(residue.name):
+                    del residue[i]
     structure.remove_empty_chains()
 
 
@@ -78,15 +73,13 @@ class ModelStats:
         self.waters: int = 0
         self.dummy_atoms: int = 0
 
-        model = structure[0]
-        for chain in model:
-            for residue in chain:
-                if residue.name == "HOH":
-                    self.waters += 1
-                elif residue.name == "DUM":
-                    self.dummy_atoms += 1
-                else:
-                    self.residues += 1
+        for residue in _residues(structure):
+            if residue.name == "HOH":
+                self.waters += 1
+            elif residue.name == "DUM":
+                self.dummy_atoms += 1
+            else:
+                self.residues += 1
 
     def __eq__(self, other):
         if isinstance(other, ModelStats):
@@ -100,3 +93,15 @@ class ModelStats:
     def __ne__(self, other):
         equal = self.__eq__(other)
         return NotImplemented if equal is not NotImplemented else not equal
+
+
+def _residues(structure: gemmi.Structure) -> Iterator[gemmi.Residue]:
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                yield residue
+
+
+def _trim_residue_names(structure: gemmi.Structure) -> None:
+    for residue in _residues(structure):
+        residue.name = residue.name.strip()

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.3.6] - 2022-05-30
+
+### Fixed
+
+- Trimming spaces from residue names when reading structures
+
 ## [2.3.5] - 2022-05-23
 
 ### Changed
