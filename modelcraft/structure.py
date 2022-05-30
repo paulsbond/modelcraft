@@ -9,6 +9,7 @@ def read_structure(path: str) -> gemmi.Structure:
     # TODO: Currently altconfs appear in CIF auth_atom_id after sheetbend
     # TODO: Keep alternative conformations after problem is fixed
     structure.remove_alternative_conformations()
+    _trim_residue_names(structure)
     return structure
 
 
@@ -100,3 +101,10 @@ class ModelStats:
     def __ne__(self, other):
         equal = self.__eq__(other)
         return NotImplemented if equal is not NotImplemented else not equal
+
+
+def _trim_residue_names(structure: gemmi.Structure) -> None:
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                residue.name = residue.name.strip()
