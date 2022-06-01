@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [?.?.?] - Unreleased
+
+### Changed
+
+- Comparing per-cycle outputs using R-work instead of R-free
+
 ## [2.3.6] - 2022-05-30
 
 ### Fixed
