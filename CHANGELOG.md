@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.4.0] - 2022-06-01
+
+### Changed
+
+- Comparing per-cycle outputs using R-work instead of R-free
+
+### Fixed
+
+- Nautilus test that was looking for a space in a residue name
+
 ## [2.3.6] - 2022-05-30
 
 ### Fixed

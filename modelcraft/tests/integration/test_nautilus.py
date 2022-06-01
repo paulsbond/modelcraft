@@ -50,7 +50,7 @@ def test_102d():
         structure=structure,
     ).run(pipeline)
     stats = ModelStats(nautilus.structure)
-    assert contains_residue(nautilus.structure, " DT")
+    assert contains_residue(nautilus.structure, "DT")
     assert stats.residues > 22
     assert nautilus.fragments_built == 2
     assert nautilus.residues_built > 22

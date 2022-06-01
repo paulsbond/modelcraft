@@ -60,7 +60,7 @@ class ModelCraft(Pipeline):
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle)
             self.run_cycle()
-            self.process_cycle_output()
+            self.process_cycle_output(self.last_refmac)
             if (
                 self.cycles_without_improvement == args.auto_stop_cycles
                 and args.auto_stop_cycles > 0
@@ -76,7 +76,7 @@ class ModelCraft(Pipeline):
             self.cycle += 1
             self.update_current_from_refmac_result(self.output_refmac)
             self.fixsidechains()
-            self.process_cycle_output()
+            self.process_cycle_output(self.last_refmac)
         print("\n## Best Model:")
         self.print_refmac_result(self.output_refmac)
         self.terminate(reason="Normal")
@@ -204,19 +204,12 @@ class ModelCraft(Pipeline):
                 cycles=cycles,
             ).run(self)
         self._finished_job("Refmac", result)
-        if auto_accept or self._is_better(result, self.last_refmac):
+        if auto_accept or result.rfree < self.last_refmac.rfree:
             if not auto_accept:
                 print("(accepted)")
             self.update_current_from_refmac_result(result)
         else:
             print("(rejected)")
-
-    def _is_better(self, new_result: RefmacResult, old_result: RefmacResult):
-        return (
-            old_result is None
-            or (self.args.mode == "xray" and new_result.rfree < old_result.rfree)
-            or (self.args.mode == "em" and new_result.fsc > old_result.fsc)
-        )
 
     def update_current_from_refmac_result(self, result: RefmacResult):
         self.current_structure = result.structure
@@ -283,30 +276,34 @@ class ModelCraft(Pipeline):
         self._finished_job(name, result)
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
-    def process_cycle_output(self):
-        self.print_refmac_result(self.last_refmac)
-        model_stats = ModelStats(self.last_refmac.structure)
+    def process_cycle_output(self, result: RefmacResult):
+        self.print_refmac_result(result)
+        model_stats = ModelStats(result.structure)
         stats = {"cycle": self.cycle, "residues": model_stats.residues}
         if self.args.mode == "xray":
             stats["waters"] = model_stats.waters
-            stats["r_work"] = self.last_refmac.rwork
-            stats["r_free"] = self.last_refmac.rfree
+            stats["r_work"] = result.rwork
+            stats["r_free"] = result.rfree
         if self.args.mode == "em":
-            stats["fsc"] = self.last_refmac.fsc
+            stats["fsc"] = result.fsc
         self.report["cycles"].append(stats)
-        if self._is_better(self.last_refmac, self.output_refmac):
+        if (
+            self.output_refmac is None
+            or (self.args.mode == "xray" and result.rwork < self.output_refmac.rwork)
+            or (self.args.mode == "em" and result.fsc > self.output_refmac.fsc)
+        ):
             self.cycles_without_improvement = 0
-            self.output_refmac = self.last_refmac
-            write_mmcif(self.path("modelcraft.cif"), self.last_refmac.structure)
+            self.output_refmac = result
+            write_mmcif(self.path("modelcraft.cif"), result.structure)
             write_mtz(
                 self.path("modelcraft.mtz"),
                 [
                     self.args.fmean,
                     self.args.freer,
-                    self.last_refmac.abcd,
-                    self.last_refmac.fphi_best,
-                    self.last_refmac.fphi_diff,
-                    self.last_refmac.fphi_calc,
+                    result.abcd,
+                    result.fphi_best,
+                    result.fphi_diff,
+                    result.fphi_calc,
                 ],
             )
             self.report["final"] = stats
