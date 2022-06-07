@@ -35,7 +35,8 @@ class Buccaneer(Job):
         use_mr: bool = True,
         filter_mr: bool = True,
         seed_mr: bool = True,
-        cycles: int = 2,
+        cycles: int = 10,
+        auto_stop: bool = True,
         em_mode: bool = False,
     ):
         super().__init__("cbuccaneer")
@@ -50,6 +51,7 @@ class Buccaneer(Job):
         self.filter_mr = filter_mr
         self.seed_mr = seed_mr
         self.cycles = cycles
+        self.auto_stop = auto_stop
         self.em_mode = em_mode
 
     def _setup(self) -> None:
@@ -92,6 +94,8 @@ class Buccaneer(Job):
                 if self.seed_mr:
                     self._args += ["-mr-model-seed"]
         self._args += ["-cycles", str(self.cycles)]
+        if self.auto_stop:
+            self._args += ["-auto-stop"]
         if self.contents.is_selenomet():
             self._args += ["-build-semet"]
         self._args += ["-fast"]

@@ -160,7 +160,7 @@ class ModelCraft(Pipeline):
             use_mr=True,
             filter_mr=True,
             seed_mr=True,
-            cycles=3 if self.cycle == 1 else 2,
+            cycles=10,
             em_mode=self.args.mode == "em",
         ).run(self)
         self._finished_job("Buccaneer", result)
