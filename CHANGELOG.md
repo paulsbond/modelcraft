@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.4.1] - Unreleased
+
+### Fixed
+
+- Catching connection errors when requesting PDB entry contents
+
 ## [2.4.0] - 2022-06-01
 
 ### Changed

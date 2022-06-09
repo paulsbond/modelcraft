@@ -149,12 +149,18 @@ def _modifications_in_pdbe_molecule_dict(mol: dict) -> list:
 def _pdbe_molecules(entry: str) -> list:
     entry = entry.lower()
     url = "https://www.ebi.ac.uk/pdbe/api/pdb/entry/status/" + entry
-    json = _response_json(url)
+    try:
+        json = _response_json(url)
+    except ConnectionError:
+        sys.exit(f"Cannot determine the status of entry {entry}")
     superceded_by = json[entry][0].get("superceded_by", [])
     if len(superceded_by) > 0:
         entry = superceded_by[-1]
     url = "https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/" + entry
-    json = _response_json(url)
+    try:
+        json = _response_json(url)
+    except ConnectionError:
+        sys.exit(f"No molecule information found for entry {entry}")
     mols = json[entry]
     if any(mol["molecule_type"] == "carbohydrate polymer" for mol in mols):
         codes = _carb_codes(entry)
