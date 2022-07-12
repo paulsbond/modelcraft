@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 ### Fixed
 
 - Catching connection errors when requesting PDB entry contents
+- Ensuring MTZ data items use the same ASU definition
 
 ## [2.4.0] - 2022-06-01
 
