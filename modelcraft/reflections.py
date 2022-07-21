@@ -93,6 +93,7 @@ class DataItem(gemmi.Mtz):
         data = data[~numpy.isnan(data[:, 3:]).all(axis=1)]
         self.set_data(data)
         self.update_reso()
+        self.ensure_asu()
 
     def label(self, index: Optional[int] = None) -> str:
         if index is None:
