@@ -14,21 +14,6 @@ def read_structure(path: str) -> gemmi.Structure:
     return structure
 
 
-def consecutive_residues(chain: gemmi.Chain):
-    "Iterate through lists of residues with consecutive seqnums (first conformer only)"
-    consecutive = []
-    last_seqnum = None
-    for residue in chain.first_conformer():
-        if last_seqnum is None or residue.seqid.num == last_seqnum + 1:
-            consecutive.append(residue)
-        else:
-            yield consecutive
-            consecutive = [residue]
-        last_seqnum = residue.seqid.num
-    if len(consecutive) > 0:
-        yield consecutive
-
-
 def contains_residue(structure: gemmi.Structure, name: str) -> bool:
     return any(residue.name == name for residue in _residues(structure))
 

@@ -1,17 +1,42 @@
-from modelcraft.monlib import atom_ids
+from pytest import approx, mark
+from modelcraft.monlib import atom_ids, in_library, is_buffer, volume, weight
 
 
-def test_hoh_ids():
-    ids = {"O", "H1", "H2"}
-    assert atom_ids("HOH") == ids
+@mark.parametrize(
+    "code, expected",
+    [
+        ("HOH", {"O", "H1", "H2"}),
+        ("GLY", {"N", "H", "H2", "H3", "CA", "HA3", "HA2", "C", "O", "OXT"}),
+    ],
+)
+def test_atom_ids(code: str, expected: set):
+    assert atom_ids(code) == expected
 
 
-def test_gly_ids():
-    ids = {"N", "H", "H2", "H3", "CA", "HA3", "HA2", "C", "O", "OXT"}
-    assert atom_ids("GLY") == ids
+@mark.parametrize("code, expected", [("COM", True)])
+def test_in_library(code: str, expected: bool):
+    assert in_library(code) == expected
 
 
-def test_com_ids():
-    ids = {"C1", "C2", "S1", "S2", "O1S", "O2S", "O3S"}
-    ids |= {"H11", "H12", "H21", "H22", "HS1", "HOS3"}
-    assert atom_ids("COM") == ids
+@mark.parametrize("code, expected", [("CL", True), ("ALA", False)])
+def test_is_buffer(code: str, expected: bool):
+    assert is_buffer(code) == expected
+
+
+@mark.parametrize("code,expected", [("HOH", 18), ("2GP", 432)])
+def test_volume(code: str, expected: float):
+    assert volume(code) == approx(expected)
+
+
+@mark.parametrize(
+    "code,expected",
+    [
+        ("ALA", 89.09),
+        ("ASP", 132.09),
+        ("ASN", 132.12),
+        ("ASX", 130.12),
+        ("UNK", 103.12),
+    ],
+)
+def test_weight(code: str, expected: float):
+    assert weight(code) == approx(expected, abs=0.01)

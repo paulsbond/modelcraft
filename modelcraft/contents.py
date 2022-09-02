@@ -1,5 +1,8 @@
 import enum
 import json
+import gemmi
+from . import monlib
+from . import pdbe
 
 PROTEIN_CODES = {
     "A": "ALA",
@@ -48,8 +51,6 @@ DNA_CODES = {
     "X": "DN",
 }
 
-PIR_CODES = {"D1", "DC", "DL", "F1", "N1", "N3", "P1", "RC", "RL", "XX"}
-
 
 class PolymerType(enum.Enum):
     PROTEIN = "PROTEIN"
@@ -61,43 +62,28 @@ class Polymer:
     def __init__(
         self,
         sequence: str,
-        stoichiometry: int = None,
-        polymer_type: PolymerType = None,
+        copies: int,
+        polymer_type: PolymerType,
         modifications: list = None,
     ):
         self.sequence = sequence.upper()
-        self.stoichiometry = stoichiometry
-        self.type = polymer_type or guess_sequence_type(self.sequence)
+        self.copies = copies
+        self.type = polymer_type
         self.modifications = modifications or []
 
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Polymer):
-            return (
-                self.sequence == other.sequence
-                and self.type == other.type
-                and self.modifications == other.modifications
-            )
-        return NotImplemented
-
     @classmethod
-    def from_json(cls, component: dict) -> "Polymer":
+    def from_json(cls, component: dict, polymer_type: PolymerType) -> "Polymer":
         return cls(
             sequence=component["sequence"],
-            stoichiometry=component.get("stoichiometry"),
+            copies=component["copies"],
+            polymer_type=polymer_type,
             modifications=component.get("modifications"),
         )
-
-    @classmethod
-    def from_sequence_file(cls, path: str, polymer_type: PolymerType = None):
-        with open(path) as stream:
-            contents = stream.read()
-            for sequence in sequences_in_file(contents=contents):
-                yield cls(sequence=sequence, polymer_type=polymer_type)
 
     def to_json(self) -> dict:
         return {
             "sequence": self.sequence,
-            "stoichiometry": self.stoichiometry,
+            "copies": self.copies,
             "modifications": self.modifications,
         }
 
@@ -118,11 +104,21 @@ class Polymer:
     def is_selenomet(self) -> bool:
         return "M->MSE" in self.modifications
 
+    def weight(self) -> float:
+        codes = self.residue_codes(modified=False)
+        weight = sum(monlib.weight(code) for code in codes)
+        weight -= monlib.weight("HOH") * (len(codes) - 1)
+        return weight
+
+    def volume(self) -> float:
+        density = 1.35 if self.type == PolymerType.PROTEIN else 2.0
+        return self.weight() / (density * 0.602214)
+
 
 class Carb:
-    def __init__(self, codes: dict, stoichiometry: int = None):
+    def __init__(self, codes: dict, copies: int):
         self.codes = codes
-        self.stoichiometry = stoichiometry
+        self.copies = copies
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Carb):
@@ -131,19 +127,22 @@ class Carb:
 
     @classmethod
     def from_json(cls, component: dict) -> "Carb":
-        return cls(
-            codes=component["codes"],
-            stoichiometry=component.get("stoichiometry"),
-        )
+        return cls(codes=component["codes"], copies=component["copies"])
 
     def to_json(self) -> dict:
-        return {"codes": self.codes, "stoichiometry": self.stoichiometry}
+        return {"codes": self.codes, "copies": self.copies}
+
+    def volume(self) -> float:
+        monomers = sum(self.codes.values())
+        volume = sum(monlib.volume(code) for code in self.codes)
+        volume -= monomers * monlib.volume("HOH")
+        return volume
 
 
 class Ligand:
-    def __init__(self, code: str, stoichiometry: int = None):
+    def __init__(self, code: str, copies: int = None):
         self.code = code
-        self.stoichiometry = stoichiometry
+        self.copies = copies
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Ligand):
@@ -152,58 +151,36 @@ class Ligand:
 
     @classmethod
     def from_json(cls, component: dict) -> "Ligand":
-        return cls(
-            code=component["code"],
-            stoichiometry=component.get("stoichiometry"),
-        )
+        return cls(code=component["code"], copies=component["copies"])
 
     def to_json(self) -> dict:
-        return {"code": self.code, "stoichiometry": self.stoichiometry}
+        return {"code": self.code, "copies": self.copies}
 
 
 class AsuContents:
-    def __init__(
-        self,
-        copies: int = None,
-        proteins: list = None,
-        rnas: list = None,
-        dnas: list = None,
-        carbs: list = None,
-        ligands: list = None,
-        buffers: list = None,
-        smiles: dict = None,
-    ):
-        self.copies = copies
-        self.proteins = proteins or []
-        self.rnas = rnas or []
-        self.dnas = dnas or []
-        self.carbs = carbs or []
-        self.ligands = ligands or []
-        self.buffers = buffers or []
-        self.smiles = smiles or {}
+    def __init__(self):
+        self.proteins = []
+        self.rnas = []
+        self.dnas = []
+        self.carbs = []
+        self.ligands = []
+        self.buffers = []
 
     @classmethod
     def from_file(cls, path: str) -> "AsuContents":
-        if path[-5:] == ".json":
-            return cls.from_json_file(path)
-        return cls.from_sequence_file(path)
-
-    @classmethod
-    def from_json_file(cls, path: str) -> "AsuContents":
         contents = cls()
         with open(path) as stream:
             contents_json = json.load(stream)
-        contents.copies = contents_json.get("copies")
         for obj in contents_json.get("proteins") or []:
-            polymer = Polymer.from_json(obj)
+            polymer = Polymer.from_json(obj, PolymerType.PROTEIN)
             polymer.type = PolymerType.PROTEIN
             contents.proteins.append(polymer)
         for obj in contents_json.get("rnas") or []:
-            polymer = Polymer.from_json(obj)
+            polymer = Polymer.from_json(obj, PolymerType.RNA)
             polymer.type = PolymerType.RNA
             contents.rnas.append(polymer)
         for obj in contents_json.get("dnas") or []:
-            polymer = Polymer.from_json(obj)
+            polymer = Polymer.from_json(obj, PolymerType.DNA)
             polymer.type = PolymerType.DNA
             contents.dnas.append(polymer)
         for obj in contents_json.get("carbs") or []:
@@ -213,25 +190,32 @@ class AsuContents:
             ligand = Ligand.from_json(obj)
             contents.ligands.append(ligand)
         contents.buffers = contents_json.get("buffers") or []
-        contents.smiles = contents_json.get("smiles") or []
         return contents
 
     @classmethod
-    def from_sequence_file(
-        cls, path: str, polymer_type: PolymerType = None
-    ) -> "AsuContents":
+    def from_pdbe(cls, entry_id: str) -> "AsuContents":
         contents = cls()
-        for polymer in Polymer.from_sequence_file(path, polymer_type):
-            contents.add_polymer(polymer)
+        for mol in pdbe.molecule_dicts(entry_id):
+            molecule_type = mol["molecule_type"].lower()
+            if molecule_type.startswith("polypeptide"):
+                protein = _polymer_from_pdbe_molecule_dict(mol, PolymerType.PROTEIN)
+                contents.proteins.append(protein)
+            elif molecule_type.startswith("polyribonucleotide"):
+                rna = _polymer_from_pdbe_molecule_dict(mol, PolymerType.RNA)
+                contents.rnas.append(rna)
+            elif molecule_type.startswith("polydeoxyribonucleotide"):
+                dna = _polymer_from_pdbe_molecule_dict(mol, PolymerType.DNA)
+                contents.dnas.append(dna)
+            elif molecule_type.startswith("carbohydrate"):
+                carb = _carb_from_pdbe_molecule_dict(mol)
+                contents.carbs.append(carb)
+            elif molecule_type.startswith("bound"):
+                ligand = _ligand_from_pdbe_molecule_dict(mol)
+                if monlib.is_buffer(ligand.code):
+                    contents.buffers.append(ligand.code)
+                elif ligand.code not in ("UNL", "UNX"):
+                    contents.ligands.append(ligand)
         return contents
-
-    def add_polymer(self, polymer: Polymer) -> None:
-        if polymer.type == PolymerType.PROTEIN:
-            self.proteins.append(polymer)
-        if polymer.type == PolymerType.RNA:
-            self.rnas.append(polymer)
-        if polymer.type == PolymerType.DNA:
-            self.dnas.append(polymer)
 
     def monomer_codes(self) -> set:
         codes = set()
@@ -247,16 +231,24 @@ class AsuContents:
     def is_selenomet(self) -> bool:
         return len(self.proteins) > 0 and all(p.is_selenomet() for p in self.proteins)
 
+    def volume(self) -> float:
+        components = self.proteins + self.rnas + self.dnas + self.carbs + self.ligands
+        return sum(component.volume() * component.copies for component in components)
+
+    def solvent_fraction(
+        self, cell: gemmi.UnitCell, spacegroup: gemmi.SpaceGroup
+    ) -> float:
+        asu_volume = cell.volume / len(spacegroup.operations())
+        return 1 - self.volume() / asu_volume
+
     def to_json(self) -> list:
         return {
-            "copies": self.copies,
             "proteins": [protein.to_json() for protein in self.proteins],
             "rnas": [rna.to_json() for rna in self.rnas],
             "dnas": [dna.to_json() for dna in self.dnas],
             "carbs": [carb.to_json() for carb in self.carbs],
             "ligands": [ligand.to_json() for ligand in self.ligands],
             "buffers": self.buffers,
-            "smiles": self.smiles,
         }
 
     def write_json_file(self, path: str) -> None:
@@ -282,42 +274,38 @@ def code1_to_code3(code1: str, polymer_type: PolymerType) -> str:
     }[polymer_type]
 
 
-def guess_sequence_type(sequence: str) -> PolymerType:
-    codes = set(sequence)
-    if "U" in codes:
-        return PolymerType.RNA
-    if codes & set("DEFHIKLMNPQRSVWY"):
-        return PolymerType.PROTEIN
-    if codes == {"A"}:
-        return PolymerType.PROTEIN
-    if codes == {"G"}:
-        return PolymerType.PROTEIN
-    if "T" in codes:
-        return PolymerType.DNA
-    return PolymerType.RNA
+def _polymer_from_pdbe_molecule_dict(mol: dict, polymer_type: PolymerType) -> Polymer:
+    mod_indices = {}
+    for index, mod in mol["pdb_sequence_indices_with_multiple_residues"].items():
+        code1 = mod["one_letter_code"]
+        code3 = mod["three_letter_code"]
+        if code3 not in ("DA", "DC", "DG", "DT"):
+            key = code1, code3
+            mod_indices.setdefault(key, []).append(index)
+    modifications = []
+    for key in mod_indices:
+        code1, code3 = key
+        total = mol["sequence"].count(code1)
+        if code1 == "M" and mol["sequence"][0] == "M":
+            total -= 1
+        if len(mod_indices[key]) >= total:
+            modifications.append(f"{code1}->{code3}")
+        else:
+            modifications.extend(f"{index}->{code3}" for index in mod_indices[key])
+    return Polymer(
+        sequence=mol["sequence"],
+        copies=mol["number_of_copies"],
+        polymer_type=polymer_type,
+        modifications=modifications,
+    )
 
 
-def sequences_in_file(contents: str) -> list:
-    sequence = ""
-    sequences = []
-    skip_line = False
-    skip_lines = False
-    lines = contents.splitlines(keepends=False)
-    for line in lines:
-        if skip_line:
-            skip_line = False
-            continue
-        if line[:1] == ">":
-            if len(sequence) > 0:
-                sequences.append(sequence)
-            sequence = ""
-            if line[1:3] in PIR_CODES and line[3:4] == ";":
-                skip_line = True
-            skip_lines = False
-        elif line[:1] != ";" and not skip_lines:
-            sequence += "".join(c for c in line if c.isalpha())
-            if line[-1:] == "*":
-                skip_lines = True
-    if len(sequence) > 0:
-        sequences.append(sequence)
-    return sequences
+def _carb_from_pdbe_molecule_dict(mol: dict) -> Carb:
+    codes = mol["carb_codes"]
+    length = sum(codes.values())
+    copies = mol["number_of_copies"] // length
+    return Carb(codes=codes, copies=copies)
+
+
+def _ligand_from_pdbe_molecule_dict(mol: dict) -> Ligand:
+    return Ligand(code=mol["chem_comp_ids"][0], copies=mol["number_of_copies"])

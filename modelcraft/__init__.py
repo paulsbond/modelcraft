@@ -25,9 +25,7 @@ from .jobs.sheetbend import Sheetbend
 from .pipeline import Pipeline
 from .reflections import DataItem
 from .reflections import write_mtz
-from .scripts.contents import _entry_contents as entry_contents
 from .scripts.modelcraft import main as run
-from .solvent import solvent_fraction
 from .structure import contains_residue
 from .structure import ModelStats
 from .structure import read_structure
@@ -45,7 +43,6 @@ __all__ = [
     "contains_residue",
     "CTruncate",
     "DataItem",
-    "entry_contents",
     "FindWaters",
     "FixSideChains",
     "FreeRFlag",
@@ -69,7 +66,6 @@ __all__ = [
     "RsrMorph",
     "run",
     "Sheetbend",
-    "solvent_fraction",
     "update_cell",
     "write_mmcif",
     "write_mtz",

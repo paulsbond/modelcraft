@@ -5,7 +5,7 @@ import gemmi
 from ..contents import AsuContents, PolymerType, PROTEIN_CODES
 from ..job import Job
 from ..reflections import DataItem, write_mtz
-from ..structure import consecutive_residues, read_structure, write_mmcif
+from ..structure import read_structure, write_mmcif
 
 
 @dataclasses.dataclass
@@ -35,8 +35,7 @@ class Buccaneer(Job):
         use_mr: bool = True,
         filter_mr: bool = True,
         seed_mr: bool = True,
-        cycles: int = 10,
-        auto_stop: bool = True,
+        cycles: int = 2,
         em_mode: bool = False,
     ):
         super().__init__("cbuccaneer")
@@ -51,7 +50,6 @@ class Buccaneer(Job):
         self.filter_mr = filter_mr
         self.seed_mr = seed_mr
         self.cycles = cycles
-        self.auto_stop = auto_stop
         self.em_mode = em_mode
 
     def _setup(self) -> None:
@@ -94,8 +92,6 @@ class Buccaneer(Job):
                 if self.seed_mr:
                     self._args += ["-mr-model-seed"]
         self._args += ["-cycles", str(self.cycles)]
-        if self.auto_stop:
-            self._args += ["-auto-stop"]
         if self.contents.is_selenomet():
             self._args += ["-build-semet"]
         self._args += ["-fast"]
@@ -129,8 +125,23 @@ def _known_structure_ids(structure: gemmi.Structure) -> list:
     "Known structure IDs for ligands (but not modified residues) with a CA atom"
     protein_residue_names = set(PROTEIN_CODES.values()) | {"MSE", "UNK"}
     for chain in structure[0]:
-        for residues in consecutive_residues(chain):
+        for residues in _consecutive_residues(chain):
             if not any(res.name in protein_residue_names for res in residues):
                 for residue in residues:
                     if "CA" in residue:
                         yield f"/{chain.name}/{str(residue.seqid)}/*/:1.0"
+
+
+def _consecutive_residues(chain: gemmi.Chain):
+    "Iterate through lists of residues with consecutive seqnums (first conformer only)"
+    consecutive = []
+    last_seqnum = None
+    for residue in chain.first_conformer():
+        if last_seqnum is None or residue.seqid.num == last_seqnum + 1:
+            consecutive.append(residue)
+        else:
+            yield consecutive
+            consecutive = [residue]
+        last_seqnum = residue.seqid.num
+    if len(consecutive) > 0:
+        yield consecutive

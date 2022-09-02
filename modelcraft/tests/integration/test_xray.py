@@ -3,7 +3,7 @@ import os
 import pytest
 from modelcraft.scripts.modelcraft import main
 from modelcraft.reflections import write_mtz
-from modelcraft.structure import contains_residue, read_structure, write_mmcif
+from modelcraft.structure import contains_residue, read_structure
 from . import (
     ccp4_path,
     in_temp_directory,
@@ -40,12 +40,12 @@ def test_1rxf_from_model():
     hklin = ccp4_path("examples", "data", "1rxf.mtz")
     xyzin = ccp4_path("examples", "data", "1rxf_randomise.pdb")
     contents = pdb1rxf_contents()
-    contents.write_sequence_file("sequence.fasta")
+    contents.write_json_file("contents.json")
     args = ["xray"]
     args += ["--data", hklin]
     args += ["--observations", "I,SIGI"]
     args += ["--freerflag", "FreeR_flag"]
-    args += ["--contents", "sequence.fasta"]
+    args += ["--contents", "contents.json"]
     args += ["--model", xyzin]
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):

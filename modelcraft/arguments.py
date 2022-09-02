@@ -24,10 +24,7 @@ _GROUP.add_argument(
     required=True,
     metavar="X",
     help=(
-        "A file with a description of the assymetric unit contents, "
-        "either as a sequence file (in FASTA or PIR format) "
-        "with both protein and nucleic acid sequences, "
-        "or a more detailed contents file in JSON format. "
+        "A file with a description of the assymetric unit contents in JSON format. "
         "Example JSON files for existing PDB entries "
         "can be created using the modelcraft-contents script."
     ),

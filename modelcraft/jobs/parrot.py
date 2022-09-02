@@ -3,7 +3,6 @@ import gemmi
 from ..contents import AsuContents
 from ..job import Job
 from ..reflections import DataItem, write_mtz
-from ..solvent import solvent_fraction
 from ..structure import write_mmcif
 
 
@@ -49,8 +48,8 @@ class Parrot(Job):
         if self.structure is not None:
             write_mmcif(self._path("xyzin.cif"), self.structure)
             self._args += ["-pdbin-mr", "xyzin.cif"]
-        solvent_content = solvent_fraction(self.contents, self.fsigf)
-        self._args += ["-solvent-content", "%.3f" % solvent_content]
+        solvent = self.contents.solvent_fraction(self.fsigf.cell, self.fsigf.spacegroup)
+        self._args += ["-solvent-content", "%.3f" % solvent]
         self._args += ["-cycles", "5"]
         self._args += ["-anisotropy-correction"]
         self._args += ["-mtzout", "hklout.mtz"]
