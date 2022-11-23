@@ -20,7 +20,8 @@ def per_residue_rscc(
         position = density.point_to_position(point)
         mark = search.find_nearest_atom(position)
         if mark is not None:
-            key = (mark.chain_idx, mark.residue_idx)
+            cra = mark.to_cra(structure[0])
+            key = (cra.chain.name, str(cra.residue.seqid))
             value1 = point.value
             value2 = calculator.grid.get_value(point.u, point.v, point.w)
             residue_pairs.setdefault(key, []).append((value1, value2))
