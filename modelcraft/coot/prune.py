@@ -1020,8 +1020,6 @@ def prune(
         max_deleted = len(model.residues) * max_chain_fraction
         deleted = 0
         remaining = []
-        chain_ids = model.chains.keys()
-        chain_ids.sort(key=lambda cid: model.chains[cid].correctness)
         for chain_id in sorted(model.chains,):
             chain = model.chains[chain_id]
             if (
