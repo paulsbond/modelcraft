@@ -1,6 +1,7 @@
 import dataclasses
 import gemmi
 from ..job import Job
+from ..maps import write_map
 
 
 @dataclasses.dataclass
@@ -22,9 +23,9 @@ class MapMask(Job):
         self.resolution = resolution
 
     def _setup(self) -> None:
-        _write_map(self.density, self._path("mapin.cpp4"))
+        write_map(self._path("map.cpp4"), self.density)
         self._args += ["mapmask"]
-        self._args += ["--map", "mapin.cpp4"]
+        self._args += ["--map", "map.cpp4"]
         self._args += ["--knl", str(self.kernel_radius)]
         self._args += ["--res", str(self.resolution)]
 
@@ -34,10 +35,3 @@ class MapMask(Job):
             mask=gemmi.read_ccp4_map(self._path("mapmask.mrc")).grid,
             seconds=self._seconds,
         )
-
-
-def _write_map(grid: gemmi.FloatGrid, path: str):
-    ccp4 = gemmi.Ccp4Map()
-    ccp4.grid = grid
-    ccp4.update_ccp4_header()
-    ccp4.write_ccp4_map(path)

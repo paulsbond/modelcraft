@@ -22,6 +22,7 @@ from .jobs.parrot import Parrot
 from .jobs.phasematch import PhaseMatch
 from .jobs.refmac import RefmacEm
 from .jobs.refmac import RefmacXray
+from .jobs.servalcat import ServalcatTrim
 from .jobs.sheetbend import Sheetbend
 from .pipeline import Pipeline
 from .reflections import DataItem
@@ -70,6 +71,7 @@ __all__ = [
     "rmsz",
     "RsrMorph",
     "run",
+    "ServalcatTrim",
     "Sheetbend",
     "solvent_fraction",
     "update_cell",
