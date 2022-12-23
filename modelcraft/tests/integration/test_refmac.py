@@ -33,3 +33,5 @@ def test_map_to_mtz():
     density = gemmi.read_ccp4_map("emd_3488.map.gz").grid
     mtztomap = RefmacMapToMtz(density, resolution=3.2).run()
     assert mtztomap.fphi is not None
+    RefmacMapToMtz(density, resolution=3.2, blur=20).run()  # Blurring
+    RefmacMapToMtz(density, resolution=3.2, blur=-20).run()  # Sharpening
