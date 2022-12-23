@@ -1,7 +1,9 @@
 import dataclasses
+import json
 import gemmi
 from ..job import Job
 from ..maps import write_map
+from ..reflections import DataItem
 from ..structure import read_structure, write_mmcif
 
 
@@ -42,5 +44,60 @@ class ServalcatTrim(Job):
             map=gemmi.read_ccp4_map(self._path("map_trimmed.mrc")).grid,
             mask=gemmi.read_ccp4_map(self._path("mask_trimmed.mrc")).grid,
             structure=read_structure(self._path("model_trimmed.cif")),
+            seconds=self._seconds,
+        )
+
+
+@dataclasses.dataclass
+class ServalcatRefineResult:
+    structure: gemmi.Structure
+    fphi_best: DataItem
+    fphi_diff: DataItem
+    fphi_calc: DataItem
+    fsc: float
+    seconds: float
+
+
+class ServalcatRefine(Job):
+    def __init__(
+        self,
+        structure: gemmi.Structure,
+        density: gemmi.FloatGrid,
+        resolution: float,
+        blur: float = 0.0,
+        cycles: int = 20,
+        bfactor: float = 40.0,
+    ):
+        super().__init__("ccpem-python")
+        self.structure = structure
+        self.density = density
+        self.resolution = resolution
+        self.blur = blur
+        self.cycles = cycles
+        self.bfactor = bfactor
+
+    def _setup(self) -> None:
+        write_mmcif(self._path("model.cif"), self.structure)
+        write_map(self._path("map.ccp4"), self.density)
+        self._args += ["-m", "servalcat.command_line", "refine_spa"]
+        self._args += ["--model", "model.cif"]
+        self._args += ["--map", "map.ccp4"]
+        self._args += ["--no_mask"]
+        self._args += ["--blur", str(self.blur)]
+        self._args += ["--ncycle", str(self.cycles)]
+        self._args += ["--bfactor", str(self.bfactor)]
+        self._args += ["--resolution", str(self.resolution)]
+
+    def _result(self) -> ServalcatRefineResult:
+        self._check_files_exist("refined.mmcif", "refined.mtz", "refined_summary.json")
+        mtz = gemmi.read_mtz_file(self._path("refined.mtz"))
+        with open(self._path("refined_summary.json")) as json_file:
+            summary = json.load(json_file)
+        return ServalcatRefineResult(
+            structure=read_structure(self._path("refined.mmcif")),
+            fphi_best=DataItem(mtz, "FWT,PHWT"),
+            fphi_diff=DataItem(mtz, "DELFWT,PHDELWT"),
+            fphi_calc=DataItem(mtz, "FC_ALL,PHIC_ALL"),
+            fsc=float(summary["cycles"][-1]["fsc_average"]),
             seconds=self._seconds,
         )

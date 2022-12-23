@@ -1,17 +1,19 @@
 import urllib
 import gemmi
 from modelcraft.jobs.emda import MapMask
-from modelcraft.jobs.servalcat import ServalcatTrim
+from modelcraft.jobs.servalcat import ServalcatTrim, ServalcatRefine
 from modelcraft.structure import read_structure
 from . import in_temp_directory, pdbe_download
 
 
 @in_temp_directory
-def test_emda():
+def test_servalcat():
     url = "https://ftp.wwpdb.org/pub/emdb/structures/EMD-3488/map/emd_3488.map.gz"
     urllib.request.urlretrieve(url, "emd_3488.map.gz")
     density = gemmi.read_ccp4_map("emd_3488.map.gz").grid
     mapmask = MapMask(density).run()
     pdbe_download("5ni1.cif")
     structure = read_structure("5ni1.cif")
-    ServalcatTrim(density, mapmask.mask, structure).run()
+    trimmed = ServalcatTrim(density, mapmask.mask, structure).run()
+    refined = ServalcatRefine(trimmed.structure, trimmed.map, 3.2, cycles=2).run()
+    assert refined.fsc > 0.8

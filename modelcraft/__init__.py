@@ -23,6 +23,7 @@ from .jobs.phasematch import PhaseMatch
 from .jobs.refmac import RefmacEm
 from .jobs.refmac import RefmacMapToMtz
 from .jobs.refmac import RefmacXray
+from .jobs.servalcat import ServalcatRefine
 from .jobs.servalcat import ServalcatTrim
 from .jobs.sheetbend import Sheetbend
 from .pipeline import Pipeline
@@ -73,6 +74,7 @@ __all__ = [
     "rmsz",
     "RsrMorph",
     "run",
+    "ServalcatRefine",
     "ServalcatTrim",
     "Sheetbend",
     "solvent_fraction",
