@@ -1,8 +1,9 @@
+import urllib
 import gemmi
-from modelcraft.jobs.refmac import RefmacXray
+from modelcraft.jobs.refmac import RefmacXray, RefmacMapToMtz
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
-from . import ccp4_path
+from . import ccp4_path, in_temp_directory
 
 
 def test_1rxf():
@@ -23,3 +24,12 @@ def test_1rxf():
     assert 0.73 < refmac.fsc < 1
     assert refmac.data_completeness == 95.261
     assert refmac.resolution_high == 1.501
+
+
+@in_temp_directory
+def test_map_to_mtz():
+    url = "https://ftp.wwpdb.org/pub/emdb/structures/EMD-3488/map/emd_3488.map.gz"
+    urllib.request.urlretrieve(url, "emd_3488.map.gz")
+    density = gemmi.read_ccp4_map("emd_3488.map.gz").grid
+    mtztomap = RefmacMapToMtz(density, resolution=3.2).run()
+    assert mtztomap.fphi is not None

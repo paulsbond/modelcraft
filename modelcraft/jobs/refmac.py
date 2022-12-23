@@ -2,6 +2,7 @@ import dataclasses
 import xml.etree.ElementTree as ET
 import gemmi
 from ..job import Job
+from ..maps import write_map
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
 
@@ -124,3 +125,38 @@ class RefmacEm(_Refmac):
         self._stdin.append("SOURCE EM MB")
         self._stdin.append("SOLVENT NO")
         super()._setup()
+
+
+@dataclasses.dataclass
+class RefmacMapToMtzResult:
+    fphi: DataItem
+    seconds: float
+
+
+class RefmacMapToMtz(Job):
+    def __init__(self, map_: gemmi.FloatGrid, resolution: float, blur: float = 0):
+        super().__init__("refmac5")
+        self.map = map_
+        self.resolution = resolution
+        self.blur = blur
+
+    def _setup(self) -> None:
+        write_map(self._path("mapin.ccp4"), self.map)
+        self._args += ["MAPIN", "mapin.ccp4"]
+        self._args += ["HKLOUT", "hklout.mtz"]
+        self._stdin.append("MODE SFCALC")
+        self._stdin.append("SOURCE EM MB")
+        self._stdin.append("RESOLUTION %f" % self.resolution)
+        if self.blur > 0:
+            self._stdin.append("SFCALC BLUR %f" % self.blur)
+        elif self.blur < 0:
+            self._stdin.append("SFCALC SHARP %f" % -self.blur)
+        self._stdin.append("END")
+
+    def _result(self) -> RefmacMapToMtzResult:
+        self._check_files_exist("hklout.mtz")
+        mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
+        return RefmacMapToMtzResult(
+            fphi=next(DataItem.search(mtz, "FP"), None),
+            seconds=self._seconds,
+        )

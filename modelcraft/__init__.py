@@ -21,6 +21,7 @@ from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.phasematch import PhaseMatch
 from .jobs.refmac import RefmacEm
+from .jobs.refmac import RefmacMapToMtz
 from .jobs.refmac import RefmacXray
 from .jobs.servalcat import ServalcatTrim
 from .jobs.sheetbend import Sheetbend
@@ -63,6 +64,7 @@ __all__ = [
     "Prune",
     "read_structure",
     "RefmacEm",
+    "RefmacMapToMtz",
     "RefmacXray",
     "remove_non_library_atoms",
     "remove_non_protein",
