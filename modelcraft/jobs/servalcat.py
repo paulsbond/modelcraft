@@ -28,11 +28,11 @@ class ServalcatTrim(Job):
         self.structure = structure
 
     def _setup(self) -> None:
-        write_map(self._path("map.cpp4"), self.map)
+        write_map(self._path("map.ccp4"), self.map)
         write_map(self._path("mask.ccp4"), self.mask)
         write_mmcif(self._path("model.cif"), self.structure)
         self._args += ["-m", "servalcat.command_line", "trim"]
-        self._args += ["--maps", "map.cpp4"]
+        self._args += ["--maps", "map.ccp4"]
         self._args += ["--mask", "mask.ccp4"]
         self._args += ["--model", "model.cif"]
 
@@ -44,6 +44,44 @@ class ServalcatTrim(Job):
             map=gemmi.read_ccp4_map(self._path("map_trimmed.mrc")).grid,
             mask=gemmi.read_ccp4_map(self._path("mask_trimmed.mrc")).grid,
             structure=read_structure(self._path("model_trimmed.cif")),
+            seconds=self._seconds,
+        )
+
+
+@dataclasses.dataclass
+class ServalcatNemapResult:
+    fphi: DataItem
+    seconds: float
+
+
+class ServalcatNemap(Job):
+    def __init__(
+        self,
+        halfmap1: gemmi.Ccp4Map,
+        halfmap2: gemmi.Ccp4Map,
+        mask: gemmi.FloatGrid,
+        resolution: float,
+    ):
+        super().__init__("ccpem-python")
+        self.halfmap1 = halfmap1
+        self.halfmap2 = halfmap2
+        self.mask = mask
+        self.resolution = resolution
+
+    def _setup(self) -> None:
+        self.halfmap1.write_ccp4_map(self._path("halfmap1.ccp4"))
+        self.halfmap2.write_ccp4_map(self._path("halfmap2.ccp4"))
+        write_map(self._path("mask.ccp4"), self.mask)
+        self._args += ["-m", "servalcat.command_line", "util", "nemap"]
+        self._args += ["--halfmaps", "halfmap1.ccp4", "halfmap2.ccp4"]
+        self._args += ["--mask", "mask.ccp4"]
+        self._args += ["--resolution", str(self.resolution)]
+
+    def _result(self) -> ServalcatNemapResult:
+        self._check_files_exist("nemap.mtz")
+        mtz = gemmi.read_mtz_file(self._path("nemap.mtz"))
+        return ServalcatNemapResult(
+            fphi=DataItem(mtz, "FWT,PHWT"),
             seconds=self._seconds,
         )
 
