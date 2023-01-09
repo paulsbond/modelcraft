@@ -53,12 +53,12 @@ class ModelCraft(Pipeline):
     def run(self):
         self.start_time = time.time()
         args = self.args
-        print(f"# ModelCraft {__version__}")
+        print(f"# ModelCraft {__version__}", flush=True)
         os.makedirs(args.directory, exist_ok=False)
         self._convert_observations()
         self._refine_input_model()
         for self.cycle in range(1, args.cycles + 1):
-            print("\n## Cycle %d\n" % self.cycle)
+            print("\n## Cycle %d\n" % self.cycle, flush=True)
             self.run_cycle()
             self.process_cycle_output(self.last_refmac)
             if (
@@ -72,18 +72,18 @@ class ModelCraft(Pipeline):
             and self.output_refmac.rwork < 0.3
             and self.resolution < 2.5
         ):
-            print("\n## Finalisations\n")
+            print("\n## Finalisations\n", flush=True)
             self.cycle += 1
             self.update_current_from_refmac_result(self.output_refmac)
             self.fixsidechains()
             self.process_cycle_output(self.last_refmac)
-        print("\n## Best Model:")
+        print("\n## Best Model:", flush=True)
         self.print_refmac_result(self.output_refmac)
         self.terminate(reason="Normal")
 
     def _convert_observations(self):
         if self.args.fmean is None:
-            print("\n## Converting input observations to mean amplitudes\n")
+            print("\n## Converting input observations to mean amplitudes\n", flush=True)
             observations = self.args.ianom or self.args.imean or self.args.fanom
             self._running_job("CTruncate")
             ctruncate = CTruncate(observations=observations).run(self)
@@ -96,7 +96,7 @@ class ModelCraft(Pipeline):
 
     def _refine_input_model(self):
         if self.args.mode == "xray" and self.args.model is not None:
-            print("\n## Refining Input Model\n")
+            print("\n## Refining Input Model\n", flush=True)
             self.update_model_cell()
             self.sheetbend()
             self.args.model = self.current_structure
@@ -127,7 +127,7 @@ class ModelCraft(Pipeline):
             self.findwaters()
 
     def terminate(self, reason: str):
-        print(f"\n--- Termination: {reason} ---")
+        print(f"\n--- Termination: {reason} ---", flush=True)
         self.report["termination_reason"] = reason
         self.write_report()
         sys.exit()
@@ -206,10 +206,10 @@ class ModelCraft(Pipeline):
         self._finished_job("Refmac", result)
         if auto_accept or result.rfree < self.last_refmac.rfree:
             if not auto_accept:
-                print("(accepted)")
+                print("(accepted)", flush=True)
             self.update_current_from_refmac_result(result)
         else:
-            print("(rejected)")
+            print("(rejected)", flush=True)
 
     def update_current_from_refmac_result(self, result: RefmacResult):
         self.current_structure = result.structure
@@ -312,7 +312,7 @@ class ModelCraft(Pipeline):
         self.write_report()
 
     def _running_job(self, name):
-        print(name)
+        print(name, flush=True)
         self.report["running_job"] = name
         self.write_report()
 
@@ -327,7 +327,7 @@ class ModelCraft(Pipeline):
                 pass
             else:
                 result_dict[field.name] = value
-        print(json.dumps(result_dict, indent=4))
+        print(json.dumps(result_dict, indent=4), flush=True)
         self.report["jobs"].append({"name": name, **result_dict})
         self.write_report()
 
@@ -338,13 +338,13 @@ class ModelCraft(Pipeline):
 
     def print_refmac_result(self, result: RefmacResult):
         model_stats = ModelStats(result.structure)
-        print(f"\nResidues: {model_stats.residues:6d}")
+        print(f"\nResidues: {model_stats.residues:6d}", flush=True)
         if self.args.mode == "xray":
-            print(f"Waters:   {model_stats.waters:6d}")
-            print(f"R-work:   {result.rwork:6.4f}")
-            print(f"R-free:   {result.rfree:6.4f}")
+            print(f"Waters:   {model_stats.waters:6d}", flush=True)
+            print(f"R-work:   {result.rwork:6.4f}", flush=True)
+            print(f"R-free:   {result.rfree:6.4f}", flush=True)
         if self.args.mode == "em":
-            print(f"FSC:      {result.fsc:6.4f}")
+            print(f"FSC:      {result.fsc:6.4f}", flush=True)
 
     def update_model_cell(self):
         structure = self.args.model
@@ -356,12 +356,12 @@ class ModelCraft(Pipeline):
         )
         distortion = max_distortion(old_cell=structure.cell, new_cell=mtz.cell)
         if structure_spacegroup.number != mtz.spacegroup.number or distortion > 0.05:
-            print("The model cell is incompatible with the data cell")
+            print("The model cell is incompatible with the data cell", flush=True)
             cell1 = " ".join(f"{x:7.2f}" for x in structure.cell.parameters)
             cell2 = " ".join(f"{x:7.2f}" for x in mtz.cell.parameters)
-            print(f"Model: {cell1}  {structure_spacegroup.hm}")
-            print(f"Data:  {cell2}  {mtz.spacegroup.hm}")
-            print("Molecular replacement should be used first")
+            print(f"Model: {cell1}  {structure_spacegroup.hm}", flush=True)
+            print(f"Data:  {cell2}  {mtz.spacegroup.hm}", flush=True)
+            print("Molecular replacement should be used first", flush=True)
             self.terminate("Model cell is incompatible")
         remove_scale(structure=structure)
         if distortion > 0:
