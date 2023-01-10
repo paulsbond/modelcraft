@@ -1,19 +1,18 @@
 import dataclasses
 import gemmi
 from ..job import Job
-from ..maps import write_map
 
 
 @dataclasses.dataclass
 class MapMaskResult:
-    mask: gemmi.FloatGrid
+    mask: gemmi.Ccp4Map
     seconds: float
 
 
 class MapMask(Job):
     def __init__(
         self,
-        density: gemmi.FloatGrid,
+        density: gemmi.Ccp4Map,
         kernel_radius: int = 10,
         resolution: float = 10.0,
     ):
@@ -23,7 +22,7 @@ class MapMask(Job):
         self.resolution = resolution
 
     def _setup(self) -> None:
-        write_map(self._path("map.cpp4"), self.density)
+        self.density.write_ccp4_map(self._path("map.cpp4"))
         self._args += ["mapmask"]
         self._args += ["--map", "map.cpp4"]
         self._args += ["--knl", str(self.kernel_radius)]
@@ -32,6 +31,6 @@ class MapMask(Job):
     def _result(self) -> MapMaskResult:
         self._check_files_exist("mapmask.mrc")
         return MapMaskResult(
-            mask=gemmi.read_ccp4_map(self._path("mapmask.mrc")).grid,
+            mask=gemmi.read_ccp4_map(self._path("mapmask.mrc")),
             seconds=self._seconds,
         )
