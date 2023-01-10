@@ -90,6 +90,7 @@ class ServalcatTrim(Job):
             self._args += ["--model", "model.cif"]
 
     def _result(self) -> ServalcatTrimResult:
+        self._check_files_exist("mask_trimmed.mrc")
         return ServalcatTrimResult(
             mask=gemmi.read_ccp4_map(self._path("mask_trimmed.mrc")),
             density=None
