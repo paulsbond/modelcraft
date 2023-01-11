@@ -153,3 +153,19 @@ def write_mtz(
         mtz.add_column(label, type_)
     mtz.set_data(data.to_numpy())
     mtz.write_to_file(path)
+
+
+def convert_to_fsigf_and_phifom(fphi: DataItem) -> tuple:
+    array = numpy.array(fphi, copy=False)
+    df = pandas.DataFrame(data=array, columns=["H", "K", "L", "F", "PHI"])
+    df["SIGF"] = df["F"] * 0.01
+    df["FOM"] = 1.0
+    mtz = gemmi.Mtz(with_base=True)
+    mtz.cell = fphi.cell
+    mtz.spacegroup = fphi.spacegroup
+    mtz.add_column("F", "F")
+    mtz.add_column("PHI", "P")
+    mtz.add_column("SIGF", "Q")
+    mtz.add_column("FOM", "W")
+    mtz.set_data(df.to_numpy())
+    return DataItem(mtz, "F,SIGF"), DataItem(mtz, "PHI,FOM")
