@@ -5,7 +5,7 @@ from ..job import Job
 
 @dataclasses.dataclass
 class MapMaskResult:
-    mask: gemmi.Ccp4Map
+    mask: gemmi.Ccp4Mask
     seconds: float
 
 
@@ -31,6 +31,6 @@ class MapMask(Job):
     def _result(self) -> MapMaskResult:
         self._check_files_exist("mapmask.mrc")
         return MapMaskResult(
-            mask=gemmi.read_ccp4_map(self._path("mapmask.mrc")),
+            mask=gemmi.read_ccp4_mask(self._path("mapmask.mrc")),
             seconds=self._seconds,
         )
