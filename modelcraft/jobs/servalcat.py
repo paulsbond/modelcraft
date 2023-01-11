@@ -17,8 +17,8 @@ class ServalcatNemap(Job):
         self,
         halfmap1: gemmi.Ccp4Map,
         halfmap2: gemmi.Ccp4Map,
-        mask: gemmi.Ccp4Mask,
         resolution: float,
+        mask: gemmi.Ccp4Mask = None,
     ):
         super().__init__("ccpem-python")
         self.halfmap1 = halfmap1
@@ -29,11 +29,12 @@ class ServalcatNemap(Job):
     def _setup(self) -> None:
         self.halfmap1.write_ccp4_map(self._path("halfmap1.ccp4"))
         self.halfmap2.write_ccp4_map(self._path("halfmap2.ccp4"))
-        self.mask.write_ccp4_map(self._path("mask.ccp4"))
         self._args += ["-m", "servalcat.command_line", "util", "nemap"]
         self._args += ["--halfmaps", "halfmap1.ccp4", "halfmap2.ccp4"]
-        self._args += ["--mask", "mask.ccp4"]
         self._args += ["--resolution", str(self.resolution)]
+        if self.mask is not None:
+            self.mask.write_ccp4_map(self._path("mask.ccp4"))
+            self._args += ["--mask", "mask.ccp4"]
 
     def _result(self) -> ServalcatNemapResult:
         self._check_files_exist("nemap.mtz")

@@ -8,7 +8,7 @@ def test_servalcat_nemap():
     halfmap1 = gemmi.read_ccp4_map(halfmap1_path())
     halfmap2 = gemmi.read_ccp4_map(halfmap2_path())
     mask = gemmi.read_ccp4_mask(mask_path())
-    ServalcatNemap(halfmap1, halfmap2, mask, 3.2).run()
+    ServalcatNemap(halfmap1, halfmap2, 3.2, mask).run()
 
 
 def test_servalcat_trim():
