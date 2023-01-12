@@ -17,7 +17,8 @@ def test_servalcat_trim():
     density = gemmi.read_ccp4_map(density_path())
     mask = gemmi.read_ccp4_mask(mask_path())
     structure = read_structure(structure_path())
-    ServalcatTrim(mask, density, halfmap1, halfmap2, structure).run()
+    trimmed = ServalcatTrim(mask, [density, halfmap1, halfmap2], structure).run()
+    assert len(trimmed.maps) == 3
 
 
 def test_servalcat_refine():

@@ -48,9 +48,7 @@ class ServalcatNemap(Job):
 @dataclasses.dataclass
 class ServalcatTrimResult:
     mask: gemmi.Ccp4Mask
-    density: gemmi.Ccp4Map
-    halfmap1: gemmi.Ccp4Map
-    halfmap2: gemmi.Ccp4Map
+    maps: list
     structure: gemmi.Structure
     seconds: float
 
@@ -59,50 +57,34 @@ class ServalcatTrim(Job):
     def __init__(
         self,
         mask: gemmi.Ccp4Mask,
-        density: gemmi.Ccp4Map = None,
-        halfmap1: gemmi.Ccp4Map = None,
-        halfmap2: gemmi.Ccp4Map = None,
+        maps: list,
         structure: gemmi.Structure = None,
     ):
         super().__init__("ccpem-python")
         self.mask = mask
-        self.density = density
-        self.halfmap1 = halfmap1
-        self.halfmap2 = halfmap2
+        self.maps = maps
         self.structure = structure
 
     def _setup(self) -> None:
         self._args += ["-m", "servalcat.command_line", "trim"]
         self.mask.write_ccp4_map(self._path("mask.ccp4"))
         self._args += ["--mask", "mask.ccp4"]
-        if any(x is not None for x in (self.density, self.halfmap1, self.halfmap2)):
-            self._args.append("--maps")
-        if self.density is not None:
-            self.density.write_ccp4_map(self._path("density.ccp4"))
-            self._args.append("density.ccp4")
-        if self.halfmap1 is not None:
-            self.halfmap1.write_ccp4_map(self._path("halfmap1.ccp4"))
-            self._args.append("halfmap1.ccp4")
-        if self.halfmap2 is not None:
-            self.halfmap2.write_ccp4_map(self._path("halfmap2.ccp4"))
-            self._args.append("halfmap2.ccp4")
+        self._args.append("--maps")
+        for i, map_ in enumerate(self.maps):
+            map_.write_ccp4_map(self._path(f"map{i}.ccp4"))
+            self._args.append(f"map{i}.ccp4")
         if self.structure is not None:
             write_mmcif(self._path("model.cif"), self.structure)
             self._args += ["--model", "model.cif"]
 
     def _result(self) -> ServalcatTrimResult:
-        self._check_files_exist("mask_trimmed.mrc")
+        self._check_files_exist("mask_trimmed.mrc", "map0_trimmed.mrc")
         return ServalcatTrimResult(
             mask=gemmi.read_ccp4_mask(self._path("mask_trimmed.mrc")),
-            density=None
-            if self.density is None
-            else gemmi.read_ccp4_map(self._path("density_trimmed.mrc")),
-            halfmap1=None
-            if self.halfmap1 is None
-            else gemmi.read_ccp4_map(self._path("halfmap1_trimmed.mrc")),
-            halfmap2=None
-            if self.halfmap2 is None
-            else gemmi.read_ccp4_map(self._path("halfmap2_trimmed.mrc")),
+            maps=[
+                gemmi.read_ccp4_map(self._path(f"map{i}_trimmed.mrc"))
+                for i in range(len(self.maps))
+            ],
             structure=None
             if self.structure is None
             else read_structure(self._path("model_trimmed.cif")),
