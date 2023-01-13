@@ -2,7 +2,6 @@ import dataclasses
 import xml.etree.ElementTree as ET
 import gemmi
 from ..job import Job
-from ..maps import write_map
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
 
@@ -134,14 +133,14 @@ class RefmacMapToMtzResult:
 
 
 class RefmacMapToMtz(Job):
-    def __init__(self, map_: gemmi.FloatGrid, resolution: float, blur: float = 0):
+    def __init__(self, density: gemmi.Ccp4Map, resolution: float, blur: float = 0):
         super().__init__("refmac5")
-        self.map = map_
+        self.density = density
         self.resolution = resolution
         self.blur = blur
 
     def _setup(self) -> None:
-        write_map(self._path("mapin.ccp4"), self.map)
+        self.density.write_ccp4_map(self._path("mapin.ccp4"))
         self._args += ["MAPIN", "mapin.ccp4"]
         self._args += ["HKLOUT", "hklout.mtz"]
         self._stdin.append("MODE SFCALC")
