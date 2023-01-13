@@ -13,7 +13,7 @@ from .jobs.coot import FixSideChains
 from .jobs.coot import Prune
 from .jobs.coot import RsrMorph
 from .jobs.ctruncate import CTruncate
-from .jobs.emda import MapMask
+from .jobs.emda import EmdaMapMask
 from .jobs.findwaters import FindWaters
 from .jobs.freerflag import FreeRFlag
 from .jobs.molrep import Molrep
@@ -49,11 +49,11 @@ __all__ = [
     "contains_residue",
     "CTruncate",
     "DataItem",
+    "EmdaMapMask",
     "entry_contents",
     "FindWaters",
     "FixSideChains",
     "FreeRFlag",
-    "MapMask",
     "max_cell_distortion",
     "ModelStats",
     "Molrep",

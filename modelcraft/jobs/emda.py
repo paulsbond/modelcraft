@@ -4,12 +4,12 @@ from ..job import Job
 
 
 @dataclasses.dataclass
-class MapMaskResult:
+class EmdaMapMaskResult:
     mask: gemmi.Ccp4Mask
     seconds: float
 
 
-class MapMask(Job):
+class EmdaMapMask(Job):
     def __init__(
         self,
         density: gemmi.Ccp4Map,
@@ -28,9 +28,9 @@ class MapMask(Job):
         self._args += ["--knl", str(self.kernel_radius)]
         self._args += ["--res", str(self.resolution)]
 
-    def _result(self) -> MapMaskResult:
+    def _result(self) -> EmdaMapMaskResult:
         self._check_files_exist("mapmask.mrc")
-        return MapMaskResult(
+        return EmdaMapMaskResult(
             mask=gemmi.read_ccp4_mask(self._path("mapmask.mrc")),
             seconds=self._seconds,
         )
