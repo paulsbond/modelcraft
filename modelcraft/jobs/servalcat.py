@@ -97,6 +97,7 @@ class ServalcatRefineResult:
     structure: gemmi.Structure
     fphi_best: DataItem
     fphi_diff: DataItem
+    fphi_calc: DataItem
     fsc: float
     seconds: float
 
@@ -162,6 +163,7 @@ class ServalcatRefine(Job):
             structure=read_structure(self._path("refined.mmcif")),
             fphi_best=DataItem(mtz, "FWT,PHWT"),
             fphi_diff=DataItem(mtz, "DELFWT,PHDELWT"),
+            fphi_calc=DataItem(mtz, "FC_ALL_LS,PHIC_ALL_LS"),
             fsc=float(summary["cycles"][-1]["fsc_average"]),
             seconds=self._seconds,
         )
