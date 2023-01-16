@@ -61,9 +61,9 @@ class ModelCraft(Pipeline):
             self._process_input_maps()
         if self.args.fmean is None:
             self._convert_observations()
+        self.current_phases = self.args.phases
         if self.args.mode == "xray" and self.args.model is not None:
             self._refine_input_model()
-        self.current_phases = self.args.phases
         for self.cycle in range(1, args.cycles + 1):
             print("\n## Cycle %d\n" % self.cycle, flush=True)
             self.run_cycle()
