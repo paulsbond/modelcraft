@@ -252,12 +252,17 @@ def _basic_check(args: argparse.Namespace):
 def _check_paths(args: argparse.Namespace):
     for arg in ("contents", "data", "map", "model"):
         if hasattr(args, arg):
-            path = getattr(args, arg)
-            if path is not None:
-                if not os.path.exists(path):
-                    _PARSER.error("File not found: %s" % path)
-                path = os.path.abspath(path)
-                setattr(args, arg, path)
+            attr = getattr(args, arg)
+            if isinstance(attr, str):
+                if not os.path.exists(attr):
+                    _PARSER.error("File not found: %s" % attr)
+                attr = os.path.abspath(attr)
+                setattr(args, arg, attr)
+            if isinstance(attr, list):
+                for i, path in enumerate(attr):
+                    if not os.path.exists(path):
+                        _PARSER.error("File not found: %s" % path)
+                    attr[i] = os.path.abspath(path)
 
 
 def _parse_data_items(args: argparse.Namespace):
