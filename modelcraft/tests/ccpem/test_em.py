@@ -2,7 +2,7 @@ import json
 import os
 import pytest
 from modelcraft.scripts.modelcraft import main
-from ..integration import in_temp_directory
+from ..ccp4 import in_temp_directory
 from . import density_path, sequence_path
 
 
