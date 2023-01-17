@@ -155,7 +155,13 @@ class RefmacMapToMtz(Job):
     def _result(self) -> RefmacMapToMtzResult:
         self._check_files_exist("hklout.mtz")
         mtz = gemmi.read_mtz_file(self._path("hklout.mtz"))
+        suffix = "0"
+        if self.blur > 0:
+            suffix = f"Blur_{self.blur:.2f}"
+        elif self.blur < 0:
+            suffix = f"Sharp_{-self.blur:.2f}"
+        columns = f"Fout{suffix},Pout0"
         return RefmacMapToMtzResult(
-            fphi=next(DataItem.search(mtz, "FP"), None),
+            fphi=DataItem(mtz, columns),
             seconds=self._seconds,
         )
