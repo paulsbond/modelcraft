@@ -104,7 +104,7 @@ class ModelCraft(Pipeline):
             self.args.fphi = nemap.fphi
         else:
             refmac = RefmacMapToMtz(
-                density=maps[0],
+                density=trimmed.maps[0],
                 resolution=self.args.resolution,
                 blur=0,
             ).run(self)
