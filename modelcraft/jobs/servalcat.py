@@ -18,7 +18,7 @@ class ServalcatNemap(Job):
         halfmap1: gemmi.Ccp4Map,
         halfmap2: gemmi.Ccp4Map,
         resolution: float,
-        mask: gemmi.Ccp4Mask = None,
+        mask: gemmi.Ccp4Map = None,
     ):
         super().__init__("ccpem-python")
         self.halfmap1 = halfmap1
@@ -47,7 +47,7 @@ class ServalcatNemap(Job):
 
 @dataclasses.dataclass
 class ServalcatTrimResult:
-    mask: gemmi.Ccp4Mask
+    mask: gemmi.Ccp4Map
     maps: list
     structure: gemmi.Structure
     seconds: float
@@ -56,7 +56,7 @@ class ServalcatTrimResult:
 class ServalcatTrim(Job):
     def __init__(
         self,
-        mask: gemmi.Ccp4Mask,
+        mask: gemmi.Ccp4Map,
         maps: list,
         structure: gemmi.Structure = None,
     ):
@@ -80,7 +80,7 @@ class ServalcatTrim(Job):
     def _result(self) -> ServalcatTrimResult:
         self._check_files_exist("mask_trimmed.mrc", "map0_trimmed.mrc")
         return ServalcatTrimResult(
-            mask=gemmi.read_ccp4_mask(self._path("mask_trimmed.mrc")),
+            mask=gemmi.read_ccp4_map(self._path("mask_trimmed.mrc")),
             maps=[
                 gemmi.read_ccp4_map(self._path(f"map{i}_trimmed.mrc"))
                 for i in range(len(self.maps))
