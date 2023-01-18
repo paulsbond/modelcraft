@@ -13,7 +13,7 @@ from .jobs.emda import EmdaMapMask
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
-from .jobs.refmac import RefmacXray, RefmacMapToMtz
+from .jobs.refmac import Refmac, RefmacMapToMtz
 from .jobs.servalcat import ServalcatNemap, ServalcatTrim, ServalcatRefine
 from .jobs.sheetbend import Sheetbend
 from .cell import max_distortion, remove_scale, update_cell
@@ -224,7 +224,7 @@ class ModelCraft(Pipeline):
         use_phases = self.args.unbiased and (
             self.output_refinement is None or self.output_refinement.rwork > 0.35
         )
-        result = RefmacXray(
+        result = Refmac(
             structure=structure,
             fsigf=self.args.fmean,
             freer=self.args.freer,

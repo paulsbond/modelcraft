@@ -22,18 +22,31 @@ class RefmacResult:
     seconds: float
 
 
-class _Refmac(Job):
+class Refmac(Job):
     def __init__(
-        self, structure: gemmi.Structure, cycles: int, jelly_body: bool, libin: str
+        self,
+        structure: gemmi.Structure,
+        fsigf: DataItem,
+        freer: DataItem,
+        phases: DataItem = None,
+        cycles: int = 5,
+        twinned: bool = False,
+        jelly_body: bool = False,
+        libin: str = None,
     ):
         super().__init__("refmac5")
         self.structure = structure
+        self.fsigf = fsigf
+        self.freer = freer
+        self.phases = phases
         self.cycles = cycles
+        self.twinned = twinned
         self.jelly_body = jelly_body
         self.libin = libin
 
     def _setup(self) -> None:
         write_mmcif(self._path("xyzin.cif"), self.structure)
+        write_mtz(self._path("hklin.mtz"), [self.fsigf, self.freer, self.phases])
         self._args += ["HKLIN", "./hklin.mtz"]
         self._args += ["XYZIN", "./xyzin.cif"]
         if self.libin:
@@ -42,10 +55,25 @@ class _Refmac(Job):
         self._args += ["HKLOUT", "./hklout.mtz"]
         self._args += ["XYZOUT", "./xyzout.cif"]
         self._args += ["XMLOUT", "./xmlout.xml"]
+        labin = "FP=" + self.fsigf.label(0)
+        labin += " SIGFP=" + self.fsigf.label(1)
+        labin += " FREE=" + self.freer.label()
+        if self.phases is not None:
+            if self.phases.types == "AAAA":
+                labin += " HLA=" + self.phases.label(0)
+                labin += " HLB=" + self.phases.label(1)
+                labin += " HLC=" + self.phases.label(2)
+                labin += " HLD=" + self.phases.label(3)
+            else:
+                labin += " PHIB=" + self.phases.label(0)
+                labin += " FOM=" + self.phases.label(1)
+        self._stdin.append("LABIN " + labin)
         self._stdin.append("NCYCLES %d" % self.cycles)
         self._stdin.append("WEIGHT AUTO")
         if self.jelly_body:
             self._stdin.append("RIDGE DISTANCE SIGMA 0.02")
+        if self.twinned:
+            self._stdin.append("TWIN")
         self._stdin.append("MAKE HYDR NO")
         self._stdin.append("MAKE NEWLIGAND NOEXIT")
         self._stdin.append("PHOUT")
@@ -73,70 +101,6 @@ class _Refmac(Job):
             resolution_high=float(xml.find("Overall_stats/resolution_high").text),
             seconds=self._seconds,
         )
-
-
-class RefmacXray(_Refmac):
-    def __init__(
-        self,
-        structure: gemmi.Structure,
-        fsigf: DataItem,
-        freer: DataItem,
-        phases: DataItem = None,
-        cycles: int = 5,
-        twinned: bool = False,
-        jelly_body: bool = False,
-        libin: str = None,
-    ):
-        super().__init__(
-            structure=structure, cycles=cycles, jelly_body=jelly_body, libin=libin
-        )
-        self.fsigf = fsigf
-        self.freer = freer
-        self.phases = phases
-        self.twinned = twinned
-
-    def _setup(self) -> None:
-        write_mtz(self._path("hklin.mtz"), [self.fsigf, self.freer, self.phases])
-        labin = "FP=" + self.fsigf.label(0)
-        labin += " SIGFP=" + self.fsigf.label(1)
-        labin += " FREE=" + self.freer.label()
-        if self.phases is not None:
-            if self.phases.types == "AAAA":
-                labin += " HLA=" + self.phases.label(0)
-                labin += " HLB=" + self.phases.label(1)
-                labin += " HLC=" + self.phases.label(2)
-                labin += " HLD=" + self.phases.label(3)
-            else:
-                labin += " PHIB=" + self.phases.label(0)
-                labin += " FOM=" + self.phases.label(1)
-        self._stdin.append("LABIN " + labin)
-        if self.twinned:
-            self._stdin.append("TWIN")
-        super()._setup()
-
-
-class RefmacEm(_Refmac):
-    def __init__(
-        self,
-        structure: gemmi.Structure,
-        fphi: DataItem,
-        cycles: int = 5,
-        jelly_body: bool = False,
-        libin: str = None,
-    ):
-        super().__init__(
-            structure=structure, cycles=cycles, jelly_body=jelly_body, libin=libin
-        )
-        self.fphi = fphi
-
-    def _setup(self) -> None:
-        write_mtz(self._path("hklin.mtz"), [self.fphi])
-        labin = "FP=" + self.fphi.label(0)
-        labin += " PHIB=" + self.fphi.label(1)
-        self._stdin.append("LABIN " + labin)
-        self._stdin.append("SOURCE EM MB")
-        self._stdin.append("SOLVENT NO")
-        super()._setup()
 
 
 @dataclasses.dataclass

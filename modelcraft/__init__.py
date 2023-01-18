@@ -20,9 +20,8 @@ from .jobs.molrep import Molrep
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.phasematch import PhaseMatch
-from .jobs.refmac import RefmacEm
+from .jobs.refmac import Refmac
 from .jobs.refmac import RefmacMapToMtz
-from .jobs.refmac import RefmacXray
 from .jobs.servalcat import ServalcatRefine
 from .jobs.servalcat import ServalcatTrim
 from .jobs.sheetbend import Sheetbend
@@ -64,9 +63,8 @@ __all__ = [
     "PolymerType",
     "Prune",
     "read_structure",
-    "RefmacEm",
+    "Refmac",
     "RefmacMapToMtz",
-    "RefmacXray",
     "remove_non_library_atoms",
     "remove_non_protein",
     "remove_residues",
