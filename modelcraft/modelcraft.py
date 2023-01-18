@@ -178,6 +178,7 @@ class ModelCraft(Pipeline):
         if not self.args.contents.proteins:
             return
         self._running_job("Buccaneer")
+        cycles = 3 if self.cycle == 1 else 2
         result = Buccaneer(
             contents=self.args.contents,
             fsigf=self.args.fmean,
@@ -189,7 +190,7 @@ class ModelCraft(Pipeline):
             use_mr=True,
             filter_mr=True,
             seed_mr=True,
-            cycles=3 if self.cycle == 1 else 2,
+            cycles=cycles if self.args.mode == "xray" else 5,
             em_mode=self.args.mode == "em",
         ).run(self)
         self._finished_job("Buccaneer", result)
@@ -230,6 +231,7 @@ class ModelCraft(Pipeline):
             cycles=cycles,
             phases=self.args.phases if use_phases else None,
             twinned=self.args.twinned,
+            libin=self.args.restraints,
         ).run(self)
         self._finished_job("Refmac", result)
         if auto_accept or result.rfree < self.last_refinement.rfree:
@@ -247,6 +249,7 @@ class ModelCraft(Pipeline):
             halfmap1=self.args.map[0] if len(self.args.map) == 2 else None,
             halfmap2=self.args.map[1] if len(self.args.map) == 2 else None,
             density=self.args.map[0] if len(self.args.map) == 1 else None,
+            ligand=self.args.restraints,
         ).run(self)
         self._finished_job("Servalcat", result)
         self.update_current_from_refinement_result(result)

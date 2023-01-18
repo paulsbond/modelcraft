@@ -1,5 +1,6 @@
 import dataclasses
 import json
+import shutil
 import gemmi
 from ..job import Job
 from ..reflections import DataItem
@@ -116,6 +117,7 @@ class ServalcatRefine(Job):
         jellybody: bool = True,
         jellybody_sigma: float = 0.01,
         jellybody_dmax: float = 4.2,
+        ligand: str = None,
     ):
         super().__init__("ccpem-python")
         self.structure = structure
@@ -129,6 +131,7 @@ class ServalcatRefine(Job):
         self.jellybody = jellybody
         self.jellybody_sigma = jellybody_sigma
         self.jellybody_dmax = jellybody_dmax
+        self.ligand = ligand
 
     def _setup(self) -> None:
         self._args += ["-m", "servalcat.command_line", "refine_spa"]
@@ -153,6 +156,9 @@ class ServalcatRefine(Job):
                 str(self.jellybody_sigma),
                 str(self.jellybody_dmax),
             ]
+        if self.ligand:
+            shutil.copy(self.ligand, self._path("ligand.cif"))
+            self._args += ["--ligand", "ligand.cif"]
 
     def _result(self) -> ServalcatRefineResult:
         self._check_files_exist("refined.mmcif", "refined.mtz", "refined_summary.json")

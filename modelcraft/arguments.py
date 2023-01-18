@@ -80,6 +80,14 @@ _GROUP.add_argument(
     ),
 )
 _GROUP.add_argument(
+    "--restraints",
+    metavar="X",
+    help=(
+        "Restraints dictionary (in CIF format) for ligands in the starting model. "
+        "Required for ligands that are not present in the CCP4 monomer library. "
+    ),
+)
+_GROUP.add_argument(
     "--keep-files",
     action="store_true",
     help=(
@@ -271,7 +279,7 @@ def _basic_check(args: argparse.Namespace):
 
 
 def _check_paths(args: argparse.Namespace):
-    for arg in ("contents", "data", "map", "model"):
+    for arg in ("contents", "data", "map", "model", "restraints"):
         if hasattr(args, arg):
             attr = getattr(args, arg)
             if isinstance(attr, str):

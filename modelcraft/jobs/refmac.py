@@ -1,4 +1,5 @@
 import dataclasses
+import shutil
 import xml.etree.ElementTree as ET
 import gemmi
 from ..job import Job
@@ -22,16 +23,22 @@ class RefmacResult:
 
 
 class _Refmac(Job):
-    def __init__(self, structure: gemmi.Structure, cycles: int, jelly_body: bool):
+    def __init__(
+        self, structure: gemmi.Structure, cycles: int, jelly_body: bool, libin: str
+    ):
         super().__init__("refmac5")
         self.structure = structure
         self.cycles = cycles
         self.jelly_body = jelly_body
+        self.libin = libin
 
     def _setup(self) -> None:
         write_mmcif(self._path("xyzin.cif"), self.structure)
         self._args += ["HKLIN", "./hklin.mtz"]
         self._args += ["XYZIN", "./xyzin.cif"]
+        if self.libin:
+            shutil.copy(self.libin, self._path("libin.cif"))
+            self._args += ["LIBIN", "./libin.cif"]
         self._args += ["HKLOUT", "./hklout.mtz"]
         self._args += ["XYZOUT", "./xyzout.cif"]
         self._args += ["XMLOUT", "./xmlout.xml"]
@@ -78,8 +85,11 @@ class RefmacXray(_Refmac):
         cycles: int = 5,
         twinned: bool = False,
         jelly_body: bool = False,
+        libin: str = None,
     ):
-        super().__init__(structure=structure, cycles=cycles, jelly_body=jelly_body)
+        super().__init__(
+            structure=structure, cycles=cycles, jelly_body=jelly_body, libin=libin
+        )
         self.fsigf = fsigf
         self.freer = freer
         self.phases = phases
@@ -112,8 +122,11 @@ class RefmacEm(_Refmac):
         fphi: DataItem,
         cycles: int = 5,
         jelly_body: bool = False,
+        libin: str = None,
     ):
-        super().__init__(structure=structure, cycles=cycles, jelly_body=jelly_body)
+        super().__init__(
+            structure=structure, cycles=cycles, jelly_body=jelly_body, libin=libin
+        )
         self.fphi = fphi
 
     def _setup(self) -> None:
