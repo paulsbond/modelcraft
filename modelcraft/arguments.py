@@ -217,7 +217,13 @@ _GROUP.add_argument(
     required=True,
     nargs="+",
     metavar="X",
-    help="Either two half-maps or a single map in MRC format.",
+    help=(
+        "Either two half-maps or a single map in MRC format. "
+        "Input maps will be trimmed using Servalcat "
+        "and a mask calculated by EMDA mapmask. "
+        "If two half-maps are provided then Servalcat will be used to calculate "
+        "a normalised expected (NE) map for model building."
+    ),
 )
 _GROUP.add_argument(
     "--resolution",
@@ -225,6 +231,19 @@ _GROUP.add_argument(
     required=True,
     metavar="X",
     help="High resolution limit in Angstroms",
+)
+_GROUP.add_argument(
+    "--blur",
+    default=0.0,
+    type=float,
+    metavar="X",
+    help=(
+        "B-factor for global blurring or sharpening of the input map "
+        "(positive values for blurring and negative values for sharpening). "
+        "This value is only used if a single input map is provided. "
+        "If two half-maps are provided then local blurring and sharpening "
+        "is performed in the calculation of the normalised expected (NE) map."
+    ),
 )
 
 

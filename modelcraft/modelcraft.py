@@ -106,7 +106,7 @@ class ModelCraft(Pipeline):
             refmac = RefmacMapToMtz(
                 density=trimmed.maps[0],
                 resolution=self.args.resolution,
-                blur=0,
+                blur=self.args.blur,
             ).run(self)
             self.args.fphi = refmac.fphi
         self.args.fmean, self.args.phases = convert_to_fsigf_and_phifom(self.args.fphi)

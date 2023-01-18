@@ -12,6 +12,7 @@ def test_3488():
     args += ["--contents", sequence_path()]
     args += ["--map", density_path()]
     args += ["--resolution", "3.2"]
+    args += ["--blur", "10"]
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
         main(args)
