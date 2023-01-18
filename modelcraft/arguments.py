@@ -266,6 +266,8 @@ def _basic_check(args: argparse.Namespace):
         _PARSER.error("--resolution must be greater than 0")
     if args.mode == "em" and len(args.map) > 2:
         _PARSER.error("--map only takes two half-maps or a single map")
+    if args.mode == "em" and len(args.map) == 2 and args.blur != 0.0:
+        _PARSER.error("--blur can only be used with a single map and not two half-maps")
 
 
 def _check_paths(args: argparse.Namespace):
