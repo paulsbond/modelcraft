@@ -1,7 +1,7 @@
 import gemmi
 from modelcraft.jobs.freerflag import FreeRFlag
 from modelcraft.jobs.nautilus import Nautilus
-from modelcraft.jobs.refmac import RefmacXray
+from modelcraft.jobs.refmac import Refmac
 from modelcraft.pipeline import Pipeline
 from modelcraft.reflections import DataItem
 from modelcraft.scripts.contents import _entry_contents
@@ -26,7 +26,7 @@ def test_102d():
     mtz = cif2mtz.convert_block_to_mtz(rblocks[0])
     fsigf = DataItem(mtz, "FP,SIGFP")
     freer = FreeRFlag(fsigf).run().freer
-    refmac = RefmacXray(structure=structure, fsigf=fsigf, freer=freer, cycles=0).run()
+    refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0).run()
     contents = _entry_contents("102d")
     pipeline = Pipeline(keep_jobs=True)
     # Test without an input structure

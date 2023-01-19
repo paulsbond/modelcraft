@@ -1,5 +1,5 @@
 import gemmi
-from modelcraft.jobs.refmac import RefmacXray
+from modelcraft.jobs.refmac import Refmac
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 from . import ccp4_path
@@ -12,7 +12,7 @@ def test_1rxf():
     mtz = gemmi.read_mtz_file(mtz_path)
     fsigf = DataItem(mtz, "F,SIGF")
     freer = DataItem(mtz, "FreeR_flag")
-    refmac = RefmacXray(structure=structure, fsigf=fsigf, freer=freer, cycles=1).run()
+    refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=1).run()
     assert refmac.structure is not None
     assert 0 < refmac.rwork < 0.30
     assert 0 < refmac.rfree < 0.32
