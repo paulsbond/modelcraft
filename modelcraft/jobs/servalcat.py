@@ -51,21 +51,14 @@ class ServalcatNemap(Job):
 class ServalcatTrimResult:
     mask: gemmi.Ccp4Map
     maps: list
-    structure: gemmi.Structure
     seconds: float
 
 
 class ServalcatTrim(Job):
-    def __init__(
-        self,
-        mask: gemmi.Ccp4Map,
-        maps: list,
-        structure: gemmi.Structure = None,
-    ):
+    def __init__(self, mask: gemmi.Ccp4Map, maps: list):
         super().__init__("ccpem-python")
         self.mask = mask
         self.maps = maps
-        self.structure = structure
 
     def _setup(self) -> None:
         self._args += ["-m", "servalcat.command_line", "trim"]
@@ -75,9 +68,9 @@ class ServalcatTrim(Job):
         for i, map_ in enumerate(self.maps):
             map_.write_ccp4_map(self._path(f"map{i}.ccp4"))
             self._args.append(f"map{i}.ccp4")
-        if self.structure is not None:
-            write_mmcif(self._path("model.cif"), self.structure)
-            self._args += ["--model", "model.cif"]
+        self._args.append("--noncubic")
+        self._args.append("--noncentered")
+        self._args.append("--no_shift")
 
     def _result(self) -> ServalcatTrimResult:
         self._check_files_exist("mask_trimmed.mrc", "map0_trimmed.mrc")
@@ -87,9 +80,6 @@ class ServalcatTrim(Job):
                 read_map(self._path(f"map{i}_trimmed.mrc"))
                 for i in range(len(self.maps))
             ],
-            structure=None
-            if self.structure is None
-            else read_structure(self._path("model_trimmed.cif")),
             seconds=self._seconds,
         )
 

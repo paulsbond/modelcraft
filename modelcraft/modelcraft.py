@@ -92,9 +92,8 @@ class ModelCraft(Pipeline):
     def _process_input_maps(self):
         maps = [read_map(path) for path in self.args.map]
         mask = EmdaMapMask(maps[0]).run(self).mask
-        trimmed = ServalcatTrim(mask, maps, self.args.model).run(self)
+        trimmed = ServalcatTrim(mask, maps).run(self)
         self.args.map = trimmed.maps
-        self.args.model = trimmed.structure
         if len(maps) == 2:
             nemap = ServalcatNemap(
                 halfmap1=trimmed.maps[0],

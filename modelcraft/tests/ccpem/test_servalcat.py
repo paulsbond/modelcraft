@@ -16,8 +16,7 @@ def test_servalcat_trim():
     halfmap2 = read_map(halfmap2_path())
     density = read_map(density_path())
     mask = read_map(mask_path())
-    structure = read_structure(structure_path())
-    trimmed = ServalcatTrim(mask, [density, halfmap1, halfmap2], structure).run()
+    trimmed = ServalcatTrim(mask, [density, halfmap1, halfmap2]).run()
     assert len(trimmed.maps) == 3
 
 
