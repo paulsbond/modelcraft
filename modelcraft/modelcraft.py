@@ -17,6 +17,7 @@ from .jobs.refmac import Refmac, RefmacMapToMtz
 from .jobs.servalcat import ServalcatNemap, ServalcatTrim, ServalcatRefine
 from .jobs.sheetbend import Sheetbend
 from .cell import max_distortion, remove_scale, update_cell
+from .maps import read_map
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz, convert_to_fsigf_and_phifom
 from .structure import ModelStats, remove_residues, write_mmcif
@@ -89,7 +90,7 @@ class ModelCraft(Pipeline):
         self.terminate(reason="Normal")
 
     def _process_input_maps(self):
-        maps = [gemmi.read_ccp4_map(path) for path in self.args.map]
+        maps = [read_map(path) for path in self.args.map]
         mask = EmdaMapMask(maps[0]).run(self).mask
         trimmed = ServalcatTrim(mask, maps, self.args.model).run(self)
         self.args.map = trimmed.maps

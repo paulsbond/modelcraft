@@ -3,6 +3,7 @@ import json
 import shutil
 import gemmi
 from ..job import Job
+from ..maps import read_map
 from ..reflections import DataItem
 from ..structure import read_structure, write_mmcif
 
@@ -81,9 +82,9 @@ class ServalcatTrim(Job):
     def _result(self) -> ServalcatTrimResult:
         self._check_files_exist("mask_trimmed.mrc", "map0_trimmed.mrc")
         return ServalcatTrimResult(
-            mask=gemmi.read_ccp4_map(self._path("mask_trimmed.mrc")),
+            mask=read_map(self._path("mask_trimmed.mrc")),
             maps=[
-                gemmi.read_ccp4_map(self._path(f"map{i}_trimmed.mrc"))
+                read_map(self._path(f"map{i}_trimmed.mrc"))
                 for i in range(len(self.maps))
             ],
             structure=None

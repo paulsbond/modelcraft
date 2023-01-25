@@ -1,6 +1,7 @@
 import dataclasses
 import gemmi
 from ..job import Job
+from ..maps import read_map
 
 
 @dataclasses.dataclass
@@ -31,6 +32,6 @@ class EmdaMapMask(Job):
     def _result(self) -> EmdaMapMaskResult:
         self._check_files_exist("mapmask.mrc")
         return EmdaMapMaskResult(
-            mask=gemmi.read_ccp4_map(self._path("mapmask.mrc")),
+            mask=read_map(self._path("mapmask.mrc")),
             seconds=self._seconds,
         )
