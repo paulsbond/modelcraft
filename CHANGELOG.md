@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.0.0] - Unreleased
+
+### Added
+
+- EM pipeline starting from either halfmaps or a single map with optional blurring
+- EMDA map mask job
+- Servalcat trim, refine and NE map jobs
+- Refmac map to MTZ job
+- Libg job
+- Support for a user-supplied restraints dictionary for ligands
+- CCP-EM program tests
+
+### Changed
+
+- Renamed RefmacXray to Refmac
+- Flushing print statements so they are written when piping to a file
+
+### Removed
+
+- Refmac EM job
+
 ## [2.4.1] - 2022-07-12
 
 ### Fixed
