@@ -22,6 +22,7 @@ from .jobs.parrot import Parrot
 from .jobs.phasematch import PhaseMatch
 from .jobs.refmac import Refmac
 from .jobs.refmac import RefmacMapToMtz
+from .jobs.servalcat import ServalcatNemap
 from .jobs.servalcat import ServalcatRefine
 from .jobs.servalcat import ServalcatTrim
 from .jobs.sheetbend import Sheetbend
@@ -72,6 +73,7 @@ __all__ = [
     "rmsz",
     "RsrMorph",
     "run",
+    "ServalcatNemap",
     "ServalcatRefine",
     "ServalcatTrim",
     "Sheetbend",
