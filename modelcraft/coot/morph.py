@@ -1,6 +1,3 @@
-from coot import *
-
-
 def rsr_morph(imol, imap, local_radius=5, gm_alpha=0.05, blur_b_factor=88):
     generate_self_restraints(imol, local_radius)
     set_show_extra_restraints(imol, 0)  # too confusing

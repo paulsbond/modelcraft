@@ -20,7 +20,11 @@ class Coot(Job):
         self.fphis = fphis
 
     def _setup(self) -> None:
-        script_lines = ["try:\n", "    turn_off_backup(0)\n"]
+        script_lines = [
+            "try:\n",
+            "    from coot import *\n",
+            "    turn_off_backup(0)\n",
+        ]
         for i, structure in enumerate(self.structures):
             write_mmcif(self._path(f"xyzin{i}.cif"), structure)
             script_lines += [
