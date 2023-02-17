@@ -22,7 +22,12 @@ class Coot(Job):
     def _setup(self) -> None:
         script_lines = [
             "try:\n",
-            "    from coot import *\n",
+            "    COOT1 = True\n",
+            "    try:\n",
+            "        from coot import *\n",
+            "        import coot_utils\n",
+            "    except NameError:\n",
+            "        COOT1 = False\n",
             "    turn_off_backup(0)\n",
         ]
         for i, structure in enumerate(self.structures):
@@ -36,10 +41,11 @@ class Coot(Job):
                 f"    IMAP{i} = make_and_draw_map('hklin{i}.mtz', "
                 f"'{fphi.label(0)}', '{fphi.label(1)}', '', 0, 0)\n"
             ]
+        script_lines += ["    set_imol_refinement_map(IMAP0)\n"]
         for line in self.script.split("\n"):
             script_lines += [f"    {line}\n"]
         script_lines += [
-            "    write_cif_file(0, 'xyzout.cif')\n",
+            "    write_cif_file(IMOL0, 'xyzout.cif')\n",
             "    coot_real_exit(0)\n",
             "except:\n",
             "    import traceback\n",
