@@ -24,10 +24,12 @@ class Coot(Job):
             "try:\n",
             "    COOT1 = True\n",
             "    try:\n",
-            "        from coot import *\n",
             "        import coot_utils\n",
             "    except NameError:\n",
             "        COOT1 = False\n",
+            "    if COOT1:\n",
+            "        from coot import *\n",
+            "        from fitting import fit_protein_make_specs\n",
             "    turn_off_backup(0)\n",
         ]
         for i, structure in enumerate(self.structures):
