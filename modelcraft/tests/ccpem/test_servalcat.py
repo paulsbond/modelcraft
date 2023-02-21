@@ -1,4 +1,9 @@
-from modelcraft.jobs.servalcat import ServalcatNemap, ServalcatTrim, ServalcatRefine
+from modelcraft.jobs.servalcat import (
+    ServalcatNemap,
+    ServalcatTrim,
+    ServalcatRefine,
+    ServalcatFsc,
+)
 from modelcraft.maps import read_map
 from modelcraft.structure import read_structure
 from . import halfmap1_path, halfmap2_path, density_path, mask_path, structure_path
@@ -31,3 +36,10 @@ def test_servalcat_halfmap_refine():
     halfmap1 = read_map(halfmap1_path())
     halfmap2 = read_map(halfmap2_path())
     ServalcatRefine(structure, 3.2, halfmap1, halfmap2, cycles=1).run()
+
+
+def test_servalcat_fsc():
+    structure = read_structure(structure_path())
+    density = read_map(density_path())
+    result = ServalcatFsc(structure, 3.2, density=density).run()
+    assert result.fsc is not None
