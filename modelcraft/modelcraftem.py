@@ -57,7 +57,11 @@ class ModelCraftEm(Pipeline):
             self.write_report()
             if cycles_without_improvement == self.args.auto_stop_cycles > 0:
                 break
-        self.report["termination_reason"] = "Normal"
+        self.terminate("Normal")
+
+    def terminate(self, reason: str):
+        print(f"\n--- Termination: {reason} ---", flush=True)
+        self.report["termination_reason"] = reason
         self.write_report()
         sys.exit()
 
@@ -105,6 +109,8 @@ class ModelCraftEm(Pipeline):
         return result.structure
 
     def servalcat_refine(self, structure: gemmi.Structure) -> gemmi.Structure:
+        if ModelStats(structure).residues == 0:
+            self.terminate(reason="No residues to refine")
         result = ServalcatRefine(
             structure=structure,
             resolution=self.args.resolution,
