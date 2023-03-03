@@ -8,12 +8,17 @@ import time
 
 class Pipeline:
     def __init__(
-        self, directory: str = "", keep_jobs: bool = False, keep_logs: bool = False
+        self,
+        directory: str = "",
+        keep_jobs: bool = False,
+        keep_logs: bool = False,
+        json_name: str = None,
     ):
         self._numbers = itertools.count(start=1)
         self.directory = directory
         self.keep_jobs = keep_jobs
         self.keep_logs = keep_logs
+        self.json_name = json_name
         self.seconds = collections.defaultdict(float)
         self.report = {"seconds": self.seconds, "jobs": []}
         self.start_time = None
@@ -47,6 +52,7 @@ class Pipeline:
         self.write_report()
 
     def write_report(self):
-        self.seconds["total"] = time.time() - self.start_time
-        with open(self.path("modelcraft.json"), "w") as report_file:
-            json.dump(self.report, report_file, indent=4)
+        if self.json_name:
+            self.seconds["total"] = time.time() - self.start_time
+            with open(self.path(self.json_name), "w") as report_file:
+                json.dump(self.report, report_file, indent=4)

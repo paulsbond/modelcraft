@@ -22,6 +22,7 @@ class ModelCraftEm(Pipeline):
             directory=self.args.directory,
             keep_jobs=self.args.keep_files,
             keep_logs=self.args.keep_logs,
+            json_name="modelcraft.json",
         )
         self.report["version"] = __version__
         self.report["args"] = args or sys.argv[1:]
