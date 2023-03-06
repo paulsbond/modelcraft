@@ -7,11 +7,11 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ### Added
 
-- EM pipeline starting from either halfmaps or a single map with optional blurring
+- New EM pipeline starting from either halfmaps or a single map with optional blurring
 - EMDA map mask job
 - Servalcat trim, refine, FSC and NE map jobs
 - Refmac map to MTZ job
-- Libg job
+- Libg job (not yet exposed)
 - Support for a user-supplied restraints dictionary for ligands
 - CCP-EM program tests
 - Renaming SUL residues to SO4 and HOH O1 atoms to O on reading a structure
