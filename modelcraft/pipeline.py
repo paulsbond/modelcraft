@@ -3,6 +3,7 @@ import dataclasses
 import itertools
 import json
 import os
+import sys
 import time
 
 
@@ -56,3 +57,9 @@ class Pipeline:
             self.seconds["total"] = time.time() - self.start_time
             with open(self.path(self.json_name), "w") as report_file:
                 json.dump(self.report, report_file, indent=4)
+
+    def terminate(self, reason: str):
+        print(f"\n--- Termination: {reason} ---", flush=True)
+        self.report["termination_reason"] = reason
+        self.write_report()
+        sys.exit()

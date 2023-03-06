@@ -1,9 +1,7 @@
 import os
-import sys
 import time
 import gemmi
 from . import __version__
-from .arguments import parse
 from .jobs.buccaneer import Buccaneer
 from .jobs.coot import FixSideChains, Prune
 from .jobs.ctruncate import CTruncate
@@ -19,8 +17,8 @@ from .structure import ModelStats, remove_residues, write_mmcif
 
 
 class ModelCraftXray(Pipeline):
-    def __init__(self, args):
-        self.args = parse(args)
+    def __init__(self, parsed_args, raw_args):
+        self.args = parsed_args
         super().__init__(
             directory=self.args.directory,
             keep_jobs=self.args.keep_files,
@@ -28,7 +26,7 @@ class ModelCraftXray(Pipeline):
             json_name="modelcraft.json",
         )
         self.report["version"] = __version__
-        self.report["args"] = args or sys.argv[1:]
+        self.report["args"] = raw_args
         self.report["cycles"] = []
         self.cycle = 0
         self.current_structure: gemmi.Structure = self.args.model
@@ -69,7 +67,7 @@ class ModelCraftXray(Pipeline):
             self.fixsidechains()
             self.process_cycle_output(self.last_refmac)
         print("\n## Best Model:", flush=True)
-        print_refmac_result(self.output_refmac)
+        _print_refmac_result(self.output_refmac)
         self.terminate(reason="Normal")
 
     def _convert_observations(self):
@@ -89,7 +87,7 @@ class ModelCraftXray(Pipeline):
         self.args.model = self.current_structure
         if self.args.phases is not None:
             self.current_phases = self.args.phases
-        print_refmac_result(self.last_refmac)
+        _print_refmac_result(self.last_refmac)
 
     def run_cycle(self):
         if self.args.basic:
@@ -109,12 +107,6 @@ class ModelCraftXray(Pipeline):
             self.prune(chains_only=True)
             self.nautilus()
             self.findwaters()
-
-    def terminate(self, reason: str):
-        print(f"\n--- Termination: {reason} ---", flush=True)
-        self.report["termination_reason"] = reason
-        self.write_report()
-        sys.exit()
 
     def sheetbend(self):
         if self.args.disable_sheetbend:
@@ -236,7 +228,7 @@ class ModelCraftXray(Pipeline):
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self, result):
-        print_refmac_result(result)
+        _print_refmac_result(result)
         model_stats = ModelStats(result.structure)
         stats = {"cycle": self.cycle, "residues": model_stats.residues}
         stats["waters"] = model_stats.waters
@@ -285,7 +277,7 @@ class ModelCraftXray(Pipeline):
             update_cell(structure=structure, new_cell=mtz.cell)
 
 
-def print_refmac_result(result):
+def _print_refmac_result(result):
     model_stats = ModelStats(result.structure)
     print(f"\nResidues: {model_stats.residues:6d}", flush=True)
     print(f"Waters:   {model_stats.waters:6d}", flush=True)

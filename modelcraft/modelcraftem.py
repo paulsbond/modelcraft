@@ -1,9 +1,7 @@
 import os
-import sys
 import time
 import gemmi
 from . import __version__
-from .arguments import parse
 from .jobs.buccaneer import Buccaneer
 from .jobs.emda import EmdaMapMask
 from .jobs.nautilus import Nautilus
@@ -16,8 +14,8 @@ from .structure import ModelStats, write_mmcif
 
 
 class ModelCraftEm(Pipeline):
-    def __init__(self, args):
-        self.args = parse(args)
+    def __init__(self, parsed_args, raw_args):
+        self.args = parsed_args
         super().__init__(
             directory=self.args.directory,
             keep_jobs=self.args.keep_files,
@@ -25,7 +23,7 @@ class ModelCraftEm(Pipeline):
             json_name="modelcraft.json",
         )
         self.report["version"] = __version__
-        self.report["args"] = args or sys.argv[1:]
+        self.report["args"] = raw_args
         self.report["cycles"] = []
 
     def run(self):
@@ -58,12 +56,6 @@ class ModelCraftEm(Pipeline):
             if cycles_without_improvement == self.args.auto_stop_cycles > 0:
                 break
         self.terminate("Normal")
-
-    def terminate(self, reason: str):
-        print(f"\n--- Termination: {reason} ---", flush=True)
-        self.report["termination_reason"] = reason
-        self.write_report()
-        sys.exit()
 
     def _process_input_maps(self):
         maps = [read_map(path) for path in self.args.map]
