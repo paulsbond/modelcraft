@@ -139,7 +139,6 @@ class ServalcatRefine(Job):
         self._args += ["--blur", str(self.blur)]
         self._args += ["--ncycle", str(self.cycles)]
         self._args += ["--bfactor", str(self.bfactor)]
-        self._args += ["--no_mask"]
         if self.jellybody:
             self._args += [
                 "--jellybody",
