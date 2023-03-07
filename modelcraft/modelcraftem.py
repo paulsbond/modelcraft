@@ -47,6 +47,7 @@ class ModelCraftEm(Pipeline):
             stats = {"cycle": cycle, "residues": model_stats.residues, "fsc": fsc}
             self.report["cycles"].append(stats)
             if best_fsc is None or fsc > best_fsc:
+                best_fsc = fsc
                 cycles_without_improvement = 0
                 write_mmcif(self.path("modelcraft.cif"), structure)
                 self.report["final"] = stats

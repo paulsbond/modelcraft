@@ -1,5 +1,4 @@
 import dataclasses
-import json
 import shutil
 import gemmi
 from ..job import Job
@@ -87,10 +86,6 @@ class ServalcatTrim(Job):
 @dataclasses.dataclass
 class ServalcatRefineResult:
     structure: gemmi.Structure
-    fphi_best: DataItem
-    fphi_diff: DataItem
-    fphi_calc: DataItem
-    fsc: float
     seconds: float
 
 
@@ -151,16 +146,9 @@ class ServalcatRefine(Job):
             self._args += ["--ligand", "ligand.cif"]
 
     def _result(self) -> ServalcatRefineResult:
-        self._check_files_exist("refined.mmcif", "refined.mtz", "refined_summary.json")
-        mtz = gemmi.read_mtz_file(self._path("refined.mtz"))
-        with open(self._path("refined_summary.json")) as json_file:
-            summary = json.load(json_file)
+        self._check_files_exist("refined.mmcif")
         return ServalcatRefineResult(
             structure=read_structure(self._path("refined.mmcif")),
-            fphi_best=DataItem(mtz, "FWT,PHWT"),
-            fphi_diff=DataItem(mtz, "DELFWT,PHDELWT"),
-            fphi_calc=DataItem(mtz, "FC_ALL_LS,PHIC_ALL_LS"),
-            fsc=float(summary["cycles"][-1]["fsc_average"]),
             seconds=self._seconds,
         )
 
