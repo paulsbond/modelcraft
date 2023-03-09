@@ -31,8 +31,11 @@ def neighbours_specs(residue):
 
 
 def refine(imol, specs):
-    with AutoAccept():
-        refine_residues_py(imol, specs)
+    if COOT1:
+        coot_utils.with_auto_accept([refine_residues_py, imol, specs])
+    else:
+        with AutoAccept():
+            refine_residues_py(imol, specs)
 
 
 def fix_side_chain(imol, imap, residue):
@@ -41,7 +44,10 @@ def fix_side_chain(imol, imap, residue):
     neighbours = neighbours_specs(residue)
     refine(imol, neighbours)
     fill_partial_residue(imol, *spec)
-    auto_fit_best_rotamer(spec[1], "", spec[2], spec[0], imol, imap, 1, 0.10)
+    if COOT1:
+        auto_fit_best_rotamer(imol, spec[0], spec[1], spec[2], "", imap, 1, 0.1)
+    else:
+        auto_fit_best_rotamer(spec[1], "", spec[2], spec[0], imol, imap, 1, 0.1)
     refine(imol, neighbours)
 
 

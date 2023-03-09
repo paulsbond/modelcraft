@@ -10,7 +10,7 @@ def read_structure(path: str) -> gemmi.Structure:
     # TODO: Currently altconfs appear in CIF auth_atom_id after sheetbend
     # TODO: Keep alternative conformations after problem is fixed
     structure.remove_alternative_conformations()
-    _trim_residue_names(structure)
+    _patch_names(structure)
     return structure
 
 
@@ -102,6 +102,12 @@ def _residues(structure: gemmi.Structure) -> Iterator[gemmi.Residue]:
                 yield residue
 
 
-def _trim_residue_names(structure: gemmi.Structure) -> None:
+def _patch_names(structure: gemmi.Structure) -> None:
+    residue_patches = {"SUL": "SO4"}
+    atom_patches = {("HOH", "O1"): "O"}
     for residue in _residues(structure):
         residue.name = residue.name.strip()
+        residue.name = residue_patches.get(residue.name, residue.name)
+        for atom in residue:
+            atom.name = atom.name.strip()
+            atom.name = atom_patches.get((residue.name, atom.name), atom.name)

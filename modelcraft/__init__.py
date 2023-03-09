@@ -1,4 +1,4 @@
-__version__ = "2.4.1"
+__version__ = "3.0.0"
 
 from .cell import max_distortion as max_cell_distortion
 from .cell import remove_scale
@@ -13,14 +13,18 @@ from .jobs.coot import FixSideChains
 from .jobs.coot import Prune
 from .jobs.coot import RsrMorph
 from .jobs.ctruncate import CTruncate
+from .jobs.emda import EmdaMapMask
 from .jobs.findwaters import FindWaters
 from .jobs.freerflag import FreeRFlag
 from .jobs.molrep import Molrep
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.phasematch import PhaseMatch
-from .jobs.refmac import RefmacEm
-from .jobs.refmac import RefmacXray
+from .jobs.refmac import Refmac
+from .jobs.refmac import RefmacMapToMtz
+from .jobs.servalcat import ServalcatNemap
+from .jobs.servalcat import ServalcatRefine
+from .jobs.servalcat import ServalcatTrim
 from .jobs.sheetbend import Sheetbend
 from .pipeline import Pipeline
 from .reflections import DataItem
@@ -45,6 +49,7 @@ __all__ = [
     "contains_residue",
     "CTruncate",
     "DataItem",
+    "EmdaMapMask",
     "entry_contents",
     "FindWaters",
     "FixSideChains",
@@ -59,8 +64,8 @@ __all__ = [
     "PolymerType",
     "Prune",
     "read_structure",
-    "RefmacEm",
-    "RefmacXray",
+    "Refmac",
+    "RefmacMapToMtz",
     "remove_non_library_atoms",
     "remove_non_protein",
     "remove_residues",
@@ -68,6 +73,9 @@ __all__ = [
     "rmsz",
     "RsrMorph",
     "run",
+    "ServalcatNemap",
+    "ServalcatRefine",
+    "ServalcatTrim",
     "Sheetbend",
     "solvent_fraction",
     "update_cell",

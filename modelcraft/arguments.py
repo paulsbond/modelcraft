@@ -3,8 +3,6 @@ import argparse
 import os
 import sys
 import gemmi
-import numpy
-import pandas
 from . import __version__
 from .contents import AsuContents
 from .reflections import DataItem
@@ -79,6 +77,14 @@ _GROUP.add_argument(
         "The directory where files will be written. "
         "It will be created (along with any intermediate directories) "
         "and can not already exist."
+    ),
+)
+_GROUP.add_argument(
+    "--restraints",
+    metavar="X",
+    help=(
+        "Restraints dictionary (in CIF format) for ligands in the starting model. "
+        "Required for ligands that are not present in the CCP4 monomer library. "
     ),
 )
 _GROUP.add_argument(
@@ -217,15 +223,35 @@ _GROUP = _EM.add_argument_group("required arguments (em)")
 _GROUP.add_argument(
     "--map",
     required=True,
+    nargs="+",
     metavar="X",
-    help="Input map in MRC format",
+    help=(
+        "Either two half-maps or a single map in MRC format. "
+        "Input maps will be trimmed using Servalcat "
+        "and a mask calculated by EMDA mapmask. "
+        "If two half-maps are provided then Servalcat will be used to calculate "
+        "a normalised expected (NE) map for model building."
+    ),
 )
 _GROUP.add_argument(
     "--resolution",
     type=float,
     required=True,
     metavar="X",
-    help="High resolution limit",
+    help="High resolution limit in Angstroms",
+)
+_GROUP.add_argument(
+    "--blur",
+    default=0.0,
+    type=float,
+    metavar="X",
+    help=(
+        "B-factor for global blurring or sharpening of the input map "
+        "(positive values for blurring and negative values for sharpening). "
+        "This value is only used if a single input map is provided. "
+        "If two half-maps are provided then local blurring and sharpening "
+        "is performed in the calculation of the normalised expected (NE) map."
+    ),
 )
 
 
@@ -236,8 +262,6 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
     args.contents = AsuContents.from_file(args.contents)
     if args.mode == "xray":
         _parse_data_items(args)
-    if args.mode == "em":
-        _parse_map(args)
     if args.model is not None:
         args.model = read_structure(args.model)
     return args
@@ -248,17 +272,26 @@ def _basic_check(args: argparse.Namespace):
         _PARSER.error("--cycles must be greater than 0")
     if args.mode == "em" and args.resolution <= 0:
         _PARSER.error("--resolution must be greater than 0")
+    if args.mode == "em" and len(args.map) > 2:
+        _PARSER.error("--map only takes two half-maps or a single map")
+    if args.mode == "em" and len(args.map) == 2 and args.blur != 0.0:
+        _PARSER.error("--blur can only be used with a single map and not two half-maps")
 
 
 def _check_paths(args: argparse.Namespace):
-    for arg in ("contents", "data", "map", "model"):
+    for arg in ("contents", "data", "map", "model", "restraints"):
         if hasattr(args, arg):
-            path = getattr(args, arg)
-            if path is not None:
-                if not os.path.exists(path):
-                    _PARSER.error("File not found: %s" % path)
-                path = os.path.abspath(path)
-                setattr(args, arg, path)
+            attr = getattr(args, arg)
+            if isinstance(attr, str):
+                if not os.path.exists(attr):
+                    _PARSER.error("File not found: %s" % attr)
+                attr = os.path.abspath(attr)
+                setattr(args, arg, attr)
+            if isinstance(attr, list):
+                for i, path in enumerate(attr):
+                    if not os.path.exists(path):
+                        _PARSER.error("File not found: %s" % path)
+                    attr[i] = os.path.abspath(path)
 
 
 def _parse_data_items(args: argparse.Namespace):
@@ -344,30 +377,3 @@ def _multiple_options_error(argument: str, options: List[DataItem]):
     for option in options:
         message += f"\n--{argument} {option.label()}"
     _PARSER.error(message)
-
-
-def _parse_map(args: argparse.Namespace):
-    args.map = gemmi.read_ccp4_map(args.map, setup=True)
-    array = numpy.array(args.map.grid, copy=False)
-    if numpy.isnan(array).any():
-        _PARSER.error("Map does not cover the full ASU")
-    grid = gemmi.transform_map_to_f_phi(args.map.grid, half_l=True)
-    data = grid.prepare_asu_data(dmin=args.resolution)
-    mtz = gemmi.Mtz(with_base=True)
-    mtz.cell = grid.unit_cell
-    mtz.spacegroup = grid.spacegroup
-    mtz.add_column("F", "F")
-    mtz.add_column("PHI", "P")
-    mtz.set_data(data)
-    mtz.update_reso()
-    array = numpy.array(mtz, copy=True)
-    data_frame = pandas.DataFrame(data=array, columns=mtz.column_labels())
-    mtz.add_column("SIGF", "Q")
-    data_frame["SIGF"] = 1.0
-    mtz.add_column("FOM", "W")
-    data_frame["FOM"] = 1.0
-    mtz.set_data(data_frame.to_numpy())
-    args.fmean = DataItem(mtz, "F,SIGF")
-    args.phases = DataItem(mtz, "PHI,FOM")
-    args.fphi = DataItem(mtz, "F,PHI")
-    args.freer = None

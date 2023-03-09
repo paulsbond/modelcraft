@@ -1,6 +1,6 @@
 from typing import List
 import gemmi
-from modelcraft.reflections import DataItem
+from modelcraft.reflections import DataItem, convert_to_fsigf_and_phifom
 from . import ccp4_path
 
 
@@ -33,3 +33,12 @@ def test_deuterolysin():
     mtz = gemmi.read_mtz_file(path)
     search_test(mtz, "FQ", ["F,SIGF"])
     search_test(mtz, "I", ["FreeR_flag"])
+
+
+def test_convert_fphi_to_fsigf_and_phifom():
+    path = ccp4_path("examples", "data", "gere.mtz")
+    mtz = gemmi.read_mtz_file(path)
+    fphi = DataItem(mtz, "FC,PHIC")
+    fsigf, phifom = convert_to_fsigf_and_phifom(fphi)
+    assert fsigf.label() == "F,SIGF"
+    assert phifom.label() == "PHI,FOM"

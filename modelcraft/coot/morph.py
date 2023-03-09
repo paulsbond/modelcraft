@@ -1,6 +1,3 @@
-from coot import *
-
-
 def rsr_morph(imol, imap, local_radius=5, gm_alpha=0.05, blur_b_factor=88):
     generate_self_restraints(imol, local_radius)
     set_show_extra_restraints(imol, 0)  # too confusing
@@ -12,5 +9,8 @@ def rsr_morph(imol, imap, local_radius=5, gm_alpha=0.05, blur_b_factor=88):
         set_imol_refinement_map(imap_blurred)
         set_matrix(15.0 / rmsd)
         residues = fit_protein_make_specs(imol, "all-chains")
-        with AutoAccept():
-            refine_residues_py(imol, residues)
+        if COOT1:
+            coot_utils.with_auto_accept([refine_residues_py, imol, residues])
+        else:
+            with AutoAccept():
+                refine_residues_py(imol, residues)

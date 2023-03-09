@@ -3,7 +3,7 @@ import os
 import pytest
 from modelcraft.scripts.modelcraft import main
 from modelcraft.reflections import write_mtz
-from modelcraft.structure import contains_residue, read_structure, write_mmcif
+from modelcraft.structure import contains_residue, read_structure
 from . import (
     ccp4_path,
     in_temp_directory,
@@ -56,3 +56,23 @@ def test_1rxf_from_model():
     assert report["termination_reason"] == "Normal"
     structure = read_structure(os.path.join("modelcraft", "modelcraft.cif"))
     assert contains_residue(structure, "FE")
+
+
+@in_temp_directory
+def test_toxd():
+    hklin = ccp4_path("examples", "toxd", "toxd.mtz")
+    xyzin = ccp4_path("examples", "toxd", "toxd.pdb")
+    seqin = ccp4_path("examples", "toxd", "toxd.seq")
+    args = ["xray"]
+    args += ["--data", hklin]
+    args += ["--observations", "FTOXD3,SIGFTOXD3"]
+    args += ["--contents", seqin]
+    args += ["--model", xyzin]
+    args += ["--cycles", "1"]
+    args += ["--disable-sheetbend"]  # Sheetbend distorts the input model
+    with pytest.raises(SystemExit):
+        main(args)
+    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
+        report = json.load(report_file)
+    assert report["seconds"]["total"] > 0
+    assert report["termination_reason"] == "Normal"
