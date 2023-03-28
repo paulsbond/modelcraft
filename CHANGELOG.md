@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.1.0] - Unreleased
+
+### Added
+
+- Command line option: --overwrite-directory
+
 ## [3.0.0] - 2023-03-09
 
 ### Added

@@ -44,7 +44,7 @@ class ModelCraftXray(Pipeline):
 
     def run(self):
         print(f"# ModelCraft {__version__}", flush=True)
-        os.makedirs(self.args.directory, exist_ok=False)
+        os.makedirs(self.args.directory, exist_ok=self.args.overwite_directory)
         self.start_time = time.time()
         if self.args.fmean is None:
             self._convert_observations()
