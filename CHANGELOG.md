@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 ### Added
 
 - Command line option: --overwrite-directory
+- Writing current.cif and current.mtz while running
 
 ## [3.0.0] - 2023-03-09
 
