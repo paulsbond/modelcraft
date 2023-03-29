@@ -176,6 +176,7 @@ class ModelCraftXray(Pipeline):
             self.update_current_from_refmac_result(result)
         else:
             print("(rejected)", flush=True)
+            write_mmcif(self.path("current.cif"), self.current_structure)
 
     def update_current_from_refmac_result(self, result):
         self.current_structure = result.structure
@@ -222,6 +223,7 @@ class ModelCraftXray(Pipeline):
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
         ).run(self)
+        write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=5, auto_accept=False)
 
     def findwaters(self, dummy=False):
@@ -234,6 +236,7 @@ class ModelCraftXray(Pipeline):
             fphi=self.current_fphi_best,
             dummy=dummy,
         ).run(self)
+        write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self, result):
