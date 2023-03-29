@@ -74,9 +74,19 @@ _GROUP.add_argument(
     default="modelcraft",
     metavar="X",
     help=(
-        "The directory where files will be written. "
-        "It will be created (along with any intermediate directories) "
-        "and can not already exist."
+        "The output directory where files will be written. "
+        "It will be created (along with any intermediate directories). "
+        "By default, the directory can not already exist. "
+        "However, this can be overridden with the --overwrite-directory option."
+    ),
+)
+_GROUP.add_argument(
+    "--overwrite-directory",
+    action="store_true",
+    help=(
+        "Allow the output directory to already exist. "
+        "Beware that files may be overwritten "
+        "if they have the same names as those that ModelCraft will produce."
     ),
 )
 _GROUP.add_argument(

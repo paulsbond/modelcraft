@@ -23,13 +23,16 @@ def test_insulin_from_phases():
     write_mtz("data.mtz", [fsigf, freer, refmac.abcd])
     contents = insulin_contents()
     contents.write_json_file("contents.json")
+    os.mkdir("my_modelcraft_dir")
     args = ["xray"]
     args += ["--data", "data.mtz"]
     args += ["--contents", "contents.json"]
     args += ["--cycles", "1"]
+    args += ["--directory", "my_modelcraft_dir"]
+    args += ["--overwrite-directory"]
     with pytest.raises(SystemExit):
         main(args)
-    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
+    with open(os.path.join("my_modelcraft_dir", "modelcraft.json")) as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"

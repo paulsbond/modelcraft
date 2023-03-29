@@ -44,7 +44,7 @@ class ModelCraftXray(Pipeline):
 
     def run(self):
         print(f"# ModelCraft {__version__}", flush=True)
-        os.makedirs(self.args.directory, exist_ok=False)
+        os.makedirs(self.args.directory, exist_ok=self.args.overwrite_directory)
         self.start_time = time.time()
         if self.args.fmean is None:
             self._convert_observations()
@@ -68,6 +68,7 @@ class ModelCraftXray(Pipeline):
             self.process_cycle_output(self.last_refmac)
         print("\n## Best Model:", flush=True)
         _print_refmac_result(self.output_refmac)
+        self._remove_current_files()
         self.terminate(reason="Normal")
 
     def _convert_observations(self):
@@ -83,6 +84,7 @@ class ModelCraftXray(Pipeline):
     def _refine_input_model(self):
         print("\n## Refining Input Model\n", flush=True)
         self.update_model_cell()
+        write_mmcif(self.path("current.cif"), self.current_structure)
         self.sheetbend()
         self.args.model = self.current_structure
         if self.args.phases is not None:
@@ -117,6 +119,7 @@ class ModelCraftXray(Pipeline):
                 freer=self.args.freer,
                 structure=self.current_structure,
             ).run(self)
+            write_mmcif(self.path("current.cif"), result.structure)
             self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
@@ -135,6 +138,7 @@ class ModelCraftXray(Pipeline):
             seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
         ).run(self)
+        write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def nautilus(self):
@@ -148,6 +152,7 @@ class ModelCraftXray(Pipeline):
             freer=self.args.freer,
             structure=self.current_structure,
         ).run(self)
+        write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
@@ -171,6 +176,7 @@ class ModelCraftXray(Pipeline):
             self.update_current_from_refmac_result(result)
         else:
             print("(rejected)", flush=True)
+            write_mmcif(self.path("current.cif"), self.current_structure)
 
     def update_current_from_refmac_result(self, result):
         self.current_structure = result.structure
@@ -179,6 +185,8 @@ class ModelCraftXray(Pipeline):
         self.current_fphi_diff = result.fphi_diff
         self.current_fphi_calc = result.fphi_calc
         self.last_refmac = result
+        write_mmcif(self.path("current.cif"), result.structure)
+        write_mtz(self.path("current.mtz"), [self.current_fphi_best], ["F,PHI"])
 
     def parrot(self):
         if self.args.disable_parrot:
@@ -193,6 +201,7 @@ class ModelCraftXray(Pipeline):
         ).run(self)
         self.current_phases = result.abcd
         self.current_fphi_best = result.fphi
+        write_mtz(self.path("current.mtz"), [self.current_fphi_best], ["F,PHI"])
 
     def prune(self, chains_only=False):
         if self.args.disable_pruning or not self.args.contents.proteins:
@@ -203,6 +212,7 @@ class ModelCraftXray(Pipeline):
             fphi_diff=self.current_fphi_diff,
             chains_only=chains_only,
         ).run(self)
+        write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def fixsidechains(self):
@@ -213,6 +223,7 @@ class ModelCraftXray(Pipeline):
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
         ).run(self)
+        write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=5, auto_accept=False)
 
     def findwaters(self, dummy=False):
@@ -225,6 +236,7 @@ class ModelCraftXray(Pipeline):
             fphi=self.current_fphi_best,
             dummy=dummy,
         ).run(self)
+        write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self, result):
@@ -275,6 +287,13 @@ class ModelCraftXray(Pipeline):
         remove_scale(structure=structure)
         if distortion > 0:
             update_cell(structure=structure, new_cell=mtz.cell)
+
+    def _remove_current_files(self):
+        for filename in ("current.cif", "current.mtz"):
+            try:
+                os.remove(self.path(filename))
+            except FileNotFoundError:
+                pass
 
 
 def _print_refmac_result(result):

@@ -28,7 +28,7 @@ class ModelCraftEm(Pipeline):
 
     def run(self):
         print(f"# ModelCraft {__version__}", flush=True)
-        os.makedirs(self.args.directory, exist_ok=False)
+        os.makedirs(self.args.directory, exist_ok=self.args.overwrite_directory)
         self.start_time = time.time()
         self._process_input_maps()
         structure = self.args.model

@@ -1,4 +1,4 @@
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 
 from .cell import max_distortion as max_cell_distortion
 from .cell import remove_scale
