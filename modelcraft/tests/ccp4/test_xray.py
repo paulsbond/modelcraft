@@ -72,10 +72,10 @@ def test_toxd():
     args += ["--contents", seqin]
     args += ["--model", xyzin]
     args += ["--cycles", "1"]
-    args += ["--disable-sheetbend"]  # Sheetbend distorts the input model
     with pytest.raises(SystemExit):
         main(args)
     with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
+    assert report["final"]["r_free"] < 0.35

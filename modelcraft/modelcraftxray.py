@@ -85,7 +85,18 @@ class ModelCraftXray(Pipeline):
         print("\n## Refining Input Model\n", flush=True)
         self.update_model_cell()
         write_mmcif(self.path("current.cif"), self.current_structure)
-        self.sheetbend()
+        if self.args.disable_sheetbend:
+            self.refmac(self.current_structure, cycles=10, auto_accept=True)
+        else:
+            sheetbend = Sheetbend(
+                fsigf=self.args.fmean,
+                freer=self.args.freer,
+                structure=self.current_structure,
+            ).run(self)
+            result1 = self.run_refmac(sheetbend.structure, cycles=10)
+            result2 = self.run_refmac(self.current_structure, cycles=10)
+            chosen = result1 if result1.rfree < result2.rfree else result2
+            self.update_current_from_refmac_result(chosen)
         self.args.model = self.current_structure
         if self.args.phases is not None:
             self.current_phases = self.args.phases
@@ -109,18 +120,6 @@ class ModelCraftXray(Pipeline):
             self.prune(chains_only=True)
             self.nautilus()
             self.findwaters()
-
-    def sheetbend(self):
-        if self.args.disable_sheetbend:
-            self.refmac(self.current_structure, cycles=10, auto_accept=True)
-        else:
-            result = Sheetbend(
-                fsigf=self.args.fmean,
-                freer=self.args.freer,
-                structure=self.current_structure,
-            ).run(self)
-            write_mmcif(self.path("current.cif"), result.structure)
-            self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
         if not self.args.contents.proteins:
@@ -156,12 +155,22 @@ class ModelCraftXray(Pipeline):
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
+        result = self.run_refmac(structure, cycles)
+        if auto_accept or result.rfree < self.last_refmac.rfree:
+            if not auto_accept:
+                print("(accepted)", flush=True)
+            self.update_current_from_refmac_result(result)
+        else:
+            print("(rejected)", flush=True)
+            write_mmcif(self.path("current.cif"), self.current_structure)
+
+    def run_refmac(self, structure: gemmi.Structure, cycles: int):
         if ModelStats(structure).residues == 0:
             self.terminate(reason="No residues to refine")
         use_phases = self.args.unbiased and (
             self.output_refmac is None or self.output_refmac.rwork > 0.35
         )
-        result = Refmac(
+        return Refmac(
             structure=structure,
             fsigf=self.args.fmean,
             freer=self.args.freer,
@@ -170,13 +179,6 @@ class ModelCraftXray(Pipeline):
             twinned=self.args.twinned,
             libin=self.args.restraints,
         ).run(self)
-        if auto_accept or result.rfree < self.last_refmac.rfree:
-            if not auto_accept:
-                print("(accepted)", flush=True)
-            self.update_current_from_refmac_result(result)
-        else:
-            print("(rejected)", flush=True)
-            write_mmcif(self.path("current.cif"), self.current_structure)
 
     def update_current_from_refmac_result(self, result):
         self.current_structure = result.structure

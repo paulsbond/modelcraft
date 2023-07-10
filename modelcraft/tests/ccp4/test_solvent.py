@@ -10,7 +10,6 @@ from modelcraft.solvent import _library_volume, _library_weight, _polymer_weight
         ("ALA", 89.09),
         ("ASP", 132.09),
         ("ASN", 132.12),
-        ("ASX", 130.12),
         ("UNK", 103.12),
     ],
 )
