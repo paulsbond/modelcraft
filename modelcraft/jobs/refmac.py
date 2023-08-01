@@ -17,6 +17,9 @@ class RefmacResult:
     rwork: float
     rfree: float
     fsc: float
+    initial_rwork: float
+    initial_rfree: float
+    initial_fsc: float
     data_completeness: float
     resolution_high: float
     seconds: float
@@ -68,7 +71,7 @@ class Refmac(Job):
                 labin += " PHIB=" + self.phases.label(0)
                 labin += " FOM=" + self.phases.label(1)
         self._stdin.append("LABIN " + labin)
-        self._stdin.append("NCYCLES %d" % self.cycles)
+        self._stdin.append(f"NCYCLES {self.cycles}")
         self._stdin.append("WEIGHT AUTO")
         if self.jelly_body:
             self._stdin.append("RIDGE DISTANCE SIGMA 0.02")
@@ -97,6 +100,9 @@ class Refmac(Job):
             rwork=float(rworks[-1].text),
             rfree=float(rfrees[-1].text),
             fsc=float(fscs[-1].text),
+            initial_rwork=float(rworks[0].text),
+            initial_rfree=float(rfrees[0].text),
+            initial_fsc=float(fscs[0].text),
             data_completeness=float(xml.find("Overall_stats/data_completeness").text),
             resolution_high=float(xml.find("Overall_stats/resolution_high").text),
             seconds=self._seconds,
@@ -122,11 +128,11 @@ class RefmacMapToMtz(Job):
         self._args += ["HKLOUT", "hklout.mtz"]
         self._stdin.append("MODE SFCALC")
         self._stdin.append("SOURCE EM MB")
-        self._stdin.append("RESOLUTION %f" % self.resolution)
+        self._stdin.append(f"RESOLUTION {self.resolution}")
         if self.blur > 0:
-            self._stdin.append("SFCALC BLUR %f" % self.blur)
+            self._stdin.append(f"SFCALC BLUR {self.blur}")
         elif self.blur < 0:
-            self._stdin.append("SFCALC SHARP %f" % -self.blur)
+            self._stdin.append(f"SFCALC SHARP {-self.blur}")
         self._stdin.append("END")
 
     def _result(self) -> RefmacMapToMtzResult:

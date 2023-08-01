@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.  
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.2.0] - 2023-07-10
+
+### Changed
+
+- Refine input model with and without Sheetbend and choose the best result
+- Tests of monomer library entries
+- TOXD pipeline test
+
+## [3.1.1] - 2023-07-04
+
+### Changed
+
+- Refmac result to include initial R-work, R-free and FSC values
+- Refmac test
+
 ## [3.1.0] - 2023-03-29
 
 ### Added
