@@ -37,7 +37,7 @@ class Refmac(Job):
         jelly_body: bool = False,
         libin: str = None,
     ):
-        super().__init__("refmac5")
+        super().__init__("refmacat")
         self.structure = structure
         self.fsigf = fsigf
         self.freer = freer
@@ -117,7 +117,7 @@ class RefmacMapToMtzResult:
 
 class RefmacMapToMtz(Job):
     def __init__(self, density: gemmi.Ccp4Map, resolution: float, blur: float = 0):
-        super().__init__("refmac5")
+        super().__init__("refmacat")
         self.density = density
         self.resolution = resolution
         self.blur = blur
