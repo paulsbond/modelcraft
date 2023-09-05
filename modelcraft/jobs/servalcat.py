@@ -144,6 +144,7 @@ class ServalcatRefine(Job):
         if self.ligand:
             shutil.copy(self.ligand, self._path("ligand.cif"))
             self._args += ["--ligand", "ligand.cif"]
+        self._args += ["--no_link_check"]
 
     def _result(self) -> ServalcatRefineResult:
         self._check_files_exist("refined.mmcif")

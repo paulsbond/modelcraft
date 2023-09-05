@@ -60,7 +60,10 @@ class ModelCraftEm(Pipeline):
 
     def _process_input_maps(self):
         maps = [read_map(path) for path in self.args.map]
-        mask = EmdaMapMask(maps[0]).run(self).mask
+        if self.args.mask is not None:
+            mask = self.args.mask
+        else:
+            mask = EmdaMapMask(maps[0]).run(self).mask
         trimmed = ServalcatTrim(mask, maps).run(self)
         self.args.map = trimmed.maps
         if len(maps) == 2:

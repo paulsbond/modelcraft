@@ -263,6 +263,15 @@ _GROUP.add_argument(
         "is performed in the calculation of the normalised expected (NE) map."
     ),
 )
+_GROUP.add_argument(
+    "--mask",
+    #required=True, set this to required?
+    metavar="X",
+    help=(
+        "User input mask with same grid size and dimensions as input map(s). "
+        "Servalcat will use this mask when trimming the maps."
+    ),
+)
 
 
 def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
@@ -289,7 +298,7 @@ def _basic_check(args: argparse.Namespace):
 
 
 def _check_paths(args: argparse.Namespace):
-    for arg in ("contents", "data", "map", "model", "restraints"):
+    for arg in ("contents", "data", "map", "model", "restraints","mask"):
         if hasattr(args, arg):
             attr = getattr(args, arg)
             if isinstance(attr, str):
