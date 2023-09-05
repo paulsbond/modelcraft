@@ -3,7 +3,14 @@ import os
 import pytest
 from modelcraft.scripts.modelcraft import main
 from ..ccp4 import in_temp_directory
-from . import density_path, sequence_path, halfmap1_path, halfmap2_path, structure_path
+from . import (
+    density_path,
+    halfmap1_path,
+    halfmap2_path,
+    mask_path,
+    sequence_path,
+    structure_path,
+)
 
 
 @in_temp_directory
@@ -29,6 +36,7 @@ def test_3488_halfmaps():
     args = ["em"]
     args += ["--contents", sequence_path()]
     args += ["--map", halfmap1_path(), halfmap2_path()]
+    args += ["--mask", mask_path()]
     args += ["--resolution", "3.2"]
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
