@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.4.0] - 2023-09-21
+
+### Added
+
+- Option --mask to provide a custom mask in EM mode instead of using EMDA mapmask
+
 ## [3.3.0] - 2023-08-01
 
 ### Changed

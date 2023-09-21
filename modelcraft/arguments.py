@@ -237,10 +237,18 @@ _GROUP.add_argument(
     metavar="X",
     help=(
         "Either two half-maps or a single map in MRC format. "
-        "Input maps will be trimmed using Servalcat "
-        "and a mask calculated by EMDA mapmask. "
+        "Input maps will be trimmed using Servalcat. "
         "If two half-maps are provided then Servalcat will be used to calculate "
         "a normalised expected (NE) map for model building."
+    ),
+)
+_GROUP.add_argument(
+    "--mask",
+    metavar="X",
+    help=(
+        "Mask with the same grid size and dimensions as the input map(s). "
+        "Servalcat will use this mask when trimming the maps. "
+        "If a mask is not provided then EMDA mapmask will be used to create one."
     ),
 )
 _GROUP.add_argument(
@@ -289,7 +297,7 @@ def _basic_check(args: argparse.Namespace):
 
 
 def _check_paths(args: argparse.Namespace):
-    for arg in ("contents", "data", "map", "model", "restraints"):
+    for arg in ("contents", "data", "map", "mask", "model", "restraints"):
         if hasattr(args, arg):
             attr = getattr(args, arg)
             if isinstance(attr, str):
