@@ -91,6 +91,7 @@ class ModelCraftEm(Pipeline):
             input_structure=structure,
             mr_structure=self.args.model,
             cycles=5,
+            threads=self.args.threads,
             em_mode=True,
         ).run(self)
         return result.structure

@@ -136,6 +136,7 @@ class ModelCraftXray(Pipeline):
             filter_mr=True,
             seed_mr=True,
             cycles=3 if self.cycle == 1 else 2,
+            threads=self.args.threads,
         ).run(self)
         write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=10, auto_accept=True)

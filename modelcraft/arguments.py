@@ -3,6 +3,7 @@ import argparse
 import os
 import sys
 import gemmi
+import numpy as np
 from . import __version__
 from .contents import AsuContents
 from .reflections import DataItem
@@ -111,6 +112,16 @@ _GROUP.add_argument(
     help=(
         "Keep log files from intermediate programs "
         "if not using the full --keep-files argument."
+    ),
+)
+_GROUP.add_argument(
+    "--threads",
+    default=np.clip((os.cpu_count() or 1) - 1, 1, 4),
+    type=int,
+    metavar="X",
+    help=(
+        "The number of threads to allow programs to use. "
+        "Currently only affects some internal steps of Buccaneer."
     ),
 )
 
@@ -288,6 +299,8 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
 def _basic_check(args: argparse.Namespace):
     if args.cycles < 1:
         _PARSER.error("--cycles must be greater than 0")
+    if args.threads < 1 or args.threads > (os.cpu_count() or 1):
+        _PARSER.error(f"--threads must be between 1 and {(os.cpu_count() or 1)}")
     if args.mode == "em" and args.resolution <= 0:
         _PARSER.error("--resolution must be greater than 0")
     if args.mode == "em" and len(args.map) > 2:
