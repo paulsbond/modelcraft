@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 import gemmi
 from . import __version__
 from .jobs.buccaneer import Buccaneer
@@ -8,13 +9,13 @@ from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
-from .jobs.refmac import Refmac
+from .jobs.refmac import Refmac, RefmacResult
 from .jobs.sheetbend import Sheetbend
 from .cell import max_distortion, remove_scale, update_cell
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
 from .structure import ModelStats, remove_residues, write_mmcif
-
+from .combine.combine_results import combine
 
 class ModelCraftXray(Pipeline):
     def __init__(self, parsed_args, raw_args):
@@ -41,6 +42,7 @@ class ModelCraftXray(Pipeline):
     @property
     def resolution(self):
         return self.args.fmean.resolution_high()
+
 
     def run(self):
         print(f"# ModelCraft {__version__}", flush=True)
@@ -102,7 +104,35 @@ class ModelCraftXray(Pipeline):
             self.current_phases = self.args.phases
         _print_refmac_result(self.last_refmac)
 
-    def run_cycle(self):
+    def run_cycle(self): 
+        if self.cycle > 1 and self.resolution < 2.3:
+            self.prune()
+        self.parrot()
+        if self.current_structure is not None:
+            if self.cycle > 1 or self.args.phases is None:
+                self.findwaters(dummy=True)
+            remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
+
+        buccaneer_result = self.buccaneer(save_refmac_result=False)
+        nautilus_result = self.nautilus(save_refmac_result=False)
+
+        data_items = [buccaneer_result.fphi_best, buccaneer_result.fphi_diff]
+        write_mtz(self.path("buccaneer_hklout.mtz"), data_items)
+        write_mmcif(self.path("buccaneer_xyzout.pdb"), buccaneer_result.structure)
+
+        data_items = [nautilus_result.fphi_best, nautilus_result.fphi_diff]
+        write_mtz(self.path("nautilus_hklout.mtz"), data_items)
+        write_mmcif(self.path("nautilus_xyzout.pdb"), nautilus_result.structure)
+
+        combined_result = combine(self, buccaneer_result, nautilus_result)
+
+        self.refmac(combined_result, cycles=5, auto_accept=True)
+        self.prune(chains_only=True)
+        self.findwaters()
+
+
+
+    def run_legacy_cycle(self):
         if self.args.basic:
             if self.cycle == 1:
                 self.parrot()
@@ -121,7 +151,7 @@ class ModelCraftXray(Pipeline):
             self.nautilus()
             self.findwaters()
 
-    def buccaneer(self):
+    def buccaneer(self, save_refmac_result: bool = True) -> Optional[RefmacResult]:
         if not self.args.contents.proteins:
             return
         result = Buccaneer(
@@ -138,9 +168,11 @@ class ModelCraftXray(Pipeline):
             cycles=3 if self.cycle == 1 else 2,
         ).run(self)
         write_mmcif(self.path("current.cif"), result.structure)
+        if not save_refmac_result: 
+            return self.run_refmac(result.structure, cycles=10)
         self.refmac(result.structure, cycles=10, auto_accept=True)
 
-    def nautilus(self):
+    def nautilus(self, save_refmac_result: bool = True) -> Optional[RefmacResult]:
         if not (self.args.contents.rnas or self.args.contents.dnas):
             return
         result = Nautilus(
@@ -152,6 +184,9 @@ class ModelCraftXray(Pipeline):
             structure=self.current_structure,
         ).run(self)
         write_mmcif(self.path("current.cif"), result.structure)
+        if not save_refmac_result: 
+            return self.run_refmac(result.structure, cycles=10)
+
         self.refmac(result.structure, cycles=5, auto_accept=True)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
