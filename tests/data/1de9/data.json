@@ -1,0 +1,15 @@
+{
+    "phaser_llg": null,
+    "phaser_tfz": null,
+    "phaser_logfile": null,
+    "molrep_score": 0.6228,
+    "molrep_tfscore": 25.84,
+    "final_r_fact": 0.2924,
+    "final_r_free": 0.3227,
+    "refmac_logfile": "/y/people/jsd523/dev/mr_testset_gen/slicendice_/1de9/slicendice_0/split_1/refmac/split_1_refmac.log",
+    "xyzout": "/y/people/jsd523/dev/mr_testset_gen/slicendice_/1de9/slicendice_0/split_1/refmac/split_1_refmac.pdb",
+    "hklout": "/y/people/jsd523/dev/mr_testset_gen/slicendice_/1de9/slicendice_0/split_1/refmac/split_1_refmac.mtz",
+    "R Free": 0.274,
+    "R Work": 0.183,
+    "Protein Completeness": 96.92028985507247
+}

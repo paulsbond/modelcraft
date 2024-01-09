@@ -1,0 +1,39 @@
+{
+  "copies": 1,
+  "proteins": [
+    {
+      "sequence": "GPHMATGQDRVVALVDMDCFFVQVEQRQNPHLRNKPCAVVQYKSWKGGGIIAVSYEARAFGVTRSMWADDAKKLCPDLLLAQVRESRGKANLTKYREASVEVMEIMSRFAVIERASIDEAYVDLTSAVQERLQKLQGQPISADLLPSTYIEGLPQGPTTAEETVQKEGMRKQGLFQWLDSLQIDNLTSPDLQLTVGAVIVEEMRAAIERETGFQCSAGISHNKVLAKLACGLNKPNRQTLVSHGSVPQLFSQMPIRKIRSLGGKLGASVIEILGIEYMGELTQFTESQLQSHFGEKNGSWLYAMCRGIEHDPVKPRQLPKTIGCSKNFPGKTALATREQVQWWLLQLAQELEERLTKDRNDNDRVATQLVVSIRVQGDKRLSSLRRCCALTRYDAHKMSHDAFTVIKNCNTSGIQTEWSPPLTMLFLCATKFSAS",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "rnas": [],
+  "dnas": [
+    {
+      "sequence": "CATTATGACGCT",
+      "stoichiometry": 1,
+      "modifications": []
+    },
+    {
+      "sequence": "AGCGTCATA",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "carbs": [],
+  "ligands": [
+    {
+      "code": "DTP",
+      "stoichiometry": 1
+    },
+    {
+      "code": "DPO",
+      "stoichiometry": 1
+    }
+  ],
+  "buffers": [
+    "MN",
+    "GOL"
+  ],
+  "smiles": {}
+}

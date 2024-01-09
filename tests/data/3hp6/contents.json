@@ -1,0 +1,47 @@
+{
+  "copies": 2,
+  "proteins": [
+    {
+      "sequence": "AKMAFTLADRVTEEMLADKAALVVEVVEENYHDAPIVGIAVVNEHGRFFLRPETALADPQFVAWLGDETKKKSMFDSKRAAVALKWKGIELCGVSFDLLLAAYLLDPAQGVDDVAAAAKMKQYEAVRPDEAVYGKGAKRAVPDEPVLAEHLVRKAAAIWELERPFLDELRRNEQDRLLVELEQPLSSILAEMEFAGVKVDTKRLEQMGKELAEQLGTVEQRIYELAGQEFNINSPKQLGVILFEKLQLPVLKKTKTGYSTSADVLEKLAPYHEIVENILHYRQLGKLQSTYIEGLLKVVRPATKKVHTIFNQALTQTGRLSSTEPNLQNIPIRLEEGRKIRQAFVPSESDWLIFAADYSQIELRVLAHIAEDDNLMEAFRRDLDIHTKTAMDIFQVSEDEVTPNMRRQAKAVNYGIVYGISDYGLAQNLNISRKEAAEFIERYFESFPGVKRYMENIVQEAKQKGYVTTLLHRRRYLPDITSRNFNVRSFAERMAMNTPIQGSAADIIKKAMIDLNARLKEERLQAHLLLQVHDELILEAPKEEMERLCRLVPEVMEQAVTLRVPLKVDYHYGSTWYDAK",
+      "stoichiometry": 1,
+      "modifications": [
+        "92->CME"
+      ]
+    }
+  ],
+  "rnas": [],
+  "dnas": [
+    {
+      "sequence": "CGATCACGG",
+      "stoichiometry": 1,
+      "modifications": [
+        "9->DDG"
+      ]
+    },
+    {
+      "sequence": "ACGCCGTGATCG",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "carbs": [
+    {
+      "codes": {
+        "FRU": 1,
+        "GLC": 1
+      },
+      "stoichiometry": 1
+    }
+  ],
+  "ligands": [
+    {
+      "code": "D3T",
+      "stoichiometry": 1
+    }
+  ],
+  "buffers": [
+    "SO4",
+    "MG"
+  ],
+  "smiles": {}
+}

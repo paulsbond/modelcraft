@@ -1,0 +1,49 @@
+{
+  "copies": 1,
+  "proteins": [
+    {
+      "sequence": "GSAAAPLSPAWMPAYACQRPTPLTHHNTGLSEALEILAEAAGFEGSEGRLLTFCRAASVLKALPSPVTTLSQLQGLPHFGEHSSRVVQELLEHGVCEEVERVRRSERYQTMKLFTQIFGVGVKTADRWYREGLRTLDDLREQPQKLTQQQKAGLQHHQDLSTPVLRSDVDALQQVVEEAVGQALPGATVTLTGGFRRGKLQGHDVDFLITHPKEGQEAGLLPRVMCRLQDQGLILYHQHQHSCCESPTRLAQQSHMDAFERSFCIFRLPQPGSWKAVRVDLVVAPVSQFPFALLGWTGSKLFQRELRRFSRKEKGLWLNSHGLFDPEQKTFFQAASEEDIFRHLGLEYLPPEQRNA",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "rnas": [],
+  "dnas": [
+    {
+      "sequence": "CGGCATACG",
+      "stoichiometry": 1,
+      "modifications": []
+    },
+    {
+      "sequence": "CGTAT",
+      "stoichiometry": 1,
+      "modifications": []
+    },
+    {
+      "sequence": "GCCG",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "carbs": [],
+  "ligands": [
+    {
+      "code": "TTP",
+      "stoichiometry": 1
+    },
+    {
+      "code": "EPE",
+      "stoichiometry": 1
+    },
+    {
+      "code": "PPV",
+      "stoichiometry": 1
+    }
+  ],
+  "buffers": [
+    "MN",
+    "NA",
+    "EDO"
+  ],
+  "smiles": {}
+}

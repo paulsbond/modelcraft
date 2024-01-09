@@ -1,0 +1,32 @@
+{
+  "copies": 2,
+  "proteins": [
+    {
+      "sequence": "VLGKPQTDPTLEWFLSHCHIHKYPSKSTLIHQGEKAETLYYIVKGSVAVLIKDEEGKEMILSYLNQGDFIGELGLFEEGQERSAWVRAKTACEVAEISYKKFRQLIQVNPDILMRLSAQMARRLQVTSEKVGNLAFLDVTGRIAQTLLNLAKQPDAMTHPDGMQIKITRQEIGQIVGCSRETVGRILKMLEDQNLISAHGKTIVVYGTR",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "rnas": [],
+  "dnas": [
+    {
+      "sequence": "ATTTCGAAAAATGTGAT",
+      "stoichiometry": 1,
+      "modifications": []
+    },
+    {
+      "sequence": "CTAGATCACATTTTTCGAAAT",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "carbs": [],
+  "ligands": [
+    {
+      "code": "CMP",
+      "stoichiometry": 1
+    }
+  ],
+  "buffers": [],
+  "smiles": {}
+}

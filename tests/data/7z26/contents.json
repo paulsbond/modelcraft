@@ -1,0 +1,27 @@
+{
+  "copies": 2,
+  "proteins": [
+    {
+      "sequence": "MGSSYHHHHHHSSGENLYFQHMKHGRVFIIKSYSEDDIHRSIKYNIWCSTEHGNKRLDAAYRSMNGKGPVYLLFSVNGSGHFCGVAEMKSAVDYNTCAGVWSQDKWKGRFDVRWIFVKDVPNSQLRHIRLENNENKPVTNSRDTQEVPLEKAKQVLKIIASYKHTTS",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "rnas": [
+    {
+      "sequence": "GGACU",
+      "stoichiometry": 1,
+      "modifications": [
+        "A->6MZ"
+      ]
+    }
+  ],
+  "dnas": [],
+  "carbs": [],
+  "ligands": [],
+  "buffers": [
+    "SO4",
+    "GOL"
+  ],
+  "smiles": {}
+}

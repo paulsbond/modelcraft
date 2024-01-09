@@ -1,0 +1,33 @@
+{
+  "copies": 1,
+  "proteins": [
+    {
+      "sequence": "GMVEDSRVRDALKGGDQKALPASLVPQAPPVLTSKDKITKRMIVVLAMASLETHKISSNGPGGDKYVLLNCDDHQGLLKKMGRDISEARPDITHQCLLTLLDSPINKAGKLQVYIQTSRGILIEVNPTVRIPRTFKRFSGLMVQLLHKLSIRSVNSEEKLLKVIKNPITDHLPTKCRKVTLSFDAPVIRVQDYIEKLDDDESICVFVGAMARGKDNFADEYVDEKVGLSNYPLSASVACSKFCHGAEDAWNIL",
+      "stoichiometry": 2,
+      "modifications": [
+        "71->SCY"
+      ]
+    }
+  ],
+  "rnas": [
+    {
+      "sequence": "GGGCUUCAACGCCC",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "dnas": [],
+  "carbs": [],
+  "ligands": [
+    {
+      "code": "SAH",
+      "stoichiometry": 1
+    }
+  ],
+  "buffers": [
+    "GOL",
+    "MG",
+    "CL"
+  ],
+  "smiles": {}
+}

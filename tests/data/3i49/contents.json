@@ -1,0 +1,31 @@
+{
+  "copies": 1,
+  "proteins": [
+    {
+      "sequence": "MQEPLAAGAVILRRFAFNAAEQLIRDINDVASQSPFRQMVTPGGYTMSVAMTNCGHLGWTTHRQGYLYSPIDPQTNKPWPAMPQSFHNLCQRAATAAGYPDFQPDACLINRYAPGAKLSLHQDKDEPDLRAPIVSVSLGLPAIFQFGGLKRNDPLKRLLLEHGDVVVWGGESRLFYHGIQPLKAGFHPLTIDCRYNLTFRQAGKKENLYFQ",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "rnas": [],
+  "dnas": [
+    {
+      "sequence": "TCT",
+      "stoichiometry": 1,
+      "modifications": [
+        "C->ME6"
+      ]
+    }
+  ],
+  "carbs": [],
+  "ligands": [
+    {
+      "code": "AKG",
+      "stoichiometry": 1
+    }
+  ],
+  "buffers": [
+    "FE2"
+  ],
+  "smiles": {}
+}

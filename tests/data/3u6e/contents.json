@@ -1,0 +1,32 @@
+{
+  "copies": 1,
+  "proteins": [
+    {
+      "sequence": "PQLPEVETIRRTLLPLIVGKTIEDVRIFWPNIIRHPRDSEAFAARMIGQTVRGLERRGKFLKFLLDRDALISHLRMEGRYAVASALEPLEPHTHVVFCFTDGSELRYRDVRKFGTMHVYAKEEADRRPPLAELGPEPLSPAFSPAVLAERAVKTKRSVKALLLDCTVVAGFGNIYVDESLFRAGILPGRPAASLSSKEIERLHEEMVATIGEAVMKGGSTPRTYVNTQGEAGTFQHHLYVYGRQGNPCKRCGTPIEKTVVAGRGTHYCPRCQR",
+      "stoichiometry": 1,
+      "modifications": []
+    }
+  ],
+  "rnas": [],
+  "dnas": [
+    {
+      "sequence": "AGGTAGATCCAGACGC",
+      "stoichiometry": 1,
+      "modifications": []
+    },
+    {
+      "sequence": "TGCGTCTGGAXCTACC",
+      "stoichiometry": 1,
+      "modifications": [
+        "8->8OG",
+        "X->08Q"
+      ]
+    }
+  ],
+  "carbs": [],
+  "ligands": [],
+  "buffers": [
+    "ZN"
+  ],
+  "smiles": {}
+}
