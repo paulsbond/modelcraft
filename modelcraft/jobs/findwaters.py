@@ -38,12 +38,10 @@ class FindWaters(Job):
                 water_residues.append(water_residue)
         structure = self.structure.clone()
         if len(water_residues) > 0:
-            model = structure[0]
-            chain = "DUM" if self.dummy else "WAT"
-            if not model.find_chain(chain):
-                model.add_chain(chain)
+            chain = gemmi.Chain("A")
             for residue in water_residues:
-                model[chain].add_residue(residue)
+                chain.add_residue(residue)
+            structure[0].add_chain(chain, unique_name=True)
         return FindWatersResult(
             structure=structure,
             seconds=self._seconds,

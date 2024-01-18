@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.5.1] - 2024-01-18
+
+### Changed
+
+- Water chain naming to try to be compatible with PDB format
+
 ## [3.5.0] - 2024-01-09
 
 ### Added

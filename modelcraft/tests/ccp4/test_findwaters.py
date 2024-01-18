@@ -40,9 +40,6 @@ def test_existing_water_chain():
         structure=findwaters1.structure,
         fphi=refmac.fphi_best,
     ).run()
-    chains1 = len(findwaters1.structure[0])
-    chains2 = len(findwaters2.structure[0])
-    assert chains1 == chains2
     waters1 = ModelStats(findwaters1.structure).waters
     waters2 = ModelStats(findwaters2.structure).waters
     assert waters2 > waters1
