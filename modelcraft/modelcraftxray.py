@@ -116,14 +116,6 @@ class ModelCraftXray(Pipeline):
         buccaneer_result = self.buccaneer(save_refmac_result=False)
         nautilus_result = self.nautilus(save_refmac_result=False)
 
-        data_items = [buccaneer_result.fphi_best, buccaneer_result.fphi_diff]
-        write_mtz(self.path("buccaneer_hklout.mtz"), data_items)
-        write_mmcif(self.path("buccaneer_xyzout.pdb"), buccaneer_result.structure)
-
-        data_items = [nautilus_result.fphi_best, nautilus_result.fphi_diff]
-        write_mtz(self.path("nautilus_hklout.mtz"), data_items)
-        write_mmcif(self.path("nautilus_xyzout.pdb"), nautilus_result.structure)
-
         combined_result = combine(self, buccaneer_result, nautilus_result)
 
         self.refmac(combined_result, cycles=5, auto_accept=True)
