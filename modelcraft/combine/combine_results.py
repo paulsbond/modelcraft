@@ -1,8 +1,15 @@
-from typing import Set, Tuple
+import enum
+from typing import Set
 import gemmi
 from modelcraft.jobs.refmac import RefmacResult
-from modelcraft.combine.clashes import identify_clashes, Clash
+from modelcraft.combine.clashes import identify_clashes, identify_clash_zones, Clash
 from modelcraft.combine.statistics import calculate_stats_per_residue, score_from_key
+
+
+class StructureType(enum.Enum):
+    """Enumeration class representing different types of structures."""
+    protein = 1
+    nucleic_acid = 2
 
 
 def combine(pipeline, buccaneer_results: RefmacResult, nautilus_results: RefmacResult):
@@ -15,6 +22,7 @@ def combine(pipeline, buccaneer_results: RefmacResult, nautilus_results: RefmacR
     """
     pro_neighbour_search = gemmi.NeighborSearch(
         buccaneer_results.structure[0], buccaneer_results.structure.cell, 1.5).populate()
+
     na_neighbour_search = gemmi.NeighborSearch(
         nautilus_results.structure[0], nautilus_results.structure.cell, 1.5).populate()
 
@@ -32,6 +40,8 @@ def combine(pipeline, buccaneer_results: RefmacResult, nautilus_results: RefmacR
                                            nautilus_results.structure,
                                            search=na_neighbour_search)
 
+    clash_zones = identify_clash_zones(clashes)
+
     to_remove = set()
 
     for clash in clashes:
@@ -39,24 +49,37 @@ def combine(pipeline, buccaneer_results: RefmacResult, nautilus_results: RefmacR
         na_total_score = score_from_key(key=clash.na_key, stats=na_stats, structure=nautilus_results.structure)
 
         if na_total_score > pro_total_score:
-            to_remove.add((0, *clash.pro_key))
+            to_remove.add((StructureType.protein, *clash.pro_key))
         if pro_total_score > na_total_score:
-            to_remove.add((1, *clash.na_key))
+            to_remove.add((StructureType.nucleic_acid, *clash.na_key))
 
-    combined_structure = rebuild_model(to_remove, buccaneer_structure=buccaneer_results.structure, nautilus_structure=nautilus_results.structure)
+    combined_structure = rebuild_model(to_remove, buccaneer_structure=buccaneer_results.structure,
+                                       nautilus_structure=nautilus_results.structure)
     return combined_structure
 
 
 def rebuild_model(to_remove: Set, buccaneer_structure: gemmi.Structure, nautilus_structure: gemmi.Structure):
+    """
+    Rebuilds a model by combining two structures while removing specified residues.
+
+    Parameters:
+        to_remove (Set): A set containing tuples of residues to be removed. Each tuple should have the format (structure_id, chain_name, residue_id).
+        buccaneer_structure (gemmi.Structure): The structure containing residues from the Buccaneer model.
+        nautilus_structure (gemmi.Structure): The structure containing residues from the Nautilus model.
+
+    Returns:
+        combined_structure (gemmi.Structure): The combined structure with the removed residues.
+
+    """
     combined_structure = gemmi.Structure()
     combined_structure.cell = buccaneer_structure.cell
     combined_structure.spacegroup_hm = buccaneer_structure.spacegroup_hm
     combined_model = gemmi.Model(buccaneer_structure[0].name)
-
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     for n_ch, chain in enumerate(buccaneer_structure[0]):
-        to_add_chain = gemmi.Chain(str(n_ch))
+        to_add_chain = gemmi.Chain(alphabet[n_ch])
         for residue in chain:
-            if (0, chain.name, str(residue.seqid)) in to_remove:
+            if (StructureType.protein, chain.name, str(residue.seqid)) in to_remove:
                 continue
 
             to_add_chain.add_residue(residue)
@@ -64,9 +87,9 @@ def rebuild_model(to_remove: Set, buccaneer_structure: gemmi.Structure, nautilus
         combined_model.add_chain(to_add_chain)
 
     for n_ch, chain in enumerate(nautilus_structure[0]):
-        to_add_chain = gemmi.Chain(str(len(combined_model) + (n_ch)))
+        to_add_chain = gemmi.Chain(alphabet[len(combined_model) + n_ch])
         for residue in chain:
-            if (1, chain.name, str(residue.seqid)) in to_remove:
+            if (StructureType.nucleic_acid, chain.name, str(residue.seqid)) in to_remove:
                 continue
 
             to_add_chain.add_residue(residue)
