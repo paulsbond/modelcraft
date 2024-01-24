@@ -1,5 +1,6 @@
 import dataclasses
-from typing import Dict, Tuple
+import random
+from typing import Dict, Tuple, List
 
 import gemmi
 import numpy as np
@@ -8,6 +9,7 @@ import scipy
 import modelcraft
 
 from modelcraft.combine.clashes import extract_residue
+from modelcraft.combine.types import StructureType
 
 
 def calculate_average_b_factor(residue: gemmi.Residue) -> float:
@@ -23,11 +25,10 @@ def calculate_average_b_factor(residue: gemmi.Residue) -> float:
     return np.average([atom.b_iso for atom in residue])
 
 
-def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem,
-                                fphi_best: modelcraft.DataItem,
-                                search: gemmi.NeighborSearch,
-                                structure: gemmi.Structure,
-                                ) -> Dict[Tuple[str, str], Dict[str, float]]:
+def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem, fphi_best: modelcraft.DataItem,
+                                fphi_diff: modelcraft.DataItem, search: gemmi.NeighborSearch,
+                                structure: gemmi.Structure, structure_type: StructureType) -> Dict[
+    Tuple[str, str], Dict[str, float]]:
     """Calculate RSCC for each residue in a structure
 
     RSCC Calculation - Paul Bond - https://github.com/paulsbond/modelcraft/blob/dev/modelcraft/rscc.py
@@ -35,6 +36,8 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem,
     Args:
         fphi_calc (modelcraft.DataItem): calculated phases, from DensityCalculator() or refinement
         fphi_best (modelcraft.DataItem): best phases from refinement (before model building)
+        fphi_diff (modelcraft.DataItem): difference phases from refinement (before model building)
+
         search (gemmi.NeighborSearch): constructed neighbor search object
         structure (gemmi.Structure): structure to calculate
 
@@ -44,25 +47,48 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem,
             ('A', '1') : {'rscc': 0.5, 'z_rscc': 1.0, 'avg_b_factor': 0.5, 'z_b_factor': 1.0}
         }
     """
-    calculated_map = fphi_calc.transform_f_phi_to_map(fphi_calc.label(0), fphi_calc.label(1))
-    best_map = fphi_best.transform_f_phi_to_map(fphi_best.label(0), fphi_best.label(1))
+    calculated_map: gemmi.FloatGrid = fphi_calc.transform_f_phi_to_map(fphi_calc.label(0), fphi_calc.label(1))
+    best_map: gemmi.FloatGrid = fphi_best.transform_f_phi_to_map(fphi_best.label(0), fphi_best.label(1))
+    difference_map: gemmi.FloatGrid = fphi_diff.transform_f_phi_to_map(fphi_diff.label(0), fphi_diff.label(1))
+    difference_map.normalize()
+
+    map = gemmi.Ccp4Map()
+    map.grid = difference_map
+    map.update_ccp4_header()
+    map.write_ccp4_map(f"diff_map_{random.randrange(1,10)}.map")
 
     # Calculate RSCC
     residue_pairs = {}
+    difference_scores = {}
+
     for point in calculated_map.masked_asu():
         position = calculated_map.point_to_position(point)
         mark = search.find_nearest_atom(position)
         if mark is not None:
             cra = mark.to_cra(structure[0])
             key = (cra.chain.name, str(cra.residue.seqid))
+
+            residue_type = gemmi.find_tabulated_residue(cra.residue.name)
+            print(residue_type.kind, structure_type, structure_type.is_same(residue_type.kind))
+            if not structure_type.is_same(residue_type.kind):
+                continue
+
             value1 = point.value
             value2 = best_map.get_value(point.u, point.v, point.w)
             residue_pairs.setdefault(key, []).append((value1, value2))
+
+            difference_value = difference_map.get_value(point.u, point.v, point.w)
+            difference_scores.setdefault(key, 0)
+            if difference_value > 0.5:
+                difference_scores[key] += difference_value
+
     correlations = {}
     for key, pairs in residue_pairs.items():
         if len(pairs) > 1:
             values1, values2 = zip(*pairs)
             correlations[key] = {"rscc": np.corrcoef(values1, values2)[0, 1]}
+
+        correlations[key]["difference"] = difference_scores[key]
 
     # Convert RSCC to Z Score
     rsccs = [v["rscc"] for v in correlations.values()]
@@ -87,10 +113,29 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem,
         z_bfactors[index] = scipy.stats.norm.cdf(-abs(z_bfactors[index])) * 2
         correlations[k]["z_b_factor"] = z_bfactors[index]
 
+    # Convert Difference Score to Z Score
+    differences = [v["difference"] for v in correlations.values()]
+    z_differences = scipy.stats.zscore(differences)
+    for index, (k, v) in enumerate(correlations.items()):
+        z_differences[index] = 0.5 * scipy.special.erfc((1 / np.sqrt(2)) * z_differences[index])
+        z_differences[index] = scipy.stats.norm.cdf(-abs(z_differences[index])) * 2
+        correlations[k]["z_difference"] = z_differences[index]
+
+    print(f"{correlations=}")
+
     return correlations
 
 
-def score_from_key(key: Tuple[str, str], stats: Dict[Tuple[str, str], Dict[str, float]], structure: gemmi.Structure) -> float:
+def score_from_zone(zone: List[Tuple[str, str]], stats: Dict[Tuple[str, str], Dict[str, float]],
+                    structure: gemmi.Structure) -> float:
+    score_sum = 0
+    for key in zone:
+        score_sum += score_from_key(key, stats, structure)
+    return score_sum / len(zone)
+
+
+def score_from_key(key: Tuple[str, str], stats: Dict[Tuple[str, str], Dict[str, float]],
+                   structure: gemmi.Structure) -> float:
     """
     Calculates the score for a given key based on the statistics and structure.
 
@@ -151,7 +196,8 @@ def score_from_statistics(statistics: Dict[str, float]) -> float:
     """
     z_rscc = statistics.get("z_rscc")
     z_bfactor = statistics.get("z_b_factor")
+    z_difference = statistics.get("z_difference")
 
     if z_rscc is None or z_bfactor is None:
         return 0.0
-    return z_rscc - z_bfactor
+    return z_rscc - z_bfactor - z_difference

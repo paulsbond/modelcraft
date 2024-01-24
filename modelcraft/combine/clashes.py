@@ -1,25 +1,11 @@
 import dataclasses
 from typing import Tuple, List, Set
-
+from modelcraft.combine.types import Clash, ClashZone
 import gemmi
 
 
-@dataclasses.dataclass(unsafe_hash=True)
-class Clash:
-    """Clash stores data relating to a clash between a protein chain and nucleic acid
-    chain
-    """
-    pro_chain_len: int
-    na_chain_len: int
-    pro_key: Tuple[str, str]
-    na_key: Tuple[str, str]
-
-@dataclasses.dataclass(unsafe_hash=True)
-class ClashZone:
-    pro_keys: List[Tuple[str, str]]
-    na_keys: List[Tuple[str, str]]
-
-def identify_clashes(protein_structure: gemmi.Structure, nucleic_acid_structure: gemmi.Structure, search: gemmi.NeighborSearch) -> Set[Clash]:
+def identify_clashes(protein_structure: gemmi.Structure, nucleic_acid_structure: gemmi.Structure,
+                     search: gemmi.NeighborSearch) -> Set[Clash]:
     """
     Identify Clashes
 
@@ -64,8 +50,60 @@ def identify_clashes(protein_structure: gemmi.Structure, nucleic_acid_structure:
 
 
 def identify_clash_zones(clashes: Set[Clash]):
+    """
+    Identify Clash Zones
+
+    Identifies and groups clashes based on sequential keys.
+
+    Parameters:
+    - clashes: A set of Clash objects representing the clashes to be analyzed.
+
+    Returns:
+    - List[ClashZone]: A list of ClashZone objects representing the identified clash zones.
+
+    """
+
+    def is_sequential(key1: Tuple[str, str], key2: Tuple[str, str]) -> bool:
+        if abs(int(key1[1]) - int(key2[1])) == 1:
+            return True
+        return False
+
+    clash_map = {}
+
     for clash in clashes:
-        print(clash)
+        clash_map.setdefault(clash.na_key, []).append(clash.pro_key)
+
+    sorted_keys = sorted(list(clash_map))
+
+    sequential_na_clashes = []
+    current_na_key = ()
+    current_na_clash_zone = []
+    for clash_key in sorted_keys:
+        if not current_na_key:
+            current_na_key = clash_key
+            current_na_clash_zone.append(clash_key)
+            continue
+        if is_sequential(current_na_key, clash_key):
+            current_na_clash_zone.append(clash_key)
+            current_na_key = clash_key
+        else:
+            sequential_na_clashes.append(current_na_clash_zone)
+            current_na_key = clash_key
+            current_na_clash_zone = [clash_key]
+    sequential_na_clashes.append(current_na_clash_zone)
+
+    clashing_zones: List[ClashZone] = []
+    for clash_zone in sequential_na_clashes:
+        clashing_pro_keys = set()
+        for key in clash_zone:
+            clash_pro_values = clash_map.get(key)
+            for value in clash_pro_values:
+                clashing_pro_keys.add(value)
+
+        zone = ClashZone(pro_keys=clashing_pro_keys, na_keys=clash_zone)
+        clashing_zones.append(zone)
+
+    return clashing_zones
 
 
 def inflate_bfactors(residue: gemmi.Residue, value: float) -> gemmi.Residue:
@@ -126,7 +164,6 @@ def inflate_bfactors_on_clash(protein_structure: gemmi.Structure,
                 na_residue = extract_residue((chain.name, residue.seqid), nucleic_acid_structure)
                 inflate_bfactors(na_residue, 100.0)
                 chain[idx] = na_residue
-
 
     structure = gemmi.Structure()
     structure.add_model(protein_structure[0])
