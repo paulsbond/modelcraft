@@ -27,7 +27,7 @@ def calculate_average_b_factor(residue: gemmi.Residue) -> float:
 
 def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem, fphi_best: modelcraft.DataItem,
                                 fphi_diff: modelcraft.DataItem, search: gemmi.NeighborSearch,
-                                structure: gemmi.Structure, structure_type: StructureType) -> Dict[
+                                structure: gemmi.Structure) -> Dict[
     Tuple[str, str], Dict[str, float]]:
     """Calculate RSCC for each residue in a structure
 
@@ -44,18 +44,13 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem, fphi_best: model
     Returns:
         Dict[Tuple[str,str], Dict[str, float]: Dictionary of RSCC for each clashing residue in each chain
         In format {
-            ('A', '1') : {'rscc': 0.5, 'z_rscc': 1.0, 'avg_b_factor': 0.5, 'z_b_factor': 1.0}
+            ('A', '1') : {'rscc': 0.5, 'z_rscc': 1.0, 'avg_b_factor': 0.5, 'z_b_factor': 1.0, 'z_difference': 0.4}
         }
     """
     calculated_map: gemmi.FloatGrid = fphi_calc.transform_f_phi_to_map(fphi_calc.label(0), fphi_calc.label(1))
     best_map: gemmi.FloatGrid = fphi_best.transform_f_phi_to_map(fphi_best.label(0), fphi_best.label(1))
     difference_map: gemmi.FloatGrid = fphi_diff.transform_f_phi_to_map(fphi_diff.label(0), fphi_diff.label(1))
     difference_map.normalize()
-
-    map = gemmi.Ccp4Map()
-    map.grid = difference_map
-    map.update_ccp4_header()
-    map.write_ccp4_map(f"diff_map_{random.randrange(1,10)}.map")
 
     # Calculate RSCC
     residue_pairs = {}
@@ -68,19 +63,15 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem, fphi_best: model
             cra = mark.to_cra(structure[0])
             key = (cra.chain.name, str(cra.residue.seqid))
 
-            residue_type = gemmi.find_tabulated_residue(cra.residue.name)
-            print(residue_type.kind, structure_type, structure_type.is_same(residue_type.kind))
-            if not structure_type.is_same(residue_type.kind):
-                continue
-
             value1 = point.value
             value2 = best_map.get_value(point.u, point.v, point.w)
             residue_pairs.setdefault(key, []).append((value1, value2))
 
             difference_value = difference_map.get_value(point.u, point.v, point.w)
-            difference_scores.setdefault(key, 0)
+            difference_scores.setdefault(key, [0, 0])
             if difference_value > 0.5:
-                difference_scores[key] += difference_value
+                difference_scores[key][0] += difference_value
+            difference_scores[key][1] += 1
 
     correlations = {}
     for key, pairs in residue_pairs.items():
@@ -88,7 +79,7 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem, fphi_best: model
             values1, values2 = zip(*pairs)
             correlations[key] = {"rscc": np.corrcoef(values1, values2)[0, 1]}
 
-        correlations[key]["difference"] = difference_scores[key]
+        correlations[key]["difference"] = difference_scores[key][0] / difference_scores[key][1]
 
     # Convert RSCC to Z Score
     rsccs = [v["rscc"] for v in correlations.values()]
@@ -121,17 +112,34 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem, fphi_best: model
         z_differences[index] = scipy.stats.norm.cdf(-abs(z_differences[index])) * 2
         correlations[k]["z_difference"] = z_differences[index]
 
-    print(f"{correlations=}")
-
     return correlations
 
 
 def score_from_zone(zone: List[Tuple[str, str]], stats: Dict[Tuple[str, str], Dict[str, float]],
                     structure: gemmi.Structure) -> float:
+    """
+
+    Calculate the score from a given zone.
+
+    Parameters:
+    - zone (List[Tuple[str, str]]): A list of tuples representing the zone.
+    - stats (Dict[Tuple[str, str], Dict[str, float]]): A dictionary mapping keys to statistics.
+    - structure (gemmi.Structure): The structure object.
+
+    Note: If there are no residues in the zone the score is 0
+
+    Returns:
+    - float: The calculated score from the zone.
+
+    """
     score_sum = 0
     for key in zone:
         score_sum += score_from_key(key, stats, structure)
-    return score_sum / len(zone)
+
+    if zone:
+        return score_sum / len(zone)
+    else:
+        return 0
 
 
 def score_from_key(key: Tuple[str, str], stats: Dict[Tuple[str, str], Dict[str, float]],

@@ -17,6 +17,13 @@ class Clash:
 
 @dataclasses.dataclass(unsafe_hash=True)
 class ClashZone:
+    """
+    A class representing the ClashZone.
+
+    Attributes:
+    - pro_keys (List[Tuple[str, str]]): A list of tuples representing the protein Clash keys.
+    - na_keys (List[Tuple[str, str]]): A list of tuples representing the nucleic acid Clash keys.
+    """
     pro_keys: List[Tuple[str, str]]
     na_keys: List[Tuple[str, str]]
 
@@ -27,14 +34,11 @@ class StructureType(enum.Enum):
     nucleic_acid = 2
 
     def is_same(self, kind: gemmi.ResidueKind):
-        print(self.value, kind)
-        if self.value == self.protein:
+        if self.value == self.protein.value:
             if kind == gemmi.ResidueKind.AA:
                 return True
-            else:
-                return False
+            return False
         else:
             if kind in [gemmi.ResidueKind.DNA, gemmi.ResidueKind.RNA]:
                 return True
-            else:
-                return False
+            return False
