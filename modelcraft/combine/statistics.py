@@ -50,7 +50,6 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem, fphi_best: model
     calculated_map: gemmi.FloatGrid = fphi_calc.transform_f_phi_to_map(fphi_calc.label(0), fphi_calc.label(1))
     best_map: gemmi.FloatGrid = fphi_best.transform_f_phi_to_map(fphi_best.label(0), fphi_best.label(1))
     difference_map: gemmi.FloatGrid = fphi_diff.transform_f_phi_to_map(fphi_diff.label(0), fphi_diff.label(1))
-    difference_map.normalize()
 
     # Calculate RSCC
     residue_pairs = {}
@@ -69,7 +68,7 @@ def calculate_stats_per_residue(fphi_calc: modelcraft.DataItem, fphi_best: model
 
             difference_value = difference_map.get_value(point.u, point.v, point.w)
             difference_scores.setdefault(key, [0, 0])
-            if difference_value > 0.5:
+            if difference_value > 0:
                 difference_scores[key][0] += difference_value
             difference_scores[key][1] += 1
 
