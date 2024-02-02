@@ -16,10 +16,10 @@ def combine(pipeline, buccaneer_results: RefmacResult, nautilus_results: RefmacR
     :param nautilus_results: The result object from Nautilus.
     """
     pro_neighbour_search = gemmi.NeighborSearch(
-        buccaneer_results.structure[0], buccaneer_results.structure.cell, 1.5).populate()
+        buccaneer_results.structure[0], buccaneer_results.structure.cell, 5).populate()
 
     na_neighbour_search = gemmi.NeighborSearch(
-        nautilus_results.structure[0], nautilus_results.structure.cell, 1.5).populate()
+        nautilus_results.structure[0], nautilus_results.structure.cell, 5).populate()
 
     na_stats = calculate_stats_per_residue(fphi_calc=nautilus_results.fphi_calc, fphi_best=pipeline.current_fphi_best,
                                            fphi_diff=nautilus_results.fphi_diff, search=na_neighbour_search,

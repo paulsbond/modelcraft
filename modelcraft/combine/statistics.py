@@ -207,4 +207,6 @@ def score_from_statistics(statistics: Dict[str, float]) -> float:
 
     if z_rscc is None or z_bfactor is None:
         return 0.0
-    return z_rscc - z_bfactor - z_difference
+    # return z_rscc - z_bfactor - z_difference
+    return -z_difference
+    
