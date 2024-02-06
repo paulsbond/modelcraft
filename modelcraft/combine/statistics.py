@@ -2,11 +2,11 @@ from typing import Dict, Tuple, List
 import gemmi
 import numpy as np
 import scipy
-import modelcraft
+from ..reflections import DataItem
 
 
 def calculate_stats_per_residue(
-    fphi_diff: modelcraft.DataItem,
+    fphi_diff: DataItem,
     search: gemmi.NeighborSearch,
     structure: gemmi.Structure,
 ) -> Dict[Tuple[str, str], Dict[str, float]]:
@@ -26,19 +26,19 @@ def calculate_stats_per_residue(
             if difference_value > 0:
                 difference_scores[key][0] += difference_value
             difference_scores[key][1] += 1
-    correlations = {}
+    stats = {}
     for key, value in difference_scores.items():
-        correlations[key]["difference"] = value[0] / value[1] if value[1] > 0 else 0
+        stats[key]["difference"] = value[0] / value[1] if value[1] > 0 else 0
     # Convert Difference Score to Z Score
-    differences = [v["difference"] for v in correlations.values()]
+    differences = [v["difference"] for v in stats.values()]
     z_differences = scipy.stats.zscore(differences)
-    for index, (k, v) in enumerate(correlations.items()):
+    for index, (k, v) in enumerate(stats.items()):
         z_differences[index] = 0.5 * scipy.special.erfc(
             (1 / np.sqrt(2)) * z_differences[index]
         )
         z_differences[index] = scipy.stats.norm.cdf(-abs(z_differences[index])) * 2
-        correlations[k]["z_difference"] = z_differences[index]
-    return correlations
+        stats[k]["z_difference"] = z_differences[index]
+    return stats
 
 
 def score_from_zone(
