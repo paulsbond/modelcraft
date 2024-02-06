@@ -13,7 +13,6 @@
   },
   "pylint.args": [
     "--extension-pkg-whitelist=gemmi",
-    "--disable=bad-continuation",
     "--disable=missing-module-docstring",
     "--disable=missing-class-docstring",
     "--disable=missing-function-docstring",
