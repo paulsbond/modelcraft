@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.5.2] - 2024-02-16
+
+### Changed
+
+- Output MTZ file to be the same as HKLOUT from the Refmac job
+
 ## [3.5.1] - 2024-01-18
 
 ### Changed

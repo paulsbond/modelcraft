@@ -254,17 +254,7 @@ class ModelCraftXray(Pipeline):
             self.cycles_without_improvement = 0
             self.output_refmac = result
             write_mmcif(self.path("modelcraft.cif"), result.structure)
-            write_mtz(
-                self.path("modelcraft.mtz"),
-                [
-                    self.args.fmean,
-                    self.args.freer,
-                    result.abcd,
-                    result.fphi_best,
-                    result.fphi_diff,
-                    result.fphi_calc,
-                ],
-            )
+            result.mtz.write_to_file(self.path("modelcraft.mtz"))
             self.report["final"] = stats
         else:
             self.cycles_without_improvement += 1
