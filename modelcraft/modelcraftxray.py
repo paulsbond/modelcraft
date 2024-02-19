@@ -126,7 +126,7 @@ class ModelCraftXray(Pipeline):
         if buccaneer is None or nautilus is None:
             self.update_current_from_refmac_result(buccaneer or nautilus)
         else:
-            combined = combine(self, buccaneer, nautilus)
+            combined = combine(buccaneer, nautilus)
             self.refmac(combined, cycles=5, auto_accept=True)
 
     def buccaneer(self):

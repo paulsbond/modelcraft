@@ -2,6 +2,13 @@ from typing import Tuple, List, Set
 import gemmi
 from .types import Clash, ClashZone
 
+def extract_residue(clash_key: Tuple[str, str], structure: gemmi.Structure) -> gemmi.Residue:
+    chain_name = clash_key[0]
+    residue_seqid = clash_key[1]
+    chain = structure[0].find_chain(chain_name)
+    residue_group = chain[residue_seqid]
+    residue = residue_group[0]
+    return residue
 
 def identify_clashes(
     protein_structure: gemmi.Structure,
@@ -32,10 +39,28 @@ def identify_clashes(
     return clashes
 
 
-def identify_clash_zones(clashes: Set[Clash]):
+def identify_clash_zones(clashes: Set[Clash], 
+                        nautilus_structure: gemmi.Structure
+):
     def is_sequential(key1: Tuple[str, str], key2: Tuple[str, str]) -> bool:
-        if abs(int(key1[1]) - int(key2[1])) == 1:
+        key1_residue = extract_residue(key1, nautilus_structure)
+        key2_residue = extract_residue(key2, nautilus_structure)
+
+        key1_o3 = key1_residue.sole_atom("O3'")
+        key1_p = key1_residue.sole_atom("P")
+
+        key2_o3 = key2_residue.sole_atom("O3'")
+        key2_p = key2_residue.sole_atom("P")
+
+        delta_1 = key1_o3.pos-key2_p.pos
+        delta_2 = key2_o3.pos-key1_p.pos
+
+        threshold = 2
+        if (delta_1.length() < threshold or delta_2.length() < threshold):
             return True
+
+        # if abs(int(key1[1]) - int(key2[1])) == 1:
+        #     return True
         return False
 
     clash_map = {}
@@ -45,11 +70,13 @@ def identify_clash_zones(clashes: Set[Clash]):
     sequential_na_clashes = []
     current_na_key = ()
     current_na_clash_zone = []
+
     for clash_key in sorted_keys:
         if not current_na_key:
             current_na_key = clash_key
             current_na_clash_zone.append(clash_key)
             continue
+
         if is_sequential(current_na_key, clash_key):
             current_na_clash_zone.append(clash_key)
             current_na_key = clash_key
@@ -57,7 +84,9 @@ def identify_clash_zones(clashes: Set[Clash]):
             sequential_na_clashes.append(current_na_clash_zone)
             current_na_key = clash_key
             current_na_clash_zone = [clash_key]
+
     sequential_na_clashes.append(current_na_clash_zone)
+
     clashing_zones: List[ClashZone] = []
     for clash_zone in sequential_na_clashes:
         clashing_pro_keys = set()
@@ -65,6 +94,8 @@ def identify_clash_zones(clashes: Set[Clash]):
             clash_pro_values = clash_map.get(key)
             for value in clash_pro_values:
                 clashing_pro_keys.add(value)
+        clashing_pro_keys = sorted(clashing_pro_keys)
         zone = ClashZone(pro_keys=clashing_pro_keys, na_keys=clash_zone)
         clashing_zones.append(zone)
+
     return clashing_zones

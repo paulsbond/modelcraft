@@ -26,60 +26,55 @@ def calculate_stats_per_residue(
             if difference_value > 0:
                 difference_scores[key][0] += difference_value
             difference_scores[key][1] += 1
+
     stats = {}
     for key, value in difference_scores.items():
-        stats[key]["difference"] = value[0] / value[1] if value[1] > 0 else 0
-    # Convert Difference Score to Z Score
-    differences = [v["difference"] for v in stats.values()]
-    z_differences = scipy.stats.zscore(differences)
-    for index, (k, v) in enumerate(stats.items()):
-        z_differences[index] = 0.5 * scipy.special.erfc(
-            (1 / np.sqrt(2)) * z_differences[index]
-        )
-        z_differences[index] = scipy.stats.norm.cdf(-abs(z_differences[index])) * 2
-        stats[k]["z_difference"] = z_differences[index]
+        stats.setdefault(key, 0)
+        stats[key] = value[0] / value[1] if value[1] > 0 else 0
+        
     return stats
 
 
 def score_from_zone(
     zone: List[Tuple[str, str]],
-    stats: Dict[Tuple[str, str], Dict[str, float]],
+    stats: Dict[Tuple[str, str], float],
     structure: gemmi.Structure,
 ) -> float:
+
     score_sum = 0
-    for key in zone:
-        score_sum += score_from_key(key, stats, structure)
+
+    for index, key in enumerate(zone):
+        chain_name, residue_seq_id = key
+        chain = structure[0].find_chain(chain_name)
+        residue = chain[residue_seq_id][0]
+
+        score = 0.0
+        count = 1
+        score -= stats.get(key, 0)
+
+        if index == 0:
+            previous_residue = chain.previous_residue(residue)
+            if not previous_residue:
+                continue
+            
+            previous_residue_key = (chain_name, str(previous_residue.seqid))
+            if previous_residue_key in stats:
+                score -= stats.get(previous_residue_key, 0)
+                count += 1
+
+        if index == len(zone)-1:
+            next_residue = chain.next_residue(residue)
+            if not next_residue:
+                continue
+
+            next_residue_key = (chain_name, str(next_residue.seqid))
+            if next_residue_key in stats:
+                score -= stats.get(next_residue_key, 0)
+                count += 1
+
+        score_sum += score/count
+
     if zone:
         return score_sum / len(zone)
     return 0
 
-
-def score_from_key(
-    key: Tuple[str, str],
-    stats: Dict[Tuple[str, str], Dict[str, float]],
-    structure: gemmi.Structure,
-) -> float:
-    chain_name, residue_seq_id = key
-    chain = structure[0].find_chain(chain_name)
-    residue = chain[residue_seq_id][0]
-
-    previous_residue = chain.previous_residue(residue)
-    next_residue = chain.next_residue(residue)
-
-    score = 0.0
-    count = 1
-    score -= stats[key].get("z_difference")
-
-    if previous_residue:
-        previous_residue_key = (chain_name, str(previous_residue.seqid))
-        if previous_residue_key in stats:
-            score -= stats[previous_residue_key].get("z_difference")
-            count += 1
-
-    if next_residue:
-        next_residue_key = (chain_name, str(next_residue.seqid))
-        if next_residue_key in stats:
-            score -= stats[next_residue_key].get("z_difference")
-            count += 1
-
-    return score / count
