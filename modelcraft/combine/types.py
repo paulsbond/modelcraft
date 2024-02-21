@@ -25,10 +25,3 @@ class ClashZone:
 
     pro_keys: List[Tuple[str, str]]
     na_keys: List[Tuple[str, str]]
-
-
-class StructureType(enum.Enum):
-    """Enumeration class representing different types of structures."""
-
-    PROTEIN = 1
-    NUCLEIC = 2

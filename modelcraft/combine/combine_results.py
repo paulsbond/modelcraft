@@ -3,7 +3,7 @@ import gemmi
 from ..jobs.refmac import RefmacResult
 from .clashes import identify_clashes, identify_clash_zones
 from .statistics import calculate_stats_per_residue, score_from_zone
-from .types import Clash, ClashZone, StructureType
+from .types import Clash, ClashZone
 
 
 def combine(buccaneer: RefmacResult, nautilus: RefmacResult):
