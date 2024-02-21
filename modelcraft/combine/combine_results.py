@@ -1,53 +1,33 @@
 from typing import Set, List
 import gemmi
-from ..jobs.refmac import RefmacResult
 from .clashes import identify_clashes, identify_clash_zones
 from .statistics import calculate_stats_per_residue, score_from_zone
 from .types import Clash, ClashZone
 
 
-def combine(buccaneer: RefmacResult, nautilus: RefmacResult):
-    pro_neighbour_search = gemmi.NeighborSearch(
-        buccaneer.structure[0], buccaneer.structure.cell, 5
-    ).populate()
-
-    na_neighbour_search = gemmi.NeighborSearch(
-        nautilus.structure[0], nautilus.structure.cell, 5
-    ).populate()
+def combine(buccaneer: gemmi.Structure, nautilus: gemmi.Structure) -> gemmi.Structure:
+    protein_search = gemmi.NeighborSearch(buccaneer[0], buccaneer.cell, 5).populate()
+    nucleic_search = gemmi.NeighborSearch(nautilus[0], nautilus.cell, 5).populate()
 
     na_stats = calculate_stats_per_residue(
-        fphi_diff=nautilus.fphi_diff,
-        search=na_neighbour_search,
-        structure=nautilus.structure,
+        fphi_diff=nautilus.fphi_diff, search=nucleic_search, structure=nautilus
     )
-
     pro_stats = calculate_stats_per_residue(
-        fphi_diff=buccaneer.fphi_diff,
-        search=pro_neighbour_search,
-        structure=buccaneer.structure,
+        fphi_diff=buccaneer.fphi_diff, search=protein_search, structure=buccaneer
     )
 
-    clashes: Set[Clash] = identify_clashes(
-        buccaneer.structure,
-        nautilus.structure,
-        search=na_neighbour_search,
-    )
-
-    clash_zones: List[ClashZone] = identify_clash_zones(clashes, nautilus.structure)
+    clashes: Set[Clash] = identify_clashes(buccaneer, nautilus, search=nucleic_search)
+    clash_zones: List[ClashZone] = identify_clash_zones(clashes, nautilus)
 
     protein_to_remove = set()
     nucleic_acid_to_remove = set()
 
     for clash_zone in clash_zones:
         pro_total_score = score_from_zone(
-            zone=clash_zone.pro_keys,
-            stats=pro_stats,
-            structure=buccaneer.structure,
+            zone=clash_zone.pro_keys, stats=pro_stats, structure=buccaneer
         )
         na_total_score = score_from_zone(
-            zone=clash_zone.na_keys,
-            stats=na_stats,
-            structure=nautilus.structure,
+            zone=clash_zone.na_keys, stats=na_stats, structure=nautilus
         )
 
         if na_total_score > pro_total_score:
@@ -61,8 +41,8 @@ def combine(buccaneer: RefmacResult, nautilus: RefmacResult):
     combined_structure = rebuild_model(
         protein_to_remove=protein_to_remove,
         nucleic_acid_to_remove=nucleic_acid_to_remove,
-        buccaneer_structure=buccaneer.structure,
-        nautilus_structure=nautilus.structure,
+        buccaneer_structure=buccaneer,
+        nautilus_structure=nautilus,
     )
     return combined_structure
 
