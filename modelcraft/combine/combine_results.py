@@ -1,8 +1,6 @@
-from typing import Set, List
 import gemmi
 from .clashes import identify_clashes, identify_clash_zones
 from .statistics import calculate_stats_per_residue, score_from_zone
-from .types import Clash, ClashZone
 
 
 def combine(buccaneer: gemmi.Structure, nautilus: gemmi.Structure) -> gemmi.Structure:
@@ -16,8 +14,8 @@ def combine(buccaneer: gemmi.Structure, nautilus: gemmi.Structure) -> gemmi.Stru
         fphi_diff=buccaneer.fphi_diff, search=protein_search, structure=buccaneer
     )
 
-    clashes: Set[Clash] = identify_clashes(buccaneer, nautilus, search=nucleic_search)
-    clash_zones: List[ClashZone] = identify_clash_zones(clashes, nautilus)
+    clashes = identify_clashes(buccaneer, nautilus, search=nucleic_search)
+    clash_zones = identify_clash_zones(clashes, nautilus)
 
     protein_to_remove = set()
     nucleic_acid_to_remove = set()
@@ -48,8 +46,8 @@ def combine(buccaneer: gemmi.Structure, nautilus: gemmi.Structure) -> gemmi.Stru
 
 
 def rebuild_model(
-    protein_to_remove: Set,
-    nucleic_acid_to_remove: Set,
+    protein_to_remove: set,
+    nucleic_acid_to_remove: set,
     buccaneer_structure: gemmi.Structure,
     nautilus_structure: gemmi.Structure,
 ):
