@@ -1,5 +1,6 @@
 import json
 import os
+import gemmi
 import pytest
 from modelcraft.scripts.modelcraft import main
 from modelcraft.reflections import write_mtz
@@ -36,6 +37,11 @@ def test_insulin_from_phases():
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
+    mtz_path = os.path.join("my_modelcraft_dir", "modelcraft.mtz")
+    mtz = gemmi.read_mtz_file(mtz_path)
+    columns = set(mtz.column_labels())
+    expected = {"FWT", "DELFWT", "FC_ALL_LS", "FOM", "HLACOMB"}
+    assert expected.issubset(columns)
 
 
 @in_temp_directory
