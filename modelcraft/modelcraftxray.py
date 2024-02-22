@@ -11,10 +11,10 @@ from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
 from .cell import max_distortion, remove_scale, update_cell
+from .combine import combine_results
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
 from .structure import ModelStats, remove_residues, write_mmcif
-from .combine.combine_results import combine
 
 
 class ModelCraftXray(Pipeline):
@@ -126,7 +126,7 @@ class ModelCraftXray(Pipeline):
         if buccaneer is None or nautilus is None:
             self.update_current_from_refmac_result(buccaneer or nautilus)
         else:
-            combined = combine(buccaneer, nautilus)
+            combined = combine_results(buccaneer, nautilus)
             self.refmac(combined, cycles=5, auto_accept=True)
 
     def buccaneer(self):
