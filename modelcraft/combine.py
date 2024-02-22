@@ -83,25 +83,22 @@ def rebuild_model(
     for chain in buccaneer_structure[0]:
         to_add_chain = gemmi.Chain(chain.name)
         for residue in chain:
-            if (chain.name, str(residue.seqid)) in protein_to_remove:
-                continue
-
-            to_add_chain.add_residue(residue)
-
-        combined_model.add_chain(to_add_chain, unique_name=True)
+            if (chain.name, str(residue.seqid)) not in protein_to_remove:
+                to_add_chain.add_residue(residue)
+        if len(to_add_chain) > 0:
+            combined_model.add_chain(to_add_chain, unique_name=True)
 
     for chain in nautilus_structure[0]:
         to_add_chain = gemmi.Chain(chain.name)
         for residue in chain:
             if (chain.name, str(residue.seqid)) in nucleic_acid_to_remove:
                 continue
-
             # Only add nucleic acid, otherwise, protein chains will be duplicated
-            residue_kind: gemmi.ResidueInfo = gemmi.find_tabulated_residue(residue.name)
+            residue_kind = gemmi.find_tabulated_residue(residue.name)
             if residue_kind.is_nucleic_acid():
                 to_add_chain.add_residue(residue)
-
-        combined_model.add_chain(to_add_chain, unique_name=True)
+        if len(to_add_chain) > 0:
+            combined_model.add_chain(to_add_chain, unique_name=True)
 
     combined_structure.add_model(combined_model)
     return combined_structure
@@ -114,13 +111,12 @@ def extract_residue(
     residue_seqid = clash_key[1]
     chain = structure[0].find_chain(chain_name)
     residue_group = chain[residue_seqid]
-    residue = residue_group[0]
-    return residue
+    return residue_group[0]
 
 
 def identify_clashes(
     protein_structure: gemmi.Structure,
-    nucleic_acid_structure: gemmi.Structure,
+    nucleic_structure: gemmi.Structure,
     search: gemmi.NeighborSearch,
 ) -> Set[Clash]:
     clashes = set()
@@ -129,21 +125,15 @@ def identify_clashes(
             for atom in residue:
                 near_atoms = search.find_atoms(atom.pos, alt="\0", radius=1)
                 for near_atom in near_atoms:
-                    near_chain: gemmi.Chain = nucleic_acid_structure[0][
-                        near_atom.chain_idx
-                    ]
-                    near_residue: gemmi.Residue = near_chain[near_atom.residue_idx]
-                    residue_info: gemmi.ResidueInfo = gemmi.find_tabulated_residue(
-                        near_residue.name
-                    )
-                    if not residue_info.is_nucleic_acid():
-                        continue
-
-                    detected_clash = Clash(
-                        pro_key=(chain.name, str(residue.seqid)),
-                        na_key=(near_chain.name, str(near_residue.seqid)),
-                    )
-                    clashes.add(detected_clash)
+                    near_chain = nucleic_structure[0][near_atom.chain_idx]
+                    near_residue = near_chain[near_atom.residue_idx]
+                    residue_info = gemmi.find_tabulated_residue(near_residue.name)
+                    if residue_info.is_nucleic_acid():
+                        clash = Clash(
+                            pro_key=(chain.name, str(residue.seqid)),
+                            na_key=(near_chain.name, str(near_residue.seqid)),
+                        )
+                        clashes.add(clash)
     return clashes
 
 
@@ -161,10 +151,7 @@ def identify_clash_zones(clashes: Set[Clash], nautilus_structure: gemmi.Structur
         delta_1 = key1_o3.pos - key2_p.pos
         delta_2 = key2_o3.pos - key1_p.pos
 
-        threshold = 2
-        if delta_1.length() < threshold or delta_2.length() < threshold:
-            return True
-        return False
+        return delta_1.length() < 2 or delta_2.length() < 2
 
     clash_map = {}
     for clash in clashes:
@@ -178,9 +165,7 @@ def identify_clash_zones(clashes: Set[Clash], nautilus_structure: gemmi.Structur
         if not current_na_key:
             current_na_key = clash_key
             current_na_clash_zone.append(clash_key)
-            continue
-
-        if is_sequential(current_na_key, clash_key):
+        elif is_sequential(current_na_key, clash_key):
             current_na_clash_zone.append(clash_key)
             current_na_key = clash_key
         else:
@@ -237,9 +222,8 @@ def score_from_zone(
         chain = structure[0].find_chain(chain_name)
         residue = chain[residue_seq_id][0]
 
-        score = 0.0
         count = 1
-        score -= stats.get(key, 0)
+        score = -stats.get(key, 0)
 
         if index == 0:
             previous_residue = chain.previous_residue(residue)
@@ -263,6 +247,4 @@ def score_from_zone(
 
         score_sum += score / count
 
-    if zone:
-        return score_sum / len(zone)
-    return 0
+    return score_sum / len(zone) if zone else 0
