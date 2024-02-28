@@ -103,7 +103,8 @@ def _scores(result: RefmacResult) -> dict:
 
 def _assign_scores(residues: dict, scores: dict) -> None:
     for key, score in scores.items():
-        residues[key].score = score
+        if key in residues:
+            residues[key].score = score
 
 
 def _clashes(structure1: gemmi.Structure, structure2: gemmi.Structure) -> set:
@@ -122,8 +123,9 @@ def _clashes(structure1: gemmi.Structure, structure2: gemmi.Structure) -> set:
 
 def _assign_clashes(residues1: dict, residues2: dict, clashes: set) -> None:
     for key1, key2 in clashes:
-        residues1[key1].clashing.add(residues2[key2])
-        residues2[key2].clashing.add(residues1[key1])
+        if key1 in residues1 and key2 in residues2:
+            residues1[key1].clashing.add(residues2[key2])
+            residues2[key2].clashing.add(residues1[key1])
 
 
 def rebuild_model(
