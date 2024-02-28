@@ -98,7 +98,7 @@ def _scores(result: RefmacResult) -> dict:
             if point.value > 0:
                 sum_counts[key][0] += point.value
             sum_counts[key][1] += 1
-    return {key: -sum_count[0] / sum_count[1] for key, sum_count in sum_counts.items()}
+    return {key: -sum / count for key, (sum, count) in sum_counts.items()}
 
 
 def _assign_scores(residues: dict, scores: dict) -> None:
