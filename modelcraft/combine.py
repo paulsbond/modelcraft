@@ -1,6 +1,6 @@
 import gemmi
-from .contents import PROTEIN_CODES, DNA_CODES, RNA_CODES
 from .jobs.refmac import RefmacResult
+from .monlib import is_protein, is_nucleic
 
 
 def combine_results(buccaneer: RefmacResult, nautilus: RefmacResult) -> gemmi.Structure:
@@ -75,13 +75,11 @@ def _key(chain: gemmi.Chain, residue: gemmi.Residue) -> tuple:
 
 
 def _is_nucleic_chain(chain: gemmi.Chain) -> bool:
-    names = set(RNA_CODES.values()) | set(DNA_CODES.values())
-    return len(chain) > 1 and all(res.name in names for res in chain)
+    return len(chain) > 1 and all(is_nucleic(res.name) for res in chain)
 
 
 def _is_protein_chain(chain: gemmi.Chain) -> bool:
-    names = set(PROTEIN_CODES.values()) | {"MSE"}
-    return len(chain) > 1 and all(res.name in names for res in chain)
+    return len(chain) > 1 and all(is_protein(res.name) for res in chain)
 
 
 def _clashing_zones(

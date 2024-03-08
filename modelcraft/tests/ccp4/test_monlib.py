@@ -1,5 +1,6 @@
+import gemmi
 from modelcraft.contents import PROTEIN_CODES, DNA_CODES, RNA_CODES
-from modelcraft.monlib import atom_ids, in_library
+from modelcraft.monlib import atom_ids, in_library, group, is_protein, is_nucleic
 
 
 def test_hoh_ids():
@@ -25,3 +26,32 @@ def test_in_library():
         assert in_library(code)
     for code in RNA_CODES.values():
         assert in_library(code)
+
+
+def test_group():
+    assert group("GLY") == gemmi.ChemComp.Group.Peptide
+    assert group("ALA") == gemmi.ChemComp.Group.Peptide
+    assert group("MSE") == gemmi.ChemComp.Group.Peptide
+    assert group("PRO") == gemmi.ChemComp.Group.PPeptide
+    assert group("U") == gemmi.ChemComp.Group.Rna
+    assert group("DT") == gemmi.ChemComp.Group.Dna
+    assert group("HOH") == gemmi.ChemComp.Group.NonPolymer
+
+
+def test_protein():
+    assert is_protein("GLY")
+    assert is_protein("ALA")
+    assert is_protein("MSE")
+    assert is_protein("PRO")
+    assert not is_protein("U")
+    assert not is_protein("DT")
+    assert not is_protein("HOH")
+
+
+def test_nucleic():
+    assert not is_nucleic("GLY")
+    assert not is_nucleic("ALA")
+    assert not is_nucleic("PRO")
+    assert is_nucleic("U")
+    assert is_nucleic("DT")
+    assert not is_nucleic("HOH")
