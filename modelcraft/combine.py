@@ -1,83 +1,53 @@
-import dataclasses
 import gemmi
+from .contents import PROTEIN_CODES, DNA_CODES, RNA_CODES
 from .jobs.refmac import RefmacResult
 
 
-def combine_results(result1: RefmacResult, result2: RefmacResult) -> gemmi.Structure:
-    residues1 = _my_residues(result1.structure)
-    residues2 = _my_residues(result2.structure)
-    _assign_scores(residues1, _scores(result1))
-    _assign_scores(residues2, _scores(result2))
-    clashes = _clashes(result1.structure, result2.structure)
-    _assign_clashes(residues1, residues2, clashes)
-
-    # to_remove1 = set()
-    # to_remove2 = set()
-    # for clash_zone in clash_zones:
-    #     total_score1 = score_from_zone(clash_zone.keys1, scores1, structure1)
-    #     total_score2 = score_from_zone(clash_zone.keys2, scores2, structure2)
-    #     if total_score2 > total_score1:
-    #         for key1 in clash_zone.keys1:
-    #             to_remove1.add(key1)
-    #     else:
-    #         for key2 in clash_zone.keys2:
-    #             to_remove2.add(key2)
-
-    # combined_structure = rebuild_model(structure1, structure2, to_remove1, to_remove2)
-    # return combined_structure
-
-
-def _key(chain: gemmi.Chain, residue: gemmi.Residue) -> tuple:
-    return (chain.name, residue.seqid.num, residue.seqid.icode)
-
-
-@dataclasses.dataclass
-class _MyResidue:
-    def __init__(self, chain: gemmi.Chain, residue: gemmi.Residue):
-        self.chain = chain
-        self.residue = residue
-        self.next = None
-        self.prev = None
-        self.score = None
-        self.clashing = set()
-        self.zone = None
-
-    def __hash__(self) -> int:
-        return hash(_key(self.chain, self.residue))
-
-
-def _my_residues(structure: gemmi.Structure) -> dict:
-    my_residues = {}
+def combine_results(buccaneer: RefmacResult, nautilus: RefmacResult) -> gemmi.Structure:
+    structure = buccaneer.structure.clone()
+    for i, chain in reversed(list(enumerate(structure[0]))):
+        if _is_nucleic_chain(chain):
+            del structure[i]
+    chains_to_add, clashing_to_remove = _resolve_clashes(structure, buccaneer, nautilus)
     for chain in structure[0]:
-        previous = None
-        for residue in chain:
-            my_residue = _MyResidue(chain, residue)
-            my_residues[_key(chain, residue)] = my_residue
-            if previous is not None and _are_neighbours(previous, my_residue):
-                my_residue.prev = previous
-                previous.next = my_residue
-            previous = my_residue
-    return my_residues
+        protein = _is_protein_chain(chain)
+        any_removed = False
+        for i, residue in reversed(list(enumerate(chain))):
+            if _key(chain, residue) in clashing_to_remove:
+                del chain[i]
+                any_removed = True
+        if protein and any_removed:
+            _remove_isolated_fragments(chain, _are_joined_protein, min_length=6)
+    structure.remove_empty_chains()
+    for chain in chains_to_add:
+        structure[0].add_chain(chain, unique_name=True)
+    return structure
 
 
-def _are_neighbours(res1: _MyResidue, res2: _MyResidue) -> bool:
-    res1 = res1.residue
-    res2 = res2.residue
-    info1 = gemmi.find_tabulated_residue(res1.name)
-    info2 = gemmi.find_tabulated_residue(res2.name)
-    return (
-        info1.is_amino_acid()
-        and info2.is_amino_acid()
-        and "C" in res1
-        and "N" in res2
-        and res1["C"][0].pos.dist(res2["N"][0].pos) < 2
-    ) or (
-        info1.is_nucleic_acid()
-        and info2.is_nucleic_acid()
-        and "O3'" in res1
-        and "P" in res2
-        and res1["O3'"][0].pos.dist(res2["P"][0].pos) < 2
-    )
+def _resolve_clashes(
+    structure: gemmi.Structure, buccaneer: RefmacResult, nautilus: RefmacResult
+) -> tuple:
+    chains_to_add = []
+    clashing_to_remove = set()
+    bucc_scores = _scores(buccaneer)
+    naut_scores = _scores(nautilus)
+    search = gemmi.NeighborSearch(structure, max_radius=1).populate()
+    for chain in nautilus.structure[0]:
+        if _is_nucleic_chain(chain):
+            residues_to_remove = set()
+            for keys, clashing in _clashing_zones(chain, search, structure):
+                if _mean_score(keys, naut_scores) < _mean_score(clashing, bucc_scores):
+                    clashing_to_remove |= clashing
+                else:
+                    residues_to_remove |= keys
+            if residues_to_remove:
+                for i, residue in reversed(list(enumerate(chain))):
+                    if _key(chain, residue) in residues_to_remove:
+                        del chain[i]
+                _remove_isolated_fragments(chain, _are_joined_nucleic, min_length=2)
+            if len(chain) > 0:
+                chains_to_add.append(chain)
+    return chains_to_add, clashing_to_remove
 
 
 def _scores(result: RefmacResult) -> dict:
@@ -85,7 +55,7 @@ def _scores(result: RefmacResult) -> dict:
     diff_density = result.fphi_diff.transform_f_phi_to_map(
         result.fphi_diff.label(0),
         result.fphi_diff.label(1),
-        sample_rate=(result.fphi_diff.resolution_high() / 0.7),  # 0.7A grid spacing
+        sample_rate=(result.fphi_diff.resolution_high() / 1.0),  # 1.0A grid spacing
     )
     sum_counts = {}
     for point in diff_density.masked_asu():
@@ -95,69 +65,72 @@ def _scores(result: RefmacResult) -> dict:
             cra = mark.to_cra(result.structure[0])
             key = _key(cra.chain, cra.residue)
             sum_counts.setdefault(key, [0, 0])
-            if point.value > 0:
-                sum_counts[key][0] += point.value
+            sum_counts[key][0] += abs(point.value)
             sum_counts[key][1] += 1
-    return {key: -sum / count for key, (sum, count) in sum_counts.items()}
+    return {key: sum / count for key, (sum, count) in sum_counts.items()}
 
 
-def _assign_scores(residues: dict, scores: dict) -> None:
-    for key, score in scores.items():
-        if key in residues:
-            residues[key].score = score
+def _key(chain: gemmi.Chain, residue: gemmi.Residue) -> tuple:
+    return (chain.name, residue.seqid.num, residue.seqid.icode)
 
 
-def _clashes(structure1: gemmi.Structure, structure2: gemmi.Structure) -> set:
-    search = gemmi.NeighborSearch(structure2, max_radius=1).populate()
-    clashes = set()
-    for chain1 in structure1[0]:
-        for residue1 in chain1:
-            key1 = _key(chain1, residue1)
-            for atom1 in residue1:
-                for mark in search.find_atoms(atom1.pos, radius=1):
-                    cra = mark.to_cra(structure2[0])
-                    key2 = _key(cra.chain, cra.residue)
-                    clashes.add((key1, key2))
-    return clashes
+def _is_nucleic_chain(chain: gemmi.Chain) -> bool:
+    names = set(RNA_CODES.values()) | set(DNA_CODES.values())
+    return len(chain) > 1 and all(res.name in names for res in chain)
 
 
-def _assign_clashes(residues1: dict, residues2: dict, clashes: set) -> None:
-    for key1, key2 in clashes:
-        if key1 in residues1 and key2 in residues2:
-            residues1[key1].clashing.add(residues2[key2])
-            residues2[key2].clashing.add(residues1[key1])
+def _is_protein_chain(chain: gemmi.Chain) -> bool:
+    names = set(PROTEIN_CODES.values()) | {"MSE"}
+    return len(chain) > 1 and all(res.name in names for res in chain)
 
 
-def rebuild_model(
-    structure1: gemmi.Structrue,
-    structure2: gemmi.Structrue,
-    to_remove1: set,
-    to_remove2: set,
+def _clashing_zones(
+    chain: gemmi.Chain, search: gemmi.NeighborSearch, structure: gemmi.Structure
 ):
-    combined_structure = gemmi.Structure()
-    combined_structure.cell = structure1.cell
-    combined_structure.spacegroup_hm = structure1.spacegroup_hm
-    combined_model = gemmi.Model(structure1[0].name)
+    keys = set()
+    clashing_keys = set()
+    for residue in chain:
+        residue_clashes = set()
+        for atom in residue:
+            for mark in search.find_atoms(atom.pos, radius=1):
+                cra = mark.to_cra(structure[0])
+                residue_clashes.add(_key(cra.chain, cra.residue))
+        if residue_clashes:
+            keys.add(_key(chain, residue))
+            clashing_keys |= residue_clashes
+        elif keys:
+            yield keys, clashing_keys
+            keys = []
+            clashing_keys = set()
+    if keys:
+        yield keys, clashing_keys
 
-    for chain in structure1[0]:
-        to_add_chain = gemmi.Chain(chain.name)
-        for residue in chain:
-            if (chain.name, str(residue.seqid)) not in to_remove1:
-                to_add_chain.add_residue(residue)
-        if len(to_add_chain) > 0:
-            combined_model.add_chain(to_add_chain, unique_name=True)
 
-    for chain in structure2[0]:
-        to_add_chain = gemmi.Chain(chain.name)
-        for residue in chain:
-            if (chain.name, str(residue.seqid)) in to_remove2:
-                continue
-            # Only add nucleic acid, otherwise, protein chains will be duplicated
-            residue_kind = gemmi.find_tabulated_residue(residue.name)
-            if residue_kind.is_nucleic_acid():
-                to_add_chain.add_residue(residue)
-        if len(to_add_chain) > 0:
-            combined_model.add_chain(to_add_chain, unique_name=True)
+def _mean_score(keys: set, scores: dict) -> float:
+    return sum(scores[key] for key in keys) / len(keys)
 
-    combined_structure.add_model(combined_model)
-    return combined_structure
+
+def _remove_isolated_fragments(chain: gemmi.Chain, are_joined, min_length: int):
+    to_remove = []
+    fragment = []
+    for i, residue in enumerate(chain):
+        if i > 0 and are_joined(chain[i - 1], residue):
+            fragment.append(i)
+        else:
+            if len(fragment) < min_length:
+                to_remove.extend(fragment)
+            fragment = [i]
+    for i in reversed(to_remove):
+        del chain[i]
+
+
+def _are_joined_protein(res1: gemmi.Residue, res2: gemmi.Residue) -> bool:
+    return "C" in res1 and "N" in res2 and res1["C"][0].pos.dist(res2["N"][0].pos) < 2.5
+
+
+def _are_joined_nucleic(res1: gemmi.Residue, res2: gemmi.Residue) -> bool:
+    return (
+        "O3'" in res1
+        and "P" in res2
+        and res1["O3'"][0].pos.dist(res2["P"][0].pos) < 2.5
+    )
