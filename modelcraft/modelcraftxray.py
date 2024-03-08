@@ -253,10 +253,15 @@ class ModelCraftXray(Pipeline):
     def process_cycle_output(self, result):
         _print_refmac_result(result)
         model_stats = ModelStats(result.structure)
-        stats = {"cycle": self.cycle, "residues": model_stats.residues}
-        stats["waters"] = model_stats.waters
-        stats["r_work"] = result.rwork
-        stats["r_free"] = result.rfree
+        stats = {
+            "cycle": self.cycle,
+            "residues": model_stats.residues,
+            "protein": model_stats.protein,
+            "nucleic": model_stats.nucleic,
+            "waters": model_stats.waters,
+            "r_work": result.rwork,
+            "r_free": result.rfree,
+        }
         self.report["cycles"].append(stats)
         if self.output_refmac is None or result.rwork < self.output_refmac.rwork:
             self.cycles_without_improvement = 0
@@ -299,7 +304,10 @@ class ModelCraftXray(Pipeline):
 
 def _print_refmac_result(result):
     model_stats = ModelStats(result.structure)
-    print(f"\nResidues: {model_stats.residues:6d}", flush=True)
-    print(f"Waters:   {model_stats.waters:6d}", flush=True)
-    print(f"R-work:   {result.rwork:6.4f}", flush=True)
+    print("")
+    print(f"Residues: {model_stats.residues:6d}")
+    print(f"Protein:  {model_stats.protein:6d}")
+    print(f"Nucleic:  {model_stats.nucleic:6d}")
+    print(f"Waters:   {model_stats.waters:6d}")
+    print(f"R-work:   {result.rwork:6.4f}")
     print(f"R-free:   {result.rfree:6.4f}", flush=True)
