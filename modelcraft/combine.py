@@ -7,7 +7,7 @@ def combine_results(buccaneer: RefmacResult, nautilus: RefmacResult) -> gemmi.St
     structure = buccaneer.structure.clone()
     for i, chain in reversed(list(enumerate(structure[0]))):
         if _is_nucleic_chain(chain):
-            del structure[i]
+            del structure[0][i]
     chains_to_add, clashing_to_remove = _resolve_clashes(structure, buccaneer, nautilus)
     for chain in structure[0]:
         protein = _is_protein_chain(chain)
@@ -100,7 +100,7 @@ def _clashing_zones(
             clashing_keys |= residue_clashes
         elif keys:
             yield keys, clashing_keys
-            keys = []
+            keys = set()
             clashing_keys = set()
     if keys:
         yield keys, clashing_keys
