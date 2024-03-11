@@ -29,7 +29,6 @@ class Coot(Job):
             "        COOT1 = False\n",
             "    if COOT1:\n",
             "        from coot import *\n",
-            "        from fitting import fit_protein_make_specs\n",
             "    turn_off_backup(0)\n",
         ]
         for i, structure in enumerate(self.structures):
@@ -103,12 +102,3 @@ class FixSideChains(Coot):
         super().__init__(
             script=script, structures=[structure], fphis=[fphi_best, fphi_diff]
         )
-
-
-class RsrMorph(Coot):
-    def __init__(self, structure: gemmi.Structure, fphi_best: DataItem):
-        path = os.path.join(os.path.dirname(__file__), "..", "coot", "morph.py")
-        with open(path) as stream:
-            script = stream.read()
-        script += "rsr_morph(IMOL0, IMAP0)\n"
-        super().__init__(script=script, structures=[structure], fphis=[fphi_best])

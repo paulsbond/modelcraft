@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [4.0.0] - Unreleased
+
+### Removed
+
+- Coot RSR morph
+
 ## [3.5.2] - 2024-02-16
 
 ### Changed
