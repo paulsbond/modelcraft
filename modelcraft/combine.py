@@ -118,6 +118,8 @@ def _remove_isolated_fragments(chain: gemmi.Chain, are_joined, min_length: int):
             if len(fragment) < min_length:
                 to_remove.extend(fragment)
             fragment = [i]
+    if len(fragment) < min_length:
+        to_remove.extend(fragment)
     for i in reversed(to_remove):
         del chain[i]
 
