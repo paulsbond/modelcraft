@@ -10,6 +10,8 @@ from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
+from .jobs.nucleofind import NucleoFind
+from .jobs.nucleofind_build import NucleoFindBuild
 from .cell import max_distortion, remove_scale, update_cell
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
@@ -118,8 +120,24 @@ class ModelCraftXray(Pipeline):
                 remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
             self.buccaneer()
             self.prune(chains_only=True)
-            self.nautilus()
+            self.nucleofind()
             self.findwaters()
+
+    def nucleofind(self):
+        result = NucleoFind(
+            fphi=self.current_fphi_best,
+        ).run(self)
+        build_result = NucleoFindBuild(
+            contents=self.args.contents,
+            fsigf=self.args.fmean,
+            phases=self.current_phases,
+            fphi=self.current_fphi_best,
+            freer=self.args.freer,
+            structure=self.current_structure,
+            predicted_map=result.predicted_map
+        ).run(self)
+        write_mmcif(self.path("current.cif"), build_result.structure)
+        self.refmac(build_result.structure, cycles=10, auto_accept=True)
 
     def buccaneer(self):
         if not self.args.contents.proteins:
@@ -139,6 +157,7 @@ class ModelCraftXray(Pipeline):
         ).run(self)
         write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=10, auto_accept=True)
+
 
     def nautilus(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):
