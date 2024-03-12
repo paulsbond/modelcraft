@@ -126,8 +126,9 @@ class ModelCraftXray(Pipeline):
         if buccaneer is None or nautilus is None:
             self.update_current_from_refmac_result(buccaneer or nautilus)
         else:
-            combined = combine_results(buccaneer, nautilus)
-            self.refmac(combined, cycles=5, auto_accept=True)
+            combined = self.run_refmac(combine_results(buccaneer, nautilus), cycles=5)
+            best = min((buccaneer, nautilus, combined), key=lambda result: result.rfree)
+            self.update_current_from_refmac_result(best)
 
     def buccaneer(self):
         if not self.args.contents.proteins:
