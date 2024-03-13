@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.6.0] - 2024-03-13
+
+### Changed
+
+- X-ray pipeline to run Buccaneer and Nautilus separately and combine the results
+- Reporting numbers of protein and nucleic acid residues
+
 ## [3.5.3] - 2024-03-04
 
 ### Fixed

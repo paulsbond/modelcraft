@@ -1,6 +1,6 @@
 from typing import Iterator
 import gemmi
-from .monlib import atom_ids, in_library
+from .monlib import atom_ids, in_library, is_protein, is_nucleic
 
 
 def read_structure(path: str) -> gemmi.Structure:
@@ -70,6 +70,8 @@ def write_mmcif(path: str, structure: gemmi.Structure) -> None:
 class ModelStats:
     def __init__(self, structure: gemmi.Structure):
         self.residues: int = 0
+        self.protein: int = 0
+        self.nucleic: int = 0
         self.waters: int = 0
         self.dummy_atoms: int = 0
 
@@ -80,6 +82,10 @@ class ModelStats:
                 self.dummy_atoms += 1
             else:
                 self.residues += 1
+                if is_protein(residue.name):
+                    self.protein += 1
+                if is_nucleic(residue.name):
+                    self.nucleic += 1
 
     def __eq__(self, other):
         if isinstance(other, ModelStats):

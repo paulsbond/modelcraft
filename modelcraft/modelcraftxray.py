@@ -11,6 +11,7 @@ from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
 from .cell import max_distortion, remove_scale, update_cell
+from .combine import combine_results
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
 from .structure import ModelStats, remove_residues, write_mmcif
@@ -106,8 +107,7 @@ class ModelCraftXray(Pipeline):
         if self.args.basic:
             if self.cycle == 1:
                 self.parrot()
-            self.buccaneer()
-            self.nautilus()
+            self.run_buccaneer_and_nautilus()
         else:
             if self.cycle > 1 and self.resolution < 2.3:
                 self.prune()
@@ -116,10 +116,19 @@ class ModelCraftXray(Pipeline):
                 if self.cycle > 1 or self.args.phases is None:
                     self.findwaters(dummy=True)
                 remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
-            self.buccaneer()
+            self.run_buccaneer_and_nautilus()
             self.prune(chains_only=True)
-            self.nautilus()
             self.findwaters()
+
+    def run_buccaneer_and_nautilus(self):
+        buccaneer = self.buccaneer()
+        nautilus = self.nautilus()
+        if buccaneer is None or nautilus is None:
+            self.update_current_from_refmac_result(buccaneer or nautilus)
+        else:
+            combined = self.run_refmac(combine_results(buccaneer, nautilus), cycles=5)
+            best = min((buccaneer, nautilus, combined), key=lambda result: result.rfree)
+            self.update_current_from_refmac_result(best)
 
     def buccaneer(self):
         if not self.args.contents.proteins:
@@ -139,7 +148,7 @@ class ModelCraftXray(Pipeline):
             threads=self.args.threads,
         ).run(self)
         write_mmcif(self.path("current.cif"), result.structure)
-        self.refmac(result.structure, cycles=10, auto_accept=True)
+        return self.run_refmac(result.structure, cycles=10)
 
     def nautilus(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):
@@ -153,7 +162,7 @@ class ModelCraftXray(Pipeline):
             structure=self.current_structure,
         ).run(self)
         write_mmcif(self.path("current.cif"), result.structure)
-        self.refmac(result.structure, cycles=5, auto_accept=True)
+        return self.run_refmac(result.structure, cycles=10)
 
     def refmac(self, structure: gemmi.Structure, cycles: int, auto_accept: bool):
         result = self.run_refmac(structure, cycles)
@@ -245,10 +254,15 @@ class ModelCraftXray(Pipeline):
     def process_cycle_output(self, result):
         _print_refmac_result(result)
         model_stats = ModelStats(result.structure)
-        stats = {"cycle": self.cycle, "residues": model_stats.residues}
-        stats["waters"] = model_stats.waters
-        stats["r_work"] = result.rwork
-        stats["r_free"] = result.rfree
+        stats = {
+            "cycle": self.cycle,
+            "residues": model_stats.residues,
+            "protein": model_stats.protein,
+            "nucleic": model_stats.nucleic,
+            "waters": model_stats.waters,
+            "r_work": result.rwork,
+            "r_free": result.rfree,
+        }
         self.report["cycles"].append(stats)
         if self.output_refmac is None or result.rwork < self.output_refmac.rwork:
             self.cycles_without_improvement = 0
@@ -291,7 +305,10 @@ class ModelCraftXray(Pipeline):
 
 def _print_refmac_result(result):
     model_stats = ModelStats(result.structure)
-    print(f"\nResidues: {model_stats.residues:6d}", flush=True)
-    print(f"Waters:   {model_stats.waters:6d}", flush=True)
-    print(f"R-work:   {result.rwork:6.4f}", flush=True)
+    print("")
+    print(f"Residues: {model_stats.residues:6d}")
+    print(f"Protein:  {model_stats.protein:6d}")
+    print(f"Nucleic:  {model_stats.nucleic:6d}")
+    print(f"Waters:   {model_stats.waters:6d}")
+    print(f"R-work:   {result.rwork:6.4f}")
     print(f"R-free:   {result.rfree:6.4f}", flush=True)
