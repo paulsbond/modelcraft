@@ -3,7 +3,6 @@ __version__ = "3.5.3"
 from .cell import max_distortion as max_cell_distortion
 from .cell import remove_scale
 from .cell import update_cell
-from .combine import combine_results
 from .contents import AsuContents
 from .contents import PolymerType
 from .geometry import rmsz
@@ -46,7 +45,6 @@ __all__ = [
     "Acedrg",
     "AsuContents",
     "Buccaneer",
-    "combine_results",
     "Comit",
     "contains_residue",
     "CTruncate",
