@@ -10,6 +10,7 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class RefmacResult:
     structure: gemmi.Structure
+    mtz: gemmi.Mtz
     abcd: DataItem
     fphi_best: DataItem
     fphi_diff: DataItem
@@ -93,6 +94,7 @@ class Refmac(Job):
         fscs = list(xml.iter("fscAver"))
         return RefmacResult(
             structure=read_structure(self._path("xyzout.cif")),
+            mtz=mtz,
             abcd=DataItem(mtz, "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB"),
             fphi_best=DataItem(mtz, "FWT,PHWT"),
             fphi_diff=DataItem(mtz, "DELFWT,PHDELWT"),

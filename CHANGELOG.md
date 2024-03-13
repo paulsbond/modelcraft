@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.6.0] - 2024-03-13
+
+### Changed
+
+- X-ray pipeline to run Buccaneer and Nautilus separately and combine the results
+- Reporting numbers of protein and nucleic acid residues
+
+## [3.5.3] - 2024-03-04
+
+### Fixed
+
+- Dummy atoms are now oxygen atoms instead of sodium atoms
+
+## [3.5.2] - 2024-02-16
+
+### Changed
+
+- Output MTZ file to be the same as HKLOUT from the Refmac job
+
+## [3.5.1] - 2024-01-18
+
+### Changed
+
+- Water chain naming to try to be compatible with PDB format
+
+## [3.5.0] - 2024-01-09
+
+### Added
+
+- Option --threads to allow Buccaneer to use multiprocessing
+
 ## [3.4.0] - 2023-09-21
 
 ### Added
