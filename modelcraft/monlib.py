@@ -25,3 +25,29 @@ def chemcomp(code: str) -> gemmi.ChemComp:
 @functools.lru_cache(maxsize=None)
 def in_library(code: str) -> bool:
     return os.path.exists(_path(code))
+
+
+@functools.lru_cache(maxsize=None)
+def group(code: str) -> gemmi.ChemComp.Group:
+    doc = gemmi.cif.read(_path(code))
+    monlib = gemmi.MonLib()
+    monlib.read_monomer_doc(doc)
+    return monlib.monomers[code].group
+
+
+@functools.lru_cache(maxsize=None)
+def is_protein(code: str) -> bool:
+    return group(code) in {
+        gemmi.ChemComp.Group.Peptide,
+        gemmi.ChemComp.Group.PPeptide,
+        gemmi.ChemComp.Group.MPeptide,
+    }
+
+
+@functools.lru_cache(maxsize=None)
+def is_nucleic(code: str) -> bool:
+    return group(code) in {
+        gemmi.ChemComp.Group.Dna,
+        gemmi.ChemComp.Group.Rna,
+        gemmi.ChemComp.Group.DnaRna,
+    }

@@ -9,6 +9,19 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - Coot RSR morph
 
+## [3.6.0] - 2024-03-13
+
+### Changed
+
+- X-ray pipeline to run Buccaneer and Nautilus separately and combine the results
+- Reporting numbers of protein and nucleic acid residues
+
+## [3.5.3] - 2024-03-04
+
+### Fixed
+
+- Dummy atoms are now oxygen atoms instead of sodium atoms
+
 ## [3.5.2] - 2024-02-16
 
 ### Changed

@@ -35,6 +35,7 @@ class FindWaters(Job):
         water_model = read_structure(self._path("water.pdb"))[0]
         for water_chain in water_model:
             for water_residue in water_chain:
+                water_residue[0].element = gemmi.Element("O")
                 water_residues.append(water_residue)
         structure = self.structure.clone()
         if len(water_residues) > 0:
