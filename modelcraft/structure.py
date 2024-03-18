@@ -1,6 +1,6 @@
 from typing import Iterator
 import gemmi
-from .monlib import atom_ids, in_library
+from .monlib import atom_ids, in_library, is_protein, is_nucleic
 
 
 def read_structure(path: str) -> gemmi.Structure:
@@ -11,7 +11,7 @@ def read_structure(path: str) -> gemmi.Structure:
     # TODO: Keep alternative conformations after problem is fixed
     structure.remove_alternative_conformations()
     _remove_point_mutations(structure)
-    _trim_residue_names(structure)
+    _patch_names(structure)
     return structure
 
 
@@ -56,6 +56,8 @@ def write_mmcif(path: str, structure: gemmi.Structure) -> None:
 class ModelStats:
     def __init__(self, structure: gemmi.Structure):
         self.residues: int = 0
+        self.protein: int = 0
+        self.nucleic: int = 0
         self.waters: int = 0
         self.dummy_atoms: int = 0
 
@@ -66,6 +68,10 @@ class ModelStats:
                 self.dummy_atoms += 1
             else:
                 self.residues += 1
+                if is_protein(residue.name):
+                    self.protein += 1
+                if is_nucleic(residue.name):
+                    self.nucleic += 1
 
     def __eq__(self, other):
         if isinstance(other, ModelStats):
@@ -101,6 +107,25 @@ def _remove_point_mutations(structure: gemmi.Structure) -> None:
             del model[chain_name][residue_seqid][residue_name]
 
 
-def _trim_residue_names(structure: gemmi.Structure) -> None:
+def _remove_point_mutations(structure: gemmi.Structure) -> None:
+    for model in structure:
+        to_remove = []
+        for chain in model:
+            for group in chain.whole().residue_groups():
+                for i in range(1, len(group)):
+                    residue = group[i]
+                    key = (chain.name, str(residue.seqid), residue.name)
+                    to_remove.append(key)
+        for chain_name, residue_seqid, residue_name in to_remove:
+            del model[chain_name][residue_seqid][residue_name]
+
+
+def _patch_names(structure: gemmi.Structure) -> None:
+    residue_patches = {"SUL": "SO4"}
+    atom_patches = {("HOH", "O1"): "O"}
     for residue in _residues(structure):
         residue.name = residue.name.strip()
+        residue.name = residue_patches.get(residue.name, residue.name)
+        for atom in residue:
+            atom.name = atom.name.strip()
+            atom.name = atom_patches.get((residue.name, atom.name), atom.name)

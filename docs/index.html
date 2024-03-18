@@ -4,7 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="author" content="Paul Bond" />
-<meta name="description" content="Automated model building pipeline for X-ray crystallography" />
+<meta name="description"
+    content="Automated model building of proteins and nucleic acids in X-ray crystallography and cryo-EM" />
 <link rel="icon" href="img/modelcraft.png" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,700" />
 <link rel="stylesheet" href="css/normalize.min.css" />
@@ -16,36 +17,70 @@
 
     <h1>ModelCraft</h1>
     <h4>
-        An automated model building pipeline
-        for X-ray crystallography and cryo-EM
+        Automated model building of proteins and nucleic acids
+        in X-ray crystallography and cryo-EM
     </h4>
 
     <nav>
         <ol>
-            <li><a href="#installation">Installation</a></li>
-            <li><a href="#usage">Usage</a></li>
-            <li><a href="#contents">ASU Contents Description</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#graphical">Graphical Interfaces</a></li>
+            <li><a href="#command">Command Line Interface</a></li>
             <li><a href="#links">Links</a></li>
             <li><a href="#citations">Citations</a></li>
         </ol>
     </nav>
 
-    <section id="installation">
-        <h2 class="heading">Installation</h2>
-        <p>ModelCraft can be installed using pip for Python 3.7 or newer, e.g.</p>
+    <section id="about">
+        <h2 class="heading">About</h2>
+        <p>
+            ModelCraft is an automated model-building pipeline
+            that builds proteins and nucleic acids
+            into X-ray crystallography or cryo-EM maps.
+            It combines the previous Buccaneer and Nautilus pipelines and adds new steps
+            for density modification, refinement, validation, pruning and rebuilding.
+        </p>
+    </section>
+
+    <section id="graphical">
+        <h2 class="heading">Graphical Interfaces</h2>
+        <p>
+            ModelCraft is available for X-ray crystallography
+            in the CCP4i2 and CCP4 Cloud interfaces.
+            Please see the
+            <a href="https://ccp4i2.gitlab.io/rstdocs/tasks/modelcraft/index.html">
+                CCP4i2 documentation
+            </a>
+            and the
+            <a href="https://cloud.ccp4.ac.uk/manuals/html-taskref/doc.task.ModelCraft.html">
+                CCP4 Cloud documentation
+            </a>
+            for more information on how to run it in these interfaces.
+        </p>
+    </section>
+
+    <section id="command">
+        <h2 class="heading">Command Line Interface</h2>
+        <p><b>Installation</b></p>
+        <p>
+            ModelCraft is distributed with CCP4 (version 8 onwards)
+            and can be run from the CCP4 command line,
+            but if a newer version of ModelCraft is required
+            it can also be installed using pip for Python 3.7 or newer, e.g.
+        </p>
         <pre><code>python3 -m pip install --user modelcraft</code></pre>
         <p>
             Refer to the
             <a href="https://pip.pypa.io/en/stable/installing">pip documentation</a>
             if pip is not installed.
-            ModelCraft also requires an installation of CCP4.
-            The CCP4 environment needs to be set up
-            so that programs such as Buccaneer and Refmac
+            In order to run ModelCraft,
+            the CCP4 environment needs to be set up
+            so that programs (such as Buccaneer and Refmac)
             can be called from the command line.
+            For building into cryo-EM maps,
+            the CCP-EM environment also needs to be sourced.
         </p>
-    </section>
-    <section id="usage">
-        <h2 class="heading">Usage</h2>
+        <p><b>Usage</b></p>
         <p>
             The first argument must be either <code>xray</code> or <code>em</code>
             for X-ray crystallography or cryo-EM.
@@ -63,23 +98,24 @@
         </p>
         <pre><code>modelcraft xray --contents contents.json --data data.mtz --model model.cif</code></pre>
         <p>
-            For cryo-EM, a map and a resolution must be provided instead of a reflection data file.
+            For cryo-EM, either two halfmaps or a single map must be provided
+            along with a resolution.
         </p>
-        <pre><code>modelcraft em --contents contents.json --map map.mrc --resolution 2.5</code></pre>
+        <pre><code>modelcraft em --contents contents.json --map half1.mrc half2.mrc --resolution 2.5
+modelcraft em --contents contents.json --map map.mrc --resolution 2.5</code></pre>
         <p>
             The command line documentation
             has more detailed information on individual arguments.
         </p>
         <pre><code>modelcraft xray --help
 modelcraft em --help</code></pre>
-    </section>
-
-    <section id="contents">
-        <h2 class="heading">ASU Contents Description</h2>
+        <p><b>ASU Contents Description</b></p>
         <p>
-            A description of the contents of the asymmetric unit must be provided
-            as a JSON file using the <code>--contents</code> argument.
-            The JSON format has the following advantages over FASTA format:
+            A description of the expected contents of the asymmetric unit
+            must be provided as either a FASTA sequence file or a JSON file
+            using the <code>--contents</code> argument.
+            A sequence file is simpler,
+            but the JSON format has the following advantages:
         </p>
         <ul>
             <li>Number of copies can be specified
@@ -126,7 +162,8 @@ modelcraft em --help</code></pre>
             The file has a list of <code>proteins</code>, <code>rnas</code>,
             <code>dnas</code>, <code>carbs</code>, <code>ligands</code>,
             and <code>buffers</code> that are in the crystal.
-            Each protein, RNA or DNA chain must have a <code>sequence</code>,
+            The only mandatory items are that each
+            protein, RNA or DNA chain must have a <code>sequence</code>,
             each carbohydrate must have a dictionary of <code>codes</code>
             to specify the number of each sugar,
             and each ligand must have a single <code>code</code>.
@@ -154,7 +191,7 @@ modelcraft em --help</code></pre>
             However, this is planned for the future
             and inclusion of these components in the contents
             allows for more accurate calculation of the solvent fraction
-            during density modification.
+            during Parrot density modification in the X-ray pipeline.
         </p>
     </section>
 
@@ -187,47 +224,50 @@ modelcraft em --help</code></pre>
     <section id="citations">
         <h2 class="heading">Citations</h2>
         <dl>
-            <dt>ModelCraft</dt>
+            <dt><a href="https://doi.org/10.1107/S2059798322007732">ModelCraft</a></dt>
             <dd>
                 P Bond, K Cowtan.
-                <i>Acta Cryst. D</i>, <b>78</b> (2022)
-                <a href="https://doi.org/10.1107/S2059798322007732">DOI</a>
+                <i>Acta Cryst. D</i>, <b>78</b>, 1090 (2022)
             </dd>
-            <dt>Buccaneer</dt>
+            <dt><a href="https://doi.org/10.1107/S0907444906022116">Buccaneer</a></dt>
             <dd>
                 K Cowtan.
                 <i>Acta Cryst. D</i>, <b>62</b>, 1002 (2006)
-                <a href="https://doi.org/10.1107/S0907444906022116">DOI</a>
             </dd>
-            <dt>Coot</dt>
+            <dt><a href="https://doi.org/10.1107/S0907444910007493">Coot</a></dt>
             <dd>
                 P Emsley, B Lohkamp, WG Scott, K Cowtan.
                 <i>Acta Cryst. D</i>, <b>66</b>, 486 (2010)
-                <a href="https://doi.org/10.1107/S0907444910007493">DOI</a>
             </dd>
-            <dt>Nautilus</dt>
+            <dt><a href="https://doi.org/10.1016/j.jsb.2021.107826">EMDA</a></dt>
+            <dd>
+                R Warshamanage, K Yamashita, GN Murshudov.
+                <i>J. Struct. Biol.</i>, <b>214</b>, 107826 (2022)
+            </dd>
+            <dt><a href="https://doi.org/10.1107/S2052252514019290">Nautilus</a></dt>
             <dd>
                 K Cowtan.
                 <i>IUCrJ</i>, <b>1</b>, 387 (2014)
-                <a href="https://doi.org/10.1107/S2052252514019290">DOI</a>
             </dd>
-            <dt>Parrot</dt>
+            <dt><a href="https://doi.org/10.1107/S090744490903947X">Parrot</a></dt>
             <dd>
                 K Cowtan.
                 <i>Acta Cryst. D</i>, <b>66</b>, 470 (2010)
-                <a href="https://doi.org/10.1107/S090744490903947X">DOI</a>
             </dd>
-            <dt>Refmac</dt>
+            <dt><a href="https://doi.org/10.1107/S2059798318000979">Refmac</a></dt>
             <dd>
                 O Kovalevskiy, RA Nicholls, F Long, A Carlon, GN Murshudov.
                 <i>Acta Cryst. D</i>, <b>74</b>, 215 (2018)
-                <a href="https://doi.org/10.1107/S2059798318000979">DOI</a>
             </dd>
-            <dt>Sheetbend</dt>
+            <dt><a href="https://doi.org/10.1107/S2059798321009475">Servalcat</a></dt>
+            <dd>
+                K Yamashita, CM Palmer, T Burnley, GN Murshudov.
+                <i>Acta Cryst. D</i>, <b>77</b>, 1282 (2021)
+            </dd>
+            <dt><a href="https://doi.org/10.1107/S2059798320013170">Sheetbend</a></dt>
             <dd>
                 K Cowtan, S Metcalfe, P Bond.
                 <i>Acta Cryst. D</i>, <b>76</b>, 1192 (2020)
-                <a href="https://doi.org/10.1107/S2059798320013170">DOI</a>
             </dd>
         </dl>
     </section>

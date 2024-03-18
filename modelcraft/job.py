@@ -25,7 +25,8 @@ class Job(abc.ABC):
             self._directory = f"job_{self._exe_name}_{random_id(length=20)}"
         else:
             self._directory = pipeline.next_job_directory(self._exe_name)
-        os.makedirs(self._directory)
+            pipeline.report_job_start(self._exe_name)
+        os.makedirs(self._directory, exist_ok=True)
         self._setup()
         with open(self._path("script.sh"), "w") as stream:
             stream.write(self._script())
@@ -37,6 +38,7 @@ class Job(abc.ABC):
         if pipeline is None:
             self._remove_files()
         else:
+            pipeline.report_job_finish(result)
             pipeline.seconds[self._exe_path] += self._seconds
             if not pipeline.keep_jobs:
                 self._remove_files(keep_logs=pipeline.keep_logs)

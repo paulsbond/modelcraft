@@ -1,9 +1,100 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.  
+All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
-## [3.0.0] - Unreleased
+## [4.0.0] - 2024-03-18
+
+### Removed
+
+- Coot RSR morph
+
+## [3.6.0] - 2024-03-13
+
+### Changed
+
+- X-ray pipeline to run Buccaneer and Nautilus separately and combine the results
+- Reporting numbers of protein and nucleic acid residues
+
+## [3.5.3] - 2024-03-04
+
+### Fixed
+
+- Dummy atoms are now oxygen atoms instead of sodium atoms
+
+## [3.5.2] - 2024-02-16
+
+### Changed
+
+- Output MTZ file to be the same as HKLOUT from the Refmac job
+
+## [3.5.1] - 2024-01-18
+
+### Changed
+
+- Water chain naming to try to be compatible with PDB format
+
+## [3.5.0] - 2024-01-09
+
+### Added
+
+- Option --threads to allow Buccaneer to use multiprocessing
+
+## [3.4.0] - 2023-09-21
+
+### Added
+
+- Option --mask to provide a custom mask in EM mode instead of using EMDA mapmask
+
+## [3.3.0] - 2023-08-01
+
+### Changed
+
+- Refinement now uses refmacat instead of refmac5
+
+## [3.2.0] - 2023-07-10
+
+### Changed
+
+- Refine input model with and without Sheetbend and choose the best result
+- Tests of monomer library entries
+- TOXD pipeline test
+
+## [3.1.1] - 2023-07-04
+
+### Changed
+
+- Refmac result to include initial R-work, R-free and FSC values
+- Refmac test
+
+## [3.1.0] - 2023-03-29
+
+### Added
+
+- Command line option: --overwrite-directory
+- Writing current.cif and current.mtz while running
+
+## [3.0.0] - 2023-03-09
+
+### Added
+
+- New EM pipeline starting from either halfmaps or a single map with optional blurring
+- EMDA map mask job
+- Servalcat trim, refine, FSC and NE map jobs
+- Refmac map to MTZ job
+- Libg job (not yet exposed)
+- Support for a user-supplied restraints dictionary for ligands
+- CCP-EM program tests
+- Renaming SUL residues to SO4 and HOH O1 atoms to O on reading a structure
+
+### Changed
+
+- Renamed RefmacXray to Refmac
+- Flushing print statements so they are written when piping to a file
+
+### Removed
+
+- Refmac EM job
 
 ## [2.4.1] - 2022-07-12
 

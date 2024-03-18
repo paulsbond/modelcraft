@@ -22,6 +22,15 @@ def test_insulin():
         freer=freer,
         cycles=1,
     ).run()
+    assert buccaneer.completeness_res > 0
+    assert buccaneer.completeness_chn > 0
+    assert buccaneer.chains_built > 0
+    assert buccaneer.fragments_built > 0
+    assert buccaneer.residues_built > 0
+    assert buccaneer.residues_sequenced > 0
+    assert buccaneer.residues_unique > 0
+    assert buccaneer.longest_fragment > 0
+    assert buccaneer.seconds > 0
     stats = ModelStats(buccaneer.structure)
     assert stats.residues > 0
 

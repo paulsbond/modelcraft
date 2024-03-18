@@ -5,7 +5,7 @@ import uuid
 import urllib.request
 import gemmi
 from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
-from modelcraft.jobs.refmac import RefmacXray
+from modelcraft.jobs.refmac import Refmac
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
 
@@ -60,7 +60,7 @@ def insulin_refmac():
     fsigf = insulin_fsigf()
     freer = insulin_freer()
     structure = insulin_structure()
-    refmac = RefmacXray(structure=structure, fsigf=fsigf, freer=freer, cycles=0)
+    refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0)
     return refmac.run()
 
 
