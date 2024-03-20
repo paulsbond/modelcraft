@@ -28,11 +28,11 @@ class NucleoFind(Job):
         self._args += ["-o", "pred.map"]
         self._args += ["-intensity", self.fphi.label(0)]
         self._args += ["-phase", self.fphi.label(1)]
-        self._args += ["-model_path", "/Users/dialpuri/Development/nucleofind/models/phosphate.onnx"]
+        self._args += ["-model_path", "/jarvis/jordan/NucleoFind-training-pr/onnx_models/phosphate.onnx"]
 
     def _result(self) -> NucleoFindResult:
         self._check_files_exist("pred.map")
-        predicted_map = gemmi.read_ccp4_map(self._path("pred.map"))
+        predicted_map = gemmi.read_ccp4_map(self._path("pred_variance.map"))
         return NucleoFindResult(
             predicted_map=predicted_map,
             seconds=self._seconds,

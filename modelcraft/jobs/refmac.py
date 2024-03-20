@@ -38,7 +38,7 @@ class Refmac(Job):
         jelly_body: bool = False,
         libin: str = None,
     ):
-        super().__init__("refmacat")
+        super().__init__("refmac5")
         self.structure = structure
         self.fsigf = fsigf
         self.freer = freer
