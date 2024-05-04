@@ -37,6 +37,7 @@ setuptools.setup(
             "modelcraft = modelcraft.scripts.modelcraft:main",
             "modelcraft-contents = modelcraft.scripts.contents:main",
             "modelcraft-copies = modelcraft.scripts.copies:main",
+            "modelcraft-rszd = modelcraft.scripts.rszd:main",
         ]
     },
 )

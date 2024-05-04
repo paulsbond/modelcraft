@@ -1,5 +1,5 @@
 """
-Real-space difference density Z-score (RSZD)
+Real-space difference density Z-score (RSZD).
 Implementation adapted from:
 Tickle, I. J. (2012). Acta Cryst. D68, 454-467.
 https://doi.org/10.1107/S0907444911035918
