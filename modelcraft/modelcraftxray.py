@@ -3,7 +3,7 @@ import time
 import gemmi
 from . import __version__
 from .jobs.buccaneer import Buccaneer
-from .jobs.coot import FixSideChains, Prune
+from .jobs.coot import FixSideChains, Prune, RsrMorph
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
@@ -124,9 +124,10 @@ class ModelCraftXray(Pipeline):
             self.findwaters()
 
     def nucleofind(self):
-        result = NucleoFind(
+        nucleofind_result = NucleoFind(
             fphi=self.current_fphi_best,
         ).run(self)
+
         build_result = NucleoFindBuild(
             contents=self.args.contents,
             fsigf=self.args.fmean,
@@ -134,9 +135,11 @@ class ModelCraftXray(Pipeline):
             fphi=self.current_fphi_best,
             freer=self.args.freer,
             structure=self.current_structure,
-            predicted_map=result.predicted_map
+            nucleofind_result = nucleofind_result
         ).run(self)
-        write_mmcif(self.path("current.cif"), build_result.structure)
+
+        # write_mmcif(self.path("current.cif"), build_result.structure)
+        # refined_build = RsrMorph(build_result.structure, self.current_fphi_best).run(self)
         return self.run_refmac(build_result.structure, cycles=10)
 
 
@@ -153,11 +156,13 @@ class ModelCraftXray(Pipeline):
     def run_buccaneer_and_nucleofind(self):
         buccaneer = self.buccaneer()
         nucleofind_build = self.nucleofind()
+
+        
         if buccaneer is None or nucleofind_build is None:
             self.update_current_from_refmac_result(buccaneer or nucleofind_build)
         else:
             combined = self.run_refmac(combine_results(buccaneer, nucleofind_build), cycles=5)
-            best = min((buccaneer, nucleofind_build, combined), key=lambda result: result.rfree)
+            best = min((nucleofind_build, combined), key=lambda result: result.rfree)
             self.update_current_from_refmac_result(best)
 
     def buccaneer(self):
