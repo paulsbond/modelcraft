@@ -138,8 +138,6 @@ class ModelCraftXray(Pipeline):
             nucleofind_result = nucleofind_result
         ).run(self)
 
-        # write_mmcif(self.path("current.cif"), build_result.structure)
-        # refined_build = RsrMorph(build_result.structure, self.current_fphi_best).run(self)
         return self.run_refmac(build_result.structure, cycles=10)
 
 
