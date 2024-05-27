@@ -7,6 +7,7 @@ from ..structure import read_structure, remove_non_library_atoms, write_mmcif
 import xml.etree.ElementTree as ET
 from .nucleofind import NucleoFindResult
 
+
 @dataclasses.dataclass
 class NucleoFindBuildResult:
     structure: gemmi.Structure
@@ -19,15 +20,15 @@ class NucleoFindBuildResult:
 
 class NucleoFindBuild(Job):
     def __init__(
-        self,
-        contents: AsuContents,
-        fsigf: DataItem,
-        phases: DataItem,
-        fphi: DataItem = None,
-        freer: DataItem = None,
-        structure: gemmi.Structure = None,
-        nucleofind_result: NucleoFindResult = None,
-        cycles: int = 3,
+            self,
+            contents: AsuContents,
+            fsigf: DataItem,
+            phases: DataItem,
+            fphi: DataItem = None,
+            freer: DataItem = None,
+            structure: gemmi.Structure = None,
+            nucleofind_result: NucleoFindResult = None,
+            cycles: int = 3,
     ):
         super().__init__("nucleofind-build")
         self.contents = contents
@@ -38,7 +39,6 @@ class NucleoFindBuild(Job):
         self.structure = structure
         self.cycles = cycles
         self.nucleofind_result = nucleofind_result
-
 
     def _setup(self) -> None:
         types = [PolymerType.RNA, PolymerType.DNA]
@@ -75,7 +75,7 @@ class NucleoFindBuild(Job):
 
         return NucleoFindBuildResult(
             structure=structure,
-             fragments_built=int(xml.find("Final/FragmentsBuilt").text),
+            fragments_built=int(xml.find("Final/FragmentsBuilt").text),
             residues_built=int(xml.find("Final/ResiduesBuilt").text),
             residues_sequenced=int(xml.find("Final/ResiduesSequenced").text),
             longest_fragment=int(xml.find("Final/ResiduesLongestFragment").text),
