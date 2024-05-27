@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 __version__ = "4.1.0-rc"
+=======
+__version__ = "5.0.0"
+>>>>>>> Stashed changes
 
 from .cell import max_distortion as max_cell_distortion
 from .cell import remove_scale
