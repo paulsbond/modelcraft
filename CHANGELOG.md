@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [4.0.1] - 2024-05-14
+
+### Fixed
+
+- Monomer library groups when a residue name is not in the library
+
+## [4.0.0] - 2024-03-18
+
+### Removed
+
+- Coot RSR morph
+
 ## [3.6.0] - 2024-03-13
 
 ### Changed

@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
-__version__ = "4.1.0-rc"
-=======
 __version__ = "5.0.0"
->>>>>>> Stashed changes
 
 from .cell import max_distortion as max_cell_distortion
 from .cell import remove_scale
@@ -15,7 +11,6 @@ from .jobs.buccaneer import Buccaneer
 from .jobs.comit import Comit
 from .jobs.coot import FixSideChains
 from .jobs.coot import Prune
-from .jobs.coot import RsrMorph
 from .jobs.ctruncate import CTruncate
 from .jobs.emda import EmdaMapMask
 from .jobs.findwaters import FindWaters
@@ -75,7 +70,6 @@ __all__ = [
     "remove_residues",
     "remove_scale",
     "rmsz",
-    "RsrMorph",
     "run",
     "ServalcatNemap",
     "ServalcatRefine",

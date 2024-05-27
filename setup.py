@@ -1,6 +1,4 @@
 import setuptools
-from setuptools.command.install import install
-import os
 
 with open("README.md", "r") as f:
     LONG_DESCRIPTION = f.read()
