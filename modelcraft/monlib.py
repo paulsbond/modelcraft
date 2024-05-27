@@ -57,10 +57,12 @@ def weight(code: str) -> float:
 
 @functools.lru_cache(maxsize=None)
 def group(code: str) -> gemmi.ChemComp.Group:
-    doc = gemmi.cif.read(_path(code))
-    monlib = gemmi.MonLib()
-    monlib.read_monomer_doc(doc)
-    return monlib.monomers[code].group
+    if in_library(code):
+        doc = gemmi.cif.read(_path(code))
+        monlib = gemmi.MonLib()
+        monlib.read_monomer_doc(doc)
+        return monlib.monomers[code].group
+    return None
 
 
 @functools.lru_cache(maxsize=None)

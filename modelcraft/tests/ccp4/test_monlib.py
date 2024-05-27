@@ -26,6 +26,7 @@ def test_in_library():
         assert in_library(code)
     for code in RNA_CODES.values():
         assert in_library(code)
+    assert not in_library("NOT_IN_MONLIB")
 
 
 def test_group():
@@ -36,6 +37,7 @@ def test_group():
     assert group("U") == gemmi.ChemComp.Group.Rna
     assert group("DT") == gemmi.ChemComp.Group.Dna
     assert group("HOH") == gemmi.ChemComp.Group.NonPolymer
+    assert group("NOT_IN_MONLIB") is None
 
 
 def test_protein():
@@ -46,6 +48,7 @@ def test_protein():
     assert not is_protein("U")
     assert not is_protein("DT")
     assert not is_protein("HOH")
+    assert not is_protein("NOT_IN_MONLIB")
 
 
 def test_nucleic():
@@ -55,3 +58,4 @@ def test_nucleic():
     assert is_nucleic("U")
     assert is_nucleic("DT")
     assert not is_nucleic("HOH")
+    assert not is_nucleic("NOT_IN_MONLIB")

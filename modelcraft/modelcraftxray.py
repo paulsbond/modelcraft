@@ -10,6 +10,8 @@ from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
+from .jobs.nucleofind import NucleoFind
+from .jobs.nucleofind_build import NucleoFindBuild
 from .cell import max_distortion, remove_scale, update_cell
 from .combine import combine_results
 from .pipeline import Pipeline
@@ -116,9 +118,28 @@ class ModelCraftXray(Pipeline):
                 if self.cycle > 1 or self.args.phases is None:
                     self.findwaters(dummy=True)
                 remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
-            self.run_buccaneer_and_nautilus()
+            # self.run_buccaneer_and_nautilus() 
+            self.run_buccaneer_and_nucleofind()
             self.prune(chains_only=True)
             self.findwaters()
+
+    def nucleofind(self):
+        nucleofind_result = NucleoFind(
+            fphi=self.current_fphi_best,
+        ).run(self)
+
+        build_result = NucleoFindBuild(
+            contents=self.args.contents,
+            fsigf=self.args.fmean,
+            phases=self.current_phases,
+            fphi=self.current_fphi_best,
+            freer=self.args.freer,
+            structure=self.current_structure,
+            nucleofind_result = nucleofind_result
+        ).run(self)
+
+        return self.run_refmac(build_result.structure, cycles=10)
+
 
     def run_buccaneer_and_nautilus(self):
         buccaneer = self.buccaneer()
@@ -128,6 +149,18 @@ class ModelCraftXray(Pipeline):
         else:
             combined = self.run_refmac(combine_results(buccaneer, nautilus), cycles=5)
             best = min((buccaneer, nautilus, combined), key=lambda result: result.rfree)
+            self.update_current_from_refmac_result(best)
+
+    def run_buccaneer_and_nucleofind(self):
+        buccaneer = self.buccaneer()
+        nucleofind_build = self.nucleofind()
+
+        
+        if buccaneer is None or nucleofind_build is None:
+            self.update_current_from_refmac_result(buccaneer or nucleofind_build)
+        else:
+            combined = self.run_refmac(combine_results(buccaneer, nucleofind_build), cycles=5)
+            best = min((nucleofind_build, combined), key=lambda result: result.rfree)
             self.update_current_from_refmac_result(best)
 
     def buccaneer(self):
@@ -149,6 +182,7 @@ class ModelCraftXray(Pipeline):
         ).run(self)
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
+
 
     def nautilus(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):
