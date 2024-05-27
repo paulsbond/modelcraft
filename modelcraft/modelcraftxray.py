@@ -3,7 +3,7 @@ import time
 import gemmi
 from . import __version__
 from .jobs.buccaneer import Buccaneer
-from .jobs.coot import FixSideChains, Prune, RsrMorph
+from .jobs.coot import FixSideChains, Prune
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
