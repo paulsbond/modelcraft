@@ -12,9 +12,9 @@ class InstallPackage(install):
 
     def run(self):
         install.run(self)
-        self.__post_install()
+        self.install_nucleofind_models()
 
-    def __post_install(self):
+    def install_nucleofind_models(self):
         os.system('nucleofind-install --all')
 
 
