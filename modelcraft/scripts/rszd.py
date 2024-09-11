@@ -52,7 +52,7 @@ def main(argument_list=None):
         print("|-------|--------|-------|-------|-----|")
     else:
         print("chain,number,icode,rszd")
-    for chain in structure[0]:
+    for chain in structure[args.model_index]:
         for residue in chain:
             num = residue.seqid.num
             icode = residue.seqid.icode
