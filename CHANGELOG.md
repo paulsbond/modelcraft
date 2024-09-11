@@ -9,6 +9,12 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - RSZD calculation with a new script: modelcraft-rszd
 
+## [4.0.1] - 2024-05-14
+
+### Fixed
+
+- Monomer library groups when a residue name is not in the library
+
 ## [4.0.0] - 2024-03-18
 
 ### Removed
