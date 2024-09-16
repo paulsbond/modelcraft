@@ -1,4 +1,5 @@
 from typing import Iterator, Iterable, List, Optional, Union
+from functools import partial
 import itertools
 import re
 import gemmi
@@ -103,6 +104,14 @@ class DataItem(gemmi.Mtz):
     def data_frame(self, copy=False) -> pandas.DataFrame:
         data = numpy.array(self, copy=copy)
         return pandas.DataFrame(data=data, columns=self.column_labels())
+
+    def map(self, spacing: float = 1.0, size=None) -> gemmi.FloatGrid:
+        if self.types != "FP":
+            raise ValueError("DataItem must contain F and PHI columns")
+        func = partial(self.transform_f_phi_to_map, self.label(0), self.label(1))
+        if size is None:
+            return func(sample_rate=self.resolution_high() / spacing)
+        return func(exact_size=size)
 
     @classmethod
     def search(cls, mtz: gemmi.Mtz, types: str, sequential: bool = True):
