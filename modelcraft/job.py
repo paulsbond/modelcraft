@@ -5,7 +5,7 @@ import subprocess
 import textwrap
 import time
 from .pipeline import Pipeline
-from .utils import random_id
+from .utils import puid
 
 
 class Job(abc.ABC):
@@ -22,7 +22,7 @@ class Job(abc.ABC):
         if self._exe_path is None:
             raise ValueError(f"Executable '{self._exe_name}' not found")
         if pipeline is None:
-            self._directory = f"job_{self._exe_name}_{random_id(length=20)}"
+            self._directory = f"job_{self._exe_name}_{puid(length=20)}"
         else:
             self._directory = pipeline.next_job_directory(self._exe_name)
             pipeline.report_job_start(self._exe_name)
