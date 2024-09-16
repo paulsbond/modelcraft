@@ -1,31 +1,14 @@
 {
+  "editor.defaultFormatter": "ms-python.black-formatter",
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
   "editor.rulers": [
     88
   ],
   "editor.tabSize": 4,
-  "files.autoSave": "afterDelay",
   "files.exclude": {
     ".pytest_cache": true,
     "**/__pycache__": true,
     "**/*.pyc": true
-  },
-  "pylint.args": [
-    "--extension-pkg-whitelist=gemmi",
-    "--disable=missing-module-docstring",
-    "--disable=missing-class-docstring",
-    "--disable=missing-function-docstring",
-    "--disable=not-an-iterable", // Problem with gemmi.Mtz.columns inheritance
-    "--disable=unsubscriptable-object", // Problem with gemmi.Mtz.columns inheritance
-    "--generated-members=gemmi.*"
-  ],
-  "pylint.severity": {
-    "convention": "Information",
-    "error": "Error",
-    "fatal": "Error",
-    "refactor": "Information",
-    "warning": "Warning",
-    "info": "Information"
   },
 }
