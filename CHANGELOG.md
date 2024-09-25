@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ### Added
 
-- RSZD calculation with a new script: modelcraft-rszd
+- New validation with a new script: modelcraft-validation
 
 ## [4.0.1] - 2024-05-14
 
