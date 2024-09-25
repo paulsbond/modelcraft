@@ -1,14 +1,15 @@
 {
-  "editor.defaultFormatter": "ms-python.black-formatter",
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
-  "editor.rulers": [
-    88
-  ],
+  "editor.trimAutoWhitespace": true,
   "editor.tabSize": 4,
   "files.exclude": {
     ".pytest_cache": true,
     "**/__pycache__": true,
     "**/*.pyc": true
+  },
+  "files.insertFinalNewline": true,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
   },
 }
