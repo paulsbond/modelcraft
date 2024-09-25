@@ -1,5 +1,0 @@
-gemmi >=0.5.4
-numpy
-pandas
-requests
-scipy
