@@ -32,7 +32,7 @@ def _parse_args(argument_list):
         help="Path to a custom restraint dictionary in CIF format",
     )
     parser.add_argument(
-        "--worst-first",
+        "--sort",
         action="store_true",
         help="Order the output with the worse scoring residues first",
     )
@@ -59,7 +59,7 @@ def main(argument_list=None):
     metrics = validate(
         structure, fphi_best, fphi_diff, fphi_calc, args.model_index, args.libin
     )
-    if args.worst_first:
+    if args.sort:
         metrics.sort_values("Score", ascending=True, inplace=True)
 
     if args.format == "table":
