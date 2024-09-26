@@ -18,7 +18,10 @@ def _parse_args(argument_list):
     )
     parser.add_argument(
         "mtz",
-        help="MTZ file from Refmac (with standard output column labels)",
+        help=(
+            "MTZ file from Refmac with standard output column labels "
+            "(the output MTZ from ModelCraft meets this requirement)."
+        ),
     )
     parser.add_argument(
         "--format",
