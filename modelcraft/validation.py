@@ -2,9 +2,10 @@ from os import environ
 import gemmi
 import numpy as np
 import pandas as pd
+from .jobs.refmac import RefmacResult
 from .reflections import DataItem
-from .utils import modified_zscore
 from .monlib import is_nucleic, is_protein
+from .utils import modified_zscore
 
 
 def validate(
@@ -52,6 +53,16 @@ def validate(
     density_score = (df["BFac"] + df["RSCC"] + df["Diff"]) / 3
     df["Score"] = modified_zscore((density_score + df["Geom"]) / 2)
     return df
+
+
+def validate_refmac(result: RefmacResult, libin: str = "") -> pd.DataFrame:
+    return validate(
+        result.structure,
+        result.fphi_best,
+        result.fphi_diff,
+        result.fphi_calc,
+        libin=libin,
+    )
 
 
 def _bfac(model: gemmi.Model) -> dict:
