@@ -3,7 +3,7 @@ import time
 import gemmi
 from . import __version__
 from .jobs.buccaneer import Buccaneer
-from .jobs.coot import FixSideChains, Prune
+from .jobs.coot import Prune
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
@@ -57,16 +57,6 @@ class ModelCraftXray(Pipeline):
             self.process_cycle_output(self.last_refmac)
             if self.cycles_without_improvement == self.args.auto_stop_cycles > 0:
                 break
-        if (
-            not self.args.basic
-            and self.output_refmac.rwork < 0.3
-            and self.resolution < 2.5
-        ):
-            print("\n## Finalisations\n", flush=True)
-            self.cycle += 1
-            self.update_current_from_refmac_result(self.output_refmac)
-            self.fixsidechains()
-            self.process_cycle_output(self.last_refmac)
         print("\n## Best Model:", flush=True)
         _print_refmac_result(self.output_refmac)
         self._remove_current_files()
@@ -226,17 +216,6 @@ class ModelCraftXray(Pipeline):
         ).run(self)
         write_mmcif(self.path("current.cif"), result.structure)
         self.refmac(result.structure, cycles=5, auto_accept=True)
-
-    def fixsidechains(self):
-        if self.args.disable_side_chain_fixing or not self.args.contents.proteins:
-            return
-        result = FixSideChains(
-            structure=self.current_structure,
-            fphi_best=self.current_fphi_best,
-            fphi_diff=self.current_fphi_diff,
-        ).run(self)
-        write_mmcif(self.path("current.cif"), result.structure)
-        self.refmac(result.structure, cycles=5, auto_accept=False)
 
     def findwaters(self, dummy=False):
         if dummy and self.args.disable_dummy_atoms:

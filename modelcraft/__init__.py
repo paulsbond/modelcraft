@@ -9,7 +9,6 @@ from .geometry import rmsz
 from .jobs.acedrg import Acedrg
 from .jobs.buccaneer import Buccaneer
 from .jobs.comit import Comit
-from .jobs.coot import FixSideChains
 from .jobs.coot import Prune
 from .jobs.ctruncate import CTruncate
 from .jobs.emda import EmdaMapMask
@@ -51,7 +50,6 @@ __all__ = [
     "EmdaMapMask",
     "entry_contents",
     "FindWaters",
-    "FixSideChains",
     "FreeRFlag",
     "max_cell_distortion",
     "ModelStats",

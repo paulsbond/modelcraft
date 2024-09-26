@@ -86,19 +86,3 @@ class Prune(Coot):
         super().__init__(
             script=script, structures=[structure], fphis=[fphi_best, fphi_diff]
         )
-
-
-class FixSideChains(Coot):
-    def __init__(
-        self, structure: gemmi.Structure, fphi_best: DataItem, fphi_diff: DataItem
-    ):
-        path = os.path.join(os.path.dirname(__file__), "..", "coot", "prune.py")
-        with open(path) as stream:
-            script = stream.read()
-        path = os.path.join(os.path.dirname(__file__), "..", "coot", "sidechains.py")
-        with open(path) as stream:
-            script += "\n\n%s\n" % stream.read()
-        script += "fix_side_chains(IMOL0, IMAP0, IMAP1)\n"
-        super().__init__(
-            script=script, structures=[structure], fphis=[fphi_best, fphi_diff]
-        )
