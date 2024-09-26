@@ -8,7 +8,7 @@ def modified_zscore(a) -> np.ndarray:
     median = np.median(a)
     deviations = a - median
     mad = np.median(np.abs(deviations))
-    return np.zeros_like(a) if mad == 0 else 0.6745 * deviations / mad
+    return np.zeros_like(a) if mad == 0 else 0.67449 * deviations / mad
 
 
 def puid(length: int = 10) -> str:
