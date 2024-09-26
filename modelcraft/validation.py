@@ -1,3 +1,4 @@
+from collections import defaultdict
 from os import environ
 import gemmi
 import numpy as np
@@ -82,27 +83,24 @@ def _rscc_diff(
 ) -> dict:
     search = gemmi.NeighborSearch(structure, max_radius=3, model_index=model_index)
     search.populate(include_h=False)
-    best_values = {}
-    diff_values = {}
-    calc_values = {}
+    best_values = defaultdict(list)
+    diff_values = defaultdict(list)
+    calc_values = defaultdict(list)
     for point in best_map.masked_asu():
         position = best_map.point_to_position(point)
         mark = search.find_nearest_atom(position, radius=3)
         if mark is not None:
             cra = mark.to_cra(structure[model_index])
             key = (cra.chain.name, str(cra.residue.seqid))
-            best_value = point.value
-            diff_value = diff_map.get_value(point.u, point.v, point.w)
-            calc_value = calc_map.get_value(point.u, point.v, point.w)
-            best_values.setdefault(key, []).append(best_value)
-            diff_values.setdefault(key, []).append(diff_value)
-            calc_values.setdefault(key, []).append(calc_value)
-    rscc_score = {}
-    diff_score = {}
+            best_values[key].append(point.value)
+            diff_values[key].append(diff_map.get_value(point.u, point.v, point.w))
+            calc_values[key].append(calc_map.get_value(point.u, point.v, point.w))
+    rscc = {}
+    diff = {}
     for key in best_values.keys():
-        rscc_score[key] = np.corrcoef(best_values[key], calc_values[key])[0, 1]
-        diff_score[key] = np.sqrt(np.mean(np.square(diff_values[key])))
-    return rscc_score, diff_score
+        rscc[key] = np.corrcoef(best_values[key], calc_values[key])[0, 1]
+        diff[key] = np.sqrt(np.mean(np.square(diff_values[key])))
+    return rscc, diff
 
 
 def _geom(structure: gemmi.Structure, model_index: int, libin: str) -> dict:
@@ -110,25 +108,25 @@ def _geom(structure: gemmi.Structure, model_index: int, libin: str) -> dict:
     resnames = structure[model_index].get_all_residue_names()
     monlib = gemmi.read_monomer_lib(environ["CLIBD_MON"], resnames, libin)
     topo = gemmi.prepare_topology(structure, monlib, model_index)
-    atom_zs = {}
+    atom_zs = defaultdict(list)
     for bond in topo.bonds:
         z = abs(bond.calculate_z())
         for atom in bond.atoms:
-            atom_zs.setdefault(atom.serial, []).append(z)
+            atom_zs[atom.serial].append(z)
     for angle in topo.angles:
         z = abs(angle.calculate_z())
         for atom in angle.atoms:
-            atom_zs.setdefault(atom.serial, []).append(z)
+            atom_zs[atom.serial].append(z)
     for torsion in topo.torsions:
         if torsion.restr.esd > 0:
             z = abs(torsion.calculate_z())
             for atom in torsion.atoms:
-                atom_zs.setdefault(atom.serial, []).append(z)
+                atom_zs[atom.serial].append(z)
     for plane in topo.planes:
         best_plane = gemmi.find_best_plane(plane.atoms)
         for atom in plane.atoms:
             z = gemmi.get_distance_from_plane(atom.pos, best_plane) / plane.restr.esd
-            atom_zs.setdefault(atom.serial, []).append(z)
+            atom_zs[atom.serial].append(z)
     geom = {}
     for chain in structure[model_index]:
         for residue in chain:
