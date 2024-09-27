@@ -1,15 +1,28 @@
 {
+  "black-formatter.args": [
+    "--line-length=88"
+  ],
+  "diffEditor.ignoreTrimWhitespace": false,
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
   "editor.trimAutoWhitespace": true,
   "editor.tabSize": 4,
   "files.exclude": {
-    ".pytest_cache": true,
     "**/__pycache__": true,
-    "**/*.pyc": true
+    "**/.pytest_cache": true,
+    "**/*.egg-info": true,
+    "**/*.pyc": true,
   },
   "files.insertFinalNewline": true,
+  "flake8.args": [
+    "--max-complexity=10",
+    "--max-line-length=88",
+    "--extend-ignore=E203",
+  ],
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  },
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.rulers": [
+      88,
+    ],
+  }
 }
