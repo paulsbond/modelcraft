@@ -117,3 +117,43 @@ def _patch_names(structure: gemmi.Structure) -> None:
         for atom in residue:
             atom.name = atom.name.strip()
             atom.name = atom_patches.get((residue.name, atom.name), atom.name)
+
+
+def are_connected(residue1: gemmi.Residue, residue2: gemmi.Residue) -> bool:
+    if (
+        is_protein(residue1.name)
+        and is_protein(residue2.name)
+        and "C" in residue1
+        and "N" in residue2
+    ):
+        for atom1 in residue1["C"]:
+            for atom2 in residue2["N"]:
+                if atom1.pos.dist(atom2.pos) < 2.5:
+                    return True
+    if (
+        is_nucleic(residue1.name)
+        and is_nucleic(residue2.name)
+        and "O3'" in residue1
+        and "P" in residue2
+    ):
+        for atom1 in residue1["O3'"]:
+            for atom2 in residue2["P"]:
+                if atom1.pos.dist(atom2.pos) < 2.5:
+                    return True
+    return False
+
+
+def remove_isolated_fragments(chain: gemmi.Chain, max_length: int):
+    to_remove = []
+    fragment = []
+    for i, residue in enumerate(chain):
+        if i > 0 and are_connected(chain[i - 1], residue):
+            fragment.append(i)
+        else:
+            if len(fragment) <= max_length:
+                to_remove.extend(fragment)
+            fragment = [i]
+    if len(fragment) <= max_length:
+        to_remove.extend(fragment)
+    for i in reversed(to_remove):
+        del chain[i]

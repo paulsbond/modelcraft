@@ -1,5 +1,6 @@
 import gemmi
 from .jobs.refmac import RefmacResult
+from .structure import remove_isolated_fragments
 from .monlib import is_protein, is_nucleic
 
 
@@ -17,7 +18,7 @@ def combine_results(buccaneer: RefmacResult, nautilus: RefmacResult) -> gemmi.St
                 del chain[i]
                 any_removed = True
         if protein and any_removed:
-            _remove_isolated_fragments(chain, _are_joined_protein, min_length=6)
+            remove_isolated_fragments(chain, max_length=5)
     structure.remove_empty_chains()
     for chain in chains_to_add:
         structure[0].add_chain(chain, unique_name=True)
@@ -44,7 +45,7 @@ def _resolve_clashes(
                 for i, residue in reversed(list(enumerate(chain))):
                     if _key(chain, residue) in residues_to_remove:
                         del chain[i]
-                _remove_isolated_fragments(chain, _are_joined_nucleic, min_length=2)
+                remove_isolated_fragments(chain, max_length=1)
             if len(chain) > 0:
                 chains_to_add.append(chain)
     return chains_to_add, clashing_to_remove
@@ -106,31 +107,3 @@ def _clashing_zones(
 
 def _mean_score(keys: set, scores: dict) -> float:
     return sum(scores[key] for key in keys) / len(keys)
-
-
-def _remove_isolated_fragments(chain: gemmi.Chain, are_joined, min_length: int):
-    to_remove = []
-    fragment = []
-    for i, residue in enumerate(chain):
-        if i > 0 and are_joined(chain[i - 1], residue):
-            fragment.append(i)
-        else:
-            if len(fragment) < min_length:
-                to_remove.extend(fragment)
-            fragment = [i]
-    if len(fragment) < min_length:
-        to_remove.extend(fragment)
-    for i in reversed(to_remove):
-        del chain[i]
-
-
-def _are_joined_protein(res1: gemmi.Residue, res2: gemmi.Residue) -> bool:
-    return "C" in res1 and "N" in res2 and res1["C"][0].pos.dist(res2["N"][0].pos) < 2.5
-
-
-def _are_joined_nucleic(res1: gemmi.Residue, res2: gemmi.Residue) -> bool:
-    return (
-        "O3'" in res1
-        and "P" in res2
-        and res1["O3'"][0].pos.dist(res2["P"][0].pos) < 2.5
-    )

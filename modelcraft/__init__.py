@@ -1,4 +1,4 @@
-__version__ = "4.0.1"
+__version__ = "5.0.0"
 
 from .cell import max_distortion as max_cell_distortion
 from .cell import remove_scale
@@ -9,7 +9,6 @@ from .geometry import rmsz
 from .jobs.acedrg import Acedrg
 from .jobs.buccaneer import Buccaneer
 from .jobs.comit import Comit
-from .jobs.coot import Prune
 from .jobs.ctruncate import CTruncate
 from .jobs.emda import EmdaMapMask
 from .jobs.findwaters import FindWaters
@@ -59,7 +58,6 @@ __all__ = [
     "PhaseMatch",
     "Pipeline",
     "PolymerType",
-    "Prune",
     "read_structure",
     "Refmac",
     "RefmacMapToMtz",

@@ -7,11 +7,14 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ### Added
 
-- New validation with a new script: modelcraft-validation
+- Validation using Mean B-factor, RSCC, difference density RMS and geometry RMSZ
+- Validation script: modelcraft-validation
+- Pruning step based on new validation metric
 
 ### Removed
 
-- Final Coot side-chain fixing step
+- Coot ML-based pruning
+- Coot side-chain fixing step
 
 ## [4.0.1] - 2024-05-14
 

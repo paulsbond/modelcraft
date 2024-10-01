@@ -3,7 +3,6 @@ import time
 import gemmi
 from . import __version__
 from .jobs.buccaneer import Buccaneer
-from .jobs.coot import Prune
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
@@ -13,6 +12,7 @@ from .jobs.sheetbend import Sheetbend
 from .cell import max_distortion, remove_scale, update_cell
 from .combine import combine_results
 from .pipeline import Pipeline
+from .prune import prune
 from .reflections import DataItem, write_mtz
 from .structure import ModelStats, remove_residues, write_mmcif
 
@@ -208,14 +208,16 @@ class ModelCraftXray(Pipeline):
     def prune(self, chains_only=False):
         if self.args.disable_pruning or not self.args.contents.proteins:
             return
-        result = Prune(
+        pruned = prune(
             structure=self.current_structure,
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
-            chains_only=chains_only,
-        ).run(self)
-        write_mmcif(self.path("current.cif"), result.structure)
-        self.refmac(result.structure, cycles=5, auto_accept=True)
+            fphi_calc=self.current_fphi_calc,
+            libin=self.args.restraints,
+            residues=not chains_only,
+        )
+        write_mmcif(self.path("current.cif"), pruned)
+        self.refmac(pruned, cycles=5, auto_accept=True)
 
     def findwaters(self, dummy=False):
         if dummy and self.args.disable_dummy_atoms:
