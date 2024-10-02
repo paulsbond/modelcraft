@@ -4,8 +4,8 @@ import gemmi
 import numpy as np
 import pandas as pd
 from .jobs.refmac import RefmacResult
+from .monlib import is_protein
 from .reflections import DataItem
-from .monlib import is_nucleic, is_protein
 from .utils import modified_zscore
 
 
@@ -36,7 +36,7 @@ def validate(
     }
     for chain in structure[model_index]:
         for residue in chain:
-            if is_nucleic(residue.name) or is_protein(residue.name):
+            if is_protein(residue.name):
                 key = (chain.name, str(residue.seqid))
                 data["Chain"].append(chain.name)
                 data["SeqId"].append(str(residue.seqid))
