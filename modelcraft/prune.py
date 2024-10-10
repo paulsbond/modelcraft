@@ -11,8 +11,8 @@ def prune(
     fphi_calc: DataItem,
     libin: str = "",
     residues: bool = True,
-    chain_threshold: float = -4,
-    residue_threshold: float = -3,
+    chain_threshold: float = -3,
+    residue_threshold: float = -4,
 ) -> gemmi.Structure:
     print("Performing validation for pruning")
     structure = structure.clone()
