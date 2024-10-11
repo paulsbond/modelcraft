@@ -1,3 +1,5 @@
+![](https://github.com/paulsbond/modelcraft/blob/691b8a0d72dbf48b8d8a431bdb193298a397e1bb/modelcraft.png)
+
 # ModelCraft
 
 ModelCraft is an automated model-building pipeline
