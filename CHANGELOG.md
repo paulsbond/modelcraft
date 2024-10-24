@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [4.0.2] - 2024-10-24
+
+### Fixed
+
+- Crash when no residues are built.
+
 ## [4.0.1] - 2024-05-14
 
 ### Fixed
