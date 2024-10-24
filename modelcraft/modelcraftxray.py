@@ -123,6 +123,8 @@ class ModelCraftXray(Pipeline):
     def run_buccaneer_and_nautilus(self):
         buccaneer = self.buccaneer()
         nautilus = self.nautilus()
+        if buccaneer is None and nautilus is None:
+            self.terminate(reason="No residues built")
         if buccaneer is None or nautilus is None:
             self.update_current_from_refmac_result(buccaneer or nautilus)
         else:
@@ -132,7 +134,7 @@ class ModelCraftXray(Pipeline):
 
     def buccaneer(self):
         if not self.args.contents.proteins:
-            return
+            return None
         result = Buccaneer(
             contents=self.args.contents,
             fsigf=self.args.fmean,
@@ -147,12 +149,14 @@ class ModelCraftXray(Pipeline):
             cycles=3 if self.cycle == 1 else 2,
             threads=self.args.threads,
         ).run(self)
+        if result.structure is None or ModelStats(result.structure).residues == 0:
+            return None
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
 
     def nautilus(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):
-            return
+            return None
         result = Nautilus(
             contents=self.args.contents,
             fsigf=self.args.fmean,
@@ -161,6 +165,8 @@ class ModelCraftXray(Pipeline):
             freer=self.args.freer,
             structure=self.current_structure,
         ).run(self)
+        if result.structure is None or ModelStats(result.structure).residues == 0:
+            return None
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
 
