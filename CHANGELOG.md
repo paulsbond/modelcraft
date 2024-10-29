@@ -16,6 +16,12 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Coot ML-based pruning
 - Coot side-chain fixing step
 
+## [4.0.2] - 2024-10-24
+
+### Fixed
+
+- Crash when no residues are built.
+
 ## [4.0.1] - 2024-05-14
 
 ### Fixed
