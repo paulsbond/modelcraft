@@ -254,6 +254,14 @@ _GROUP.add_argument(
     ),
 )
 _GROUP.add_argument(
+    "--resolution",
+    type=float,
+    required=True,
+    metavar="X",
+    help="High resolution limit in Angstroms",
+)
+_GROUP = _EM.add_argument_group("optional arguments (em)")
+_GROUP.add_argument(
     "--mask",
     metavar="X",
     help=(
@@ -261,13 +269,6 @@ _GROUP.add_argument(
         "Servalcat will use this mask when trimming the maps. "
         "If a mask is not provided then EMDA mapmask will be used to create one."
     ),
-)
-_GROUP.add_argument(
-    "--resolution",
-    type=float,
-    required=True,
-    metavar="X",
-    help="High resolution limit in Angstroms",
 )
 _GROUP.add_argument(
     "--blur",
