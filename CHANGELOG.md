@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [5.0.0] - Unreleased
+
+### Added
+
+- EM --half-maps, --single-map and --build-map arguments.
+
+### Removed
+
+- EM --map and --blur arguments.
+
 ## [4.0.2] - 2024-10-24
 
 ### Fixed
