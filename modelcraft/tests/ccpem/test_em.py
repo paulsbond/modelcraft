@@ -21,6 +21,7 @@ def test_3488_single_map():
     args += ["--resolution", "3.2"]
     args += ["--cycles", "1"]
     args += ["--model", structure_path()]
+    args += ["--mask", "auto"]
     with pytest.raises(SystemExit):
         main(args)
     report_path = os.path.join("modelcraft", "modelcraft.json")

@@ -17,11 +17,13 @@ def test_servalcat_nemap():
 
 
 def test_servalcat_trim():
-    halfmap1 = read_map(halfmap1_path())
-    halfmap2 = read_map(halfmap2_path())
-    density = read_map(density_path())
+    maps = {
+        "halfmap1": read_map(halfmap1_path()),
+        "halfmap2": read_map(halfmap2_path()),
+        "density": read_map(density_path()),
+    }
     mask = read_map(mask_path())
-    trimmed = ServalcatTrim(mask, [density, halfmap1, halfmap2]).run()
+    trimmed = ServalcatTrim(mask, maps).run()
     assert len(trimmed.maps) == 3
 
 
