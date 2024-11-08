@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
-## [5.0.0] - Unreleased
+## [6.0.0] - Unreleased
 
 ### Added
 
@@ -15,6 +15,20 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - Coot ML-based pruning
 - Coot side-chain fixing step
+
+## [5.0.0] - 2024-11-08
+
+### Added
+
+- EM --half-maps, --single-map and --build-map arguments.
+
+### Changed
+
+- EM --mask argument default to None with 'auto' as an option for EMDA mapmask.
+
+### Removed
+
+- EM --map and --blur arguments.
 
 ## [4.0.2] - 2024-10-24
 
