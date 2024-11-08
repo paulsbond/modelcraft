@@ -25,9 +25,7 @@ class ModelCraftEm(Pipeline):
         self.report["version"] = __version__
         self.report["args"] = raw_args
         self.report["cycles"] = []
-        self.half_map1 = None
-        self.half_map2 = None
-        self.single_map = None
+        self.maps = {}
         self.fmean = None
         self.phases = None
 
@@ -35,7 +33,9 @@ class ModelCraftEm(Pipeline):
         print(f"# ModelCraft {__version__}", flush=True)
         os.makedirs(self.args.directory, exist_ok=self.args.overwrite_directory)
         self.start_time = time.time()
-        self._process_input_maps()
+        self._read_input_maps()
+        self._trim_input_maps()
+        self._calculate_fmean_and_phases()
         structure = self.args.model
         best_fsc = None
         cycles_without_improvement = 0
@@ -63,41 +63,42 @@ class ModelCraftEm(Pipeline):
                 break
         self.terminate("Normal")
 
-    def _process_input_maps(self):
-        maps = {}
+    def _read_input_maps(self):
         if self.args.half_maps:
-            maps["half_map1"] = read_map(self.args.half_maps[0])
-            maps["half_map2"] = read_map(self.args.half_maps[1])
+            self.maps["half_map1"] = read_map(self.args.half_maps[0])
+            self.maps["half_map2"] = read_map(self.args.half_maps[1])
         else:
-            maps["single_map"] = read_map(self.args.single_map)
+            self.maps["single_map"] = read_map(self.args.single_map)
         if self.args.build_map:
-            maps["build_map"] = read_map(self.args.build_map)
+            self.maps["build_map"] = read_map(self.args.build_map)
+
+    def _trim_input_maps(self):
         if self.args.mask:
-            mask = read_map(self.args.mask)
-        else:
-            map_for_mask = maps.get("half_map1", maps.get("single_map"))
-            mask = EmdaMapMask(map_for_mask).run(self).mask
-        trimmed = ServalcatTrim(mask, maps).run(self)
-        self.half_map1 = trimmed.maps.get("half_map1")
-        self.half_map2 = trimmed.maps.get("half_map2")
-        self.single_map = trimmed.maps.get("single_map")
+            if self.args.mask == "auto":
+                map_for_mask = self.maps.get("half_map1", self.maps.get("single_map"))
+                mask = EmdaMapMask(map_for_mask).run(self).mask
+            else:
+                mask = read_map(self.args.mask)
+            trimmed = ServalcatTrim(mask, self.maps).run(self)
+            self.maps.update(trimmed.maps)
+
+    def _calculate_fmean_and_phases(self):
         if self.args.build_map:
             refmac = RefmacMapToMtz(
-                density=trimmed.maps["build_map"],
+                density=self.maps["build_map"],
                 resolution=self.args.resolution,
             ).run(self)
             fphi = refmac.fphi
         elif self.args.half_maps:
             nemap = ServalcatNemap(
-                halfmap1=self.half_map1,
-                halfmap2=self.half_map2,
+                halfmap1=self.maps["half_map1"],
+                halfmap2=self.maps["half_map2"],
                 resolution=self.args.resolution,
-                mask=trimmed.mask,
             ).run(self)
             fphi = nemap.fphi
         else:
             refmac = RefmacMapToMtz(
-                density=self.single_map,
+                density=self.maps["single_map"],
                 resolution=self.args.resolution,
             ).run(self)
             fphi = refmac.fphi
@@ -131,9 +132,9 @@ class ModelCraftEm(Pipeline):
         result = ServalcatRefine(
             structure=structure,
             resolution=self.args.resolution,
-            halfmap1=self.half_map1,
-            halfmap2=self.half_map2,
-            density=self.single_map,
+            halfmap1=self.maps.get("half_map1"),
+            halfmap2=self.maps.get("half_map2"),
+            density=self.maps.get("single_map"),
             ligand=self.args.restraints,
         ).run(self)
         return result.structure
@@ -142,8 +143,8 @@ class ModelCraftEm(Pipeline):
         result = ServalcatFsc(
             structure=structure,
             resolution=self.args.resolution,
-            halfmap1=self.half_map1,
-            halfmap2=self.half_map2,
-            density=self.single_map,
+            halfmap1=self.maps.get("half_map1"),
+            halfmap2=self.maps.get("half_map2"),
+            density=self.maps.get("single_map"),
         ).run(self)
         return result.fsc

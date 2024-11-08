@@ -290,9 +290,12 @@ _GROUP.add_argument(
     "--mask",
     metavar="X",
     help=(
-        "Mask with the same grid size and dimensions as the input map(s). "
-        "Servalcat will use this mask when trimming the maps. "
-        "If a mask is not provided then EMDA mapmask will be used to create one."
+        "Mask for trimming the input maps in MRC format, "
+        "with the same grid size and dimensions as the input maps. "
+        "Having a box size that is too large will lead to worse building results, "
+        "slow down the programs, and make the FSC calculation less accurate. "
+        "If this argument is set to 'auto' "
+        "then EMDA mapmask will be used to create a mask."
     ),
 )
 
@@ -331,7 +334,7 @@ def _check_paths(args: argparse.Namespace):
     ):
         if hasattr(args, arg):
             attr = getattr(args, arg)
-            if isinstance(attr, str):
+            if isinstance(attr, str) and attr != "auto":
                 if not os.path.exists(attr):
                     _PARSER.error(f"File not found: {attr}")
                 attr = os.path.abspath(attr)
