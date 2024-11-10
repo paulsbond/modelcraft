@@ -118,7 +118,7 @@ modelcraft em --help</code></pre>
             but the JSON format has the following advantages:
         </p>
         <ul>
-            <li>Number of copies can be specified
+            <li>Number of copies and stoichiometry can be specified
                 for a more accurate calculation of the solvent fraction.</li>
             <li>Carbohydrates, ligands and buffers may be specified
                 in addition to protein, RNA and DNA.</li>
@@ -133,28 +133,31 @@ modelcraft em --help</code></pre>
         </p>
         <p>An example JSON file is shown below:</p>
         <pre><code>{
+    "copies": 2,
     "proteins": [
         {
             "sequence": "LPGECSVNVIPKMNLDKAKFFSGTWYETHYLDMDPQATEKFCFSFAPRESGGTVMEALYHFNVDSKV",
-            "copies": 1,
+            "stoichiometry": 1,
             "modifications": ["M->MSE"]
         },
-        { "sequence": "GGG", "copies": 1 }
+        {
+            "sequence": "GGG"
+        }
     ],
     "rnas": [
         {
             "sequence": "GGUAACUGUUACAGUUACC",
-            "copies": 2,
+            "stoichiometry": 2,
             "modifications": ["1->GTP", "19->CCC"]
         }
     ],
     "dnas": [],
     "carbs": [
-        { "codes": { "NAG": 2 }, "copies": 1 },
-        { "codes": { "MAN": 1, "NAG": 2 }, "copies": 1 }
+        { "codes": { "NAG": 2 }, "stoichiometry": 1 },
+        { "codes": { "MAN": 1, "NAG": 2 }, "stoichiometry": 1 }
     ],
     "ligands": [
-        { "code": "HEM", "copies": 1 }
+        { "code": "HEM", "stoichiometry": 1 }
     ],
     "buffers": ["GOL", "NA", "CL"]
 }</code></pre>
@@ -167,23 +170,28 @@ modelcraft em --help</code></pre>
             each carbohydrate must have a dictionary of <code>codes</code>
             to specify the number of each sugar,
             and each ligand must have a single <code>code</code>.
-            Each component (other than buffers)
-            must also have a <code>copies</code> parameter
-            to specify the number of copies.
-            Given an MTZ file for a cell and space group definition,
-            the <code>modelcraft-copies</code> script can be used to
-            view the solvent fraction and probability
-            for each multiple of a given contents file.
+        </p>
+        <p>
+            Each component (other than buffers) has a
+            <code>stoichiometry</code> parameter to specify the stoichiometry.
+            In the example above there are 2 RNA chains for each protein chain.
+            If the stoichiometry is not specified it is assumed to be 1.
+            There is also a <code>copies</code> parameter for the whole file
+            to specify how many copies of the contents are in the asymmetric unit.
+            If this value is not known the most likely number will be estimated.
+            The <code>modelcraft-copies</code> script can be used to
+            view the solvent fraction and probability for each number of copies
+            given a contents file and an MTZ file.
             It is assumed that the number of ordered buffer molecules is unknown
             so they are not included in the solvent calculation.
         </p>
         <p>
-            Additionally, protein, RNA and DNA chains may have
+            Finally, protein, RNA and DNA chains may have
             a list of <code>modifications</code>,
             e.g. <code>M->MSE</code> to specify that
             all methionine residues are actually selenomethionine
             or <code>1->GTP</code> to specify that
-            the first residue is guanosine triphosphate.
+            the residue 1 is guanosine triphosphate.
         </p>
         <p>
             <b>Note:</b> ModelCraft does not yet build carbohydrates, ligands,

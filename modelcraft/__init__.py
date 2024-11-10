@@ -29,6 +29,7 @@ from .pipeline import Pipeline
 from .reflections import DataItem
 from .reflections import write_mtz
 from .scripts.modelcraft import main as run
+from .solvent import solvent_fraction
 from .structure import contains_residue
 from .structure import ModelStats
 from .structure import read_structure
@@ -47,7 +48,6 @@ __all__ = [
     "CTruncate",
     "DataItem",
     "EmdaMapMask",
-    "entry_contents",
     "FindWaters",
     "FixSideChains",
     "FreeRFlag",
@@ -73,6 +73,7 @@ __all__ = [
     "ServalcatRefine",
     "ServalcatTrim",
     "Sheetbend",
+    "solvent_fraction",
     "update_cell",
     "write_mmcif",
     "write_mtz",

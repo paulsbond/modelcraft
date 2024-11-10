@@ -107,19 +107,6 @@ def _remove_point_mutations(structure: gemmi.Structure) -> None:
             del model[chain_name][residue_seqid][residue_name]
 
 
-def _remove_point_mutations(structure: gemmi.Structure) -> None:
-    for model in structure:
-        to_remove = []
-        for chain in model:
-            for group in chain.whole().residue_groups():
-                for i in range(1, len(group)):
-                    residue = group[i]
-                    key = (chain.name, str(residue.seqid), residue.name)
-                    to_remove.append(key)
-        for chain_name, residue_seqid, residue_name in to_remove:
-            del model[chain_name][residue_seqid][residue_name]
-
-
 def _patch_names(structure: gemmi.Structure) -> None:
     residue_patches = {"SUL": "SO4"}
     atom_patches = {("HOH", "O1"): "O"}

@@ -8,7 +8,7 @@ import gemmi
 def _buffers() -> set:
     path = pathlib.Path(os.environ["CCP4"], "share", "pisa", "agents.dat")
     agents = set()
-    with path.open() as stream:
+    with path.open(encoding="utf-8") as stream:
         for line in stream:
             if line[0] != "#" and "," in line:
                 code = line.split(",")[0]

@@ -11,9 +11,9 @@ def _response_json(url, data=None):
     with _MULTIPROCESSING_LOCK:
         print("Requesting:", url)
         if data is None:
-            response = requests.get(url)
+            response = requests.get(url, timeout=30)
         else:
-            response = requests.post(url, data=data)
+            response = requests.post(url, data=data, timeout=30)
         response.raise_for_status()
     return response.json()
 

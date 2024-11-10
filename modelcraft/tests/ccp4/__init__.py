@@ -67,9 +67,16 @@ def insulin_refmac():
 @functools.lru_cache(maxsize=None)
 def insulin_contents():
     contents = AsuContents()
-    chain_a = Polymer("GIVEQCCASVCSLYQLENYCN", 1, PolymerType.PROTEIN)
-    chain_b = Polymer("FVNQHLCGSHLVEALYLVCGERGFFYTPKA", 1, PolymerType.PROTEIN)
-    contents.proteins = [chain_a, chain_b]
+    chain_a = Polymer(
+        sequence="GIVEQCCASVCSLYQLENYCN",
+        polymer_type=PolymerType.PROTEIN,
+    )
+    chain_b = Polymer(
+        sequence="FVNQHLCGSHLVEALYLVCGERGFFYTPKA",
+        polymer_type=PolymerType.PROTEIN,
+    )
+    contents.add_polymer(chain_a)
+    contents.add_polymer(chain_b)
     return contents
 
 
@@ -83,18 +90,6 @@ def pdb1rxf_contents():
         "PRHHVAAPRRDQIAGSSRTSSVFFLRPNADFTFSVPLARECGFDVSLDGETATFQDWIGG"
         "NYVNIRRTSKA"
     )
-    protein = Polymer(sequence, 1, PolymerType.PROTEIN)
+    protein = Polymer(sequence=sequence, polymer_type=PolymerType.PROTEIN)
     ligand = Ligand(code="FE")
-    contents = AsuContents()
-    contents.proteins.append(protein)
-    contents.ligands.append(ligand)
-    return contents
-
-
-@functools.lru_cache(maxsize=None)
-def gere_contents():
-    sequence = "EFQSKPLLTKREREVFELLVQDKTTKEIASELFISEKTVRNHISNAMQKLGVKGRSQAVVELLRMGELEL"
-    protein = Polymer(sequence, 6, PolymerType.PROTEIN)
-    contents = AsuContents()
-    contents.proteins.append(protein)
-    return contents
+    return AsuContents(copies=1, proteins=[protein], ligands=[ligand])

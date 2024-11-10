@@ -49,12 +49,12 @@ def test_1rxf_from_model():
     hklin = ccp4_path("examples", "data", "1rxf.mtz")
     xyzin = ccp4_path("examples", "data", "1rxf_randomise.pdb")
     contents = pdb1rxf_contents()
-    contents.write_json_file("contents.json")
+    contents.write_sequence_file("sequence.fasta")
     args = ["xray"]
     args += ["--data", hklin]
     args += ["--observations", "I,SIGI"]
     args += ["--freerflag", "FreeR_flag"]
-    args += ["--contents", "contents.json"]
+    args += ["--contents", "sequence.fasta"]
     args += ["--model", xyzin]
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):
