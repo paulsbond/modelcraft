@@ -1,6 +1,16 @@
+import math
 import gemmi
+import pytest
 from modelcraft.contents import PROTEIN_CODES, DNA_CODES, RNA_CODES
-from modelcraft.monlib import atom_ids, in_library, group, is_protein, is_nucleic
+from modelcraft.monlib import (
+    atom_ids,
+    group,
+    in_library,
+    is_nucleic,
+    is_protein,
+    volume,
+    weight,
+)
 
 
 def test_hoh_ids():
@@ -59,3 +69,21 @@ def test_nucleic():
     assert is_nucleic("DT")
     assert not is_nucleic("HOH")
     assert not is_nucleic("NOT_IN_MONLIB")
+
+
+@pytest.mark.parametrize("code,expected", [("HOH", 18), ("2GP", 432)])
+def test_volume(code: str, expected: float):
+    assert math.isclose(volume(code), expected, abs_tol=0.01)
+
+
+@pytest.mark.parametrize(
+    "code,expected",
+    [
+        ("ALA", 89.09),
+        ("ASP", 132.09),
+        ("ASN", 132.12),
+        ("UNK", 103.12),
+    ],
+)
+def test_weight(code: str, expected: float):
+    assert math.isclose(weight(code), expected, abs_tol=0.01)

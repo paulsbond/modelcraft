@@ -7,7 +7,7 @@ import gemmi
 @functools.lru_cache(maxsize=None)
 def _buffers() -> set:
     path = pathlib.Path(os.environ["CCP4"], "share", "pisa", "agents.dat")
-    agents = set()
+    agents = {"UNX"}
     with path.open(encoding="utf-8") as stream:
         for line in stream:
             if line[0] != "#" and "," in line:
@@ -58,7 +58,7 @@ def weight(code: str) -> float:
 @functools.lru_cache(maxsize=None)
 def group(code: str) -> gemmi.ChemComp.Group:
     if in_library(code):
-        doc = gemmi.cif.read(_path(code))
+        doc = gemmi.cif.read(str(_path(code)))
         monlib = gemmi.MonLib()
         monlib.read_monomer_doc(doc)
         return monlib.monomers[code].group

@@ -310,21 +310,21 @@ class AsuContents:
         contents = cls(copies=1)
         for mol in pdbe.molecule_dicts(entry_id):
             molecule_type = mol["molecule_type"].lower()
-            if molecule_type.startswith("polypeptide"):
+            if "polypeptide" in molecule_type:
                 protein = Polymer.from_pdbe(mol, PolymerType.PROTEIN)
                 contents.proteins.append(protein)
-            elif molecule_type.startswith("polyribonucleotide"):
+            elif "polyribonucleotide" in molecule_type:
                 rna = Polymer.from_pdbe(mol, PolymerType.RNA)
                 contents.rnas.append(rna)
-            elif molecule_type.startswith("polydeoxyribonucleotide"):
+            elif "polydeoxyribonucleotide" in molecule_type:
                 dna = Polymer.from_pdbe(mol, PolymerType.DNA)
                 contents.dnas.append(dna)
-            elif molecule_type.startswith("carbohydrate"):
+            elif "carbohydrate" in molecule_type:
                 carb = Carb.from_pdbe(mol)
                 contents.carbs.append(carb)
-            elif molecule_type.startswith("bound"):
-                ligand = _ligand_from_pdbe_molecule_dict(mol)
-                if monlib.is_buffer(ligand.code) or ligand.code == "UNX":
+            elif "bound" in molecule_type:
+                ligand = Ligand.from_pdbe(mol)
+                if monlib.is_buffer(ligand.code):
                     contents.buffers.append(ligand.code)
                 else:
                     contents.ligands.append(ligand)
@@ -336,7 +336,7 @@ class AsuContents:
 
     def divide_stoichiometry(self):
         counts = []
-        for component in self.components:
+        for component in self.components():
             if component.stoichiometry is not None:
                 counts.append(component.stoichiometry)
         if len(counts) > 0:
@@ -364,7 +364,7 @@ class AsuContents:
         return len(self.proteins) > 0 and all(p.is_selenomet() for p in self.proteins)
 
     def volume(self) -> float:
-        return sum(c.volume() * c.stoichiometry for c in self.components())
+        return sum(c.volume() * (c.stoichiometry or 1) for c in self.components())
 
     def to_json(self) -> list:
         return {

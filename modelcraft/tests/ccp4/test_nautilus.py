@@ -4,7 +4,7 @@ from modelcraft.jobs.nautilus import Nautilus
 from modelcraft.jobs.refmac import Refmac
 from modelcraft.pipeline import Pipeline
 from modelcraft.reflections import DataItem
-from modelcraft.scripts.contents import _entry_contents
+from modelcraft.scripts.contents import AsuContents
 from modelcraft.structure import (
     contains_residue,
     ModelStats,
@@ -27,7 +27,7 @@ def test_102d():
     fsigf = DataItem(mtz, "FP,SIGFP")
     freer = FreeRFlag(fsigf).run().freer
     refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0).run()
-    contents = _entry_contents("102d")
+    contents = AsuContents.from_pdbe("102d")
     pipeline = Pipeline(keep_jobs=True)
     # Test without an input structure
     nautilus = Nautilus(

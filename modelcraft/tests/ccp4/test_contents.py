@@ -103,7 +103,7 @@ def test_4aqd():
             {"code": "PG4", "stoichiometry": 2},
             {"code": "PEG", "stoichiometry": 2},
         ],
-        "buffers": ["EDO", "CL", "GLY"],
+        "buffers": ["EDO", "UNX", "CL", "GLY"],
     }
     _test_contents("4aqd", expected, selenomet=False)
 

@@ -33,13 +33,12 @@ def main(argument_list=None):
     print("| Description                                  | Stoichiometry | Volume   |")
     print("|----------------------------------------------|---------------|----------|")
     for component in contents.components():
-        description = component.description()
         stoichiometry = component.stoichiometry or 1
         assumed = "(assumed)" if component.stoichiometry is None else ""
-        volume = component.volume
+        volume = component.volume()
         print(
             "| %44s | %9s %3d | %8.0f |"
-            % (description[:44], assumed, stoichiometry, volume)
+            % (str(component)[:44], assumed, stoichiometry, volume)
         )
     print("|----------------------------------------------|---------------|----------|")
     print("| %44s |               | %8.0f |" % ("Total", contents.volume()))

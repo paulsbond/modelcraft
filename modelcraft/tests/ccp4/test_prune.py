@@ -10,7 +10,7 @@ def test_insulin_prune():
         fphi_best=refmac.fphi_best,
         fphi_diff=refmac.fphi_diff,
         fphi_calc=refmac.fphi_calc,
-        threshold=-2,
+        residue_threshold=-2,
     )
     stats_in = ModelStats(refmac.structure)
     stats_out = ModelStats(pruned)
