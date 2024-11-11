@@ -26,7 +26,6 @@ from .jobs.sheetbend import Sheetbend
 from .pipeline import Pipeline
 from .reflections import DataItem
 from .reflections import write_mtz
-from .scripts.contents import _entry_contents as entry_contents
 from .scripts.modelcraft import main as run
 from .solvent import solvent_fraction
 from .structure import contains_residue
@@ -47,7 +46,6 @@ __all__ = [
     "CTruncate",
     "DataItem",
     "EmdaMapMask",
-    "entry_contents",
     "FindWaters",
     "FreeRFlag",
     "max_cell_distortion",

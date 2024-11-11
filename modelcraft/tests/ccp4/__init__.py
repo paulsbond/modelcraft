@@ -92,8 +92,4 @@ def pdb1rxf_contents():
     )
     protein = Polymer(sequence=sequence, polymer_type=PolymerType.PROTEIN)
     ligand = Ligand(code="FE")
-    contents = AsuContents()
-    contents.proteins.append(protein)
-    contents.ligands.append(ligand)
-    contents.copies = 1
-    return contents
+    return AsuContents(copies=1, proteins=[protein], ligands=[ligand])

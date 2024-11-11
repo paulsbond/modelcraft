@@ -10,23 +10,9 @@ def read_structure(path: str) -> gemmi.Structure:
     # TODO: Currently altconfs appear in CIF auth_atom_id after sheetbend
     # TODO: Keep alternative conformations after problem is fixed
     structure.remove_alternative_conformations()
+    _remove_point_mutations(structure)
     _patch_names(structure)
     return structure
-
-
-def consecutive_residues(chain: gemmi.Chain):
-    "Iterate through lists of residues with consecutive seqnums (first conformer only)"
-    consecutive = []
-    last_seqnum = None
-    for residue in chain.first_conformer():
-        if last_seqnum is None or residue.seqid.num == last_seqnum + 1:
-            consecutive.append(residue)
-        else:
-            yield consecutive
-            consecutive = [residue]
-        last_seqnum = residue.seqid.num
-    if len(consecutive) > 0:
-        yield consecutive
 
 
 def contains_residue(structure: gemmi.Structure, name: str) -> bool:
@@ -106,6 +92,19 @@ def _residues(structure: gemmi.Structure) -> Iterator[gemmi.Residue]:
         for chain in model:
             for residue in chain:
                 yield residue
+
+
+def _remove_point_mutations(structure: gemmi.Structure) -> None:
+    for model in structure:
+        to_remove = []
+        for chain in model:
+            for group in chain.whole().residue_groups():
+                for i in range(1, len(group)):
+                    residue = group[i]
+                    key = (chain.name, str(residue.seqid), residue.name)
+                    to_remove.append(key)
+        for chain_name, residue_seqid, residue_name in to_remove:
+            del model[chain_name][residue_seqid][residue_name]
 
 
 def _patch_names(structure: gemmi.Structure) -> None:

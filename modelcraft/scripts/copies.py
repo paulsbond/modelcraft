@@ -3,7 +3,7 @@ import sys
 import gemmi
 from ..contents import AsuContents
 from ..environ import setup_environ
-from ..solvent import _contents_volume, _copies_options, _volume_components
+from ..solvent import copies_options
 
 
 def main(argument_list=None):
@@ -32,20 +32,20 @@ def main(argument_list=None):
     print("## Components\n")
     print("| Description                                  | Stoichiometry | Volume   |")
     print("|----------------------------------------------|---------------|----------|")
-    for component in _volume_components(contents):
-        description = component.description
-        stoichiometry = component.stoichiometry
-        assumed = "(assumed)" if component.stoichiometry_assumed else ""
+    for component in contents.components():
+        description = component.description()
+        stoichiometry = component.stoichiometry or 1
+        assumed = "(assumed)" if component.stoichiometry is None else ""
         volume = component.volume
         print(
             "| %44s | %9s %3d | %8.0f |"
             % (description[:44], assumed, stoichiometry, volume)
         )
     print("|----------------------------------------------|---------------|----------|")
-    print("| %44s |               | %8.0f |" % ("Total", _contents_volume(contents)))
+    print("| %44s |               | %8.0f |" % ("Total", contents.volume()))
     print("")
 
-    options = _copies_options(contents, mtz)
+    options = copies_options(contents, mtz)
     print("## Copies\n")
     if len(options) == 0:
         print("Contents are too big to fit into the asymmetric unit")
