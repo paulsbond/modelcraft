@@ -50,7 +50,7 @@ class Parrot(Job):
             write_mmcif(self._path("xyzin.cif"), self.structure)
             self._args += ["-pdbin-mr", "xyzin.cif"]
         solvent_content = solvent_fraction(self.contents, self.fsigf)
-        self._args += ["-solvent-content", "%.3f" % solvent_content]
+        self._args += ["-solvent-content", f"{solvent_content:.3f}"]
         self._args += ["-cycles", "5"]
         self._args += ["-anisotropy-correction"]
         self._args += ["-mtzout", "hklout.mtz"]

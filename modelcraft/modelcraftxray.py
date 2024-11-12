@@ -52,7 +52,7 @@ class ModelCraftXray(Pipeline):
         if self.args.model is not None:
             self._refine_input_model()
         for self.cycle in range(1, self.args.cycles + 1):
-            print("\n## Cycle %d\n" % self.cycle, flush=True)
+            print(f"\n## Cycle {self.cycle}\n", flush=True)
             self.run_cycle()
             self.process_cycle_output(self.last_refmac)
             if self.cycles_without_improvement == self.args.auto_stop_cycles > 0:

@@ -21,12 +21,12 @@ def main(argument_list=None):
     asu_volume = cell.volume / len(mtz.spacegroup.operations())
     print("## MTZ\n")
     print(
-        "Cell        %.3f  %.3f  %.3f  %.2f  %.2f  %.2f"
-        % (cell.a, cell.b, cell.c, cell.alpha, cell.beta, cell.gamma)
+        f"Cell        {cell.a:.3f}  {cell.b:.3f}  {cell.c:.3f}"
+        f"  {cell.alpha:.2f}  {cell.beta:.2f}  {cell.gamma:.2f}"
     )
-    print("Spacegroup ", mtz.spacegroup.hm)
-    print("ASU Volume  %.0f" % asu_volume)
-    print("Resolution  %.2f - %.2f" % (mtz.resolution_low(), mtz.resolution_high()))
+    print(f"Spacegroup  {mtz.spacegroup.hm}")
+    print(f"ASU Volume  {asu_volume:.0f}")
+    print(f"Resolution  {mtz.resolution_low():.2f} - {mtz.resolution_high():.2f}")
     print("")
 
     print("## Components\n")
@@ -37,11 +37,12 @@ def main(argument_list=None):
         assumed = "(assumed)" if component.stoichiometry is None else ""
         volume = component.volume()
         print(
-            "| %44s | %9s %3d | %8.0f |"
-            % (str(component)[:44], assumed, stoichiometry, volume)
+            f"| {str(component)[:44]:44s} "
+            f"| {assumed:9s} {stoichiometry:3d} "
+            f"| {volume:8.0f} |"
         )
     print("|----------------------------------------------|---------------|----------|")
-    print("| %44s |               | %8.0f |" % ("Total", contents.volume()))
+    print(f"| {'Total':44s} |               | {contents.volume():8.0f} |")
     print("")
 
     options = copies_options(contents, mtz)
@@ -53,8 +54,9 @@ def main(argument_list=None):
         print("|--------|------------------|-------------|")
         for option in options:
             print(
-                "| %6d | %16.3f | %11.3f |"
-                % (option.copies, option.solvent, option.probability)
+                f"| {option.copies:6d} "
+                f"| {option.solvent:16.3f} "
+                f"| {option.probability:11.3f} |"
             )
     print("")
 

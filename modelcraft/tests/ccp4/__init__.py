@@ -16,7 +16,7 @@ def ccp4_path(*paths: str) -> str:
 
 def in_temp_directory(func):
     def wrapper():
-        tmp_dir = "tmp%s" % uuid.uuid4()
+        tmp_dir = f"tmp{uuid.uuid4()}"
         os.mkdir(tmp_dir)
         os.chdir(tmp_dir)
         try:
