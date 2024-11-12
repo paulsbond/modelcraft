@@ -97,8 +97,8 @@ def _rscc_diff(
             calc_values[key].append(calc_map.get_value(point.u, point.v, point.w))
     rscc = {}
     diff = {}
-    for key in best_values.keys():
-        rscc[key] = np.corrcoef(best_values[key], calc_values[key])[0, 1]
+    for key, best_value in best_values.items():
+        rscc[key] = np.corrcoef(best_value, calc_values[key])[0, 1]
         diff[key] = np.sqrt(np.mean(np.square(diff_values[key])))
     return rscc, diff
 
@@ -110,16 +110,16 @@ def _geom(structure: gemmi.Structure, model_index: int, libin: str) -> dict:
     topo = gemmi.prepare_topology(structure, monlib, model_index)
     atom_zs = defaultdict(list)
     for bond in topo.bonds:
-        z = abs(bond.calculate_z())
+        z = bond.calculate_z()
         for atom in bond.atoms:
             atom_zs[atom.serial].append(z)
     for angle in topo.angles:
-        z = abs(angle.calculate_z())
+        z = angle.calculate_z()
         for atom in angle.atoms:
             atom_zs[atom.serial].append(z)
     for torsion in topo.torsions:
         if torsion.restr.esd > 0:
-            z = abs(torsion.calculate_z())
+            z = torsion.calculate_z()
             for atom in torsion.atoms:
                 atom_zs[atom.serial].append(z)
     for plane in topo.planes:
