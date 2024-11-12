@@ -90,12 +90,12 @@ def test_column_refs_with_duplicate_labels():
     labels = ["F(+)", "SIGF(+)", "F(-)", "SIGF(-)"]
     assert len(refs1) == len(labels)
     assert len(refs2) == len(labels)
-    for i in range(len(labels)):
+    for i, label in enumerate(labels):
         assert refs1[i].project == ""
         assert refs2[i].project == ""
         assert refs1[i].crystal == "xtal"
         assert refs2[i].crystal == "xtal"
         assert refs1[i].dataset == "peak"
         assert refs2[i].dataset == "infl"
-        assert refs1[i].label == labels[i]
-        assert refs2[i].label == labels[i]
+        assert refs1[i].label == label
+        assert refs2[i].label == label
