@@ -4,7 +4,7 @@ import pathlib
 import gemmi
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _buffers() -> set:
     path = pathlib.Path(os.environ["CCP4"], "share", "pisa", "agents.dat")
     agents = {"UNX"}
@@ -16,7 +16,7 @@ def _buffers() -> set:
     return agents
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _path(code: str) -> pathlib.Path:
     directory = pathlib.Path(os.environ["CLIBD_MON"], code[0].lower())
     single = directory / f"{code.upper()}.cif"
@@ -24,38 +24,38 @@ def _path(code: str) -> pathlib.Path:
     return double if double.exists() else single
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def atom_ids(code: str) -> set:
     return {atom.id for atom in chemcomp(code).atoms}
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def chemcomp(code: str) -> gemmi.ChemComp:
     doc = gemmi.cif.read(str(_path(code)))
     return gemmi.make_chemcomp_from_block(doc[-1])
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def in_library(code: str) -> bool:
     return _path(code).exists()
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def is_buffer(code: str) -> float:
     return code.upper() in _buffers()
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def volume(code: str) -> float:
     return sum(18 for atom in chemcomp(code).atoms if not atom.is_hydrogen())
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def weight(code: str) -> float:
     return sum(atom.el.weight for atom in chemcomp(code).atoms)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def group(code: str) -> gemmi.ChemComp.Group:
     if in_library(code):
         doc = gemmi.cif.read(str(_path(code)))
@@ -65,7 +65,7 @@ def group(code: str) -> gemmi.ChemComp.Group:
     return None
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def is_protein(code: str) -> bool:
     return group(code) in {
         gemmi.ChemComp.Group.Peptide,
@@ -74,7 +74,7 @@ def is_protein(code: str) -> bool:
     }
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def is_nucleic(code: str) -> bool:
     return group(code) in {
         gemmi.ChemComp.Group.Dna,
