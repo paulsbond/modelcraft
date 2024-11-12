@@ -190,7 +190,7 @@ class ServalcatFsc(Job):
     def _result(self) -> ServalcatFscResult:
         self._check_files_exist("fsc.dat")
         fsc = None
-        with open(self._path("fsc.dat")) as text:
+        with open(self._path("fsc.dat"), encoding="utf-8") as text:
             for line in text:
                 if line.startswith("# FSCaverage of fsc_FC_full ="):
                     fsc = float(line.strip().split()[-1])
