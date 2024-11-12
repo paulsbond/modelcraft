@@ -3,6 +3,7 @@ import gemmi
 import numpy as np
 import pandas as pd
 from .jobs.refmac import RefmacResult
+from .geometry import per_residue_geometry_rmsz
 from .monlib import is_protein
 from .reflections import DataItem
 from .utils import modified_zscore
@@ -22,7 +23,7 @@ def validate(
 
     bfac = _bfac(structure[model_index])
     rscc, diff = _rscc_diff(structure, best_map, diff_map, calc_map, model_index)
-    geom = _geom(structure, model_index, libin or "")
+    geom = per_residue_geometry_rmsz(structure, model_index, libin)
 
     data = {
         "Chain": [],

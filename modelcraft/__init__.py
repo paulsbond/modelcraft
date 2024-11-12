@@ -5,7 +5,6 @@ from .cell import remove_scale
 from .cell import update_cell
 from .contents import AsuContents
 from .contents import PolymerType
-from .geometry import rmsz
 from .jobs.acedrg import Acedrg
 from .jobs.buccaneer import Buccaneer
 from .jobs.comit import Comit
@@ -63,7 +62,6 @@ __all__ = [
     "remove_non_protein",
     "remove_residues",
     "remove_scale",
-    "rmsz",
     "run",
     "ServalcatNemap",
     "ServalcatRefine",
