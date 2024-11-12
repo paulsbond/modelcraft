@@ -124,7 +124,7 @@ class Buccaneer(Job):
         )
 
 
-def _known_structure_ids(structure: gemmi.Structure) -> list:
+def _known_structure_ids(structure: gemmi.Structure):
     "Known structure IDs for ligands (but not modified residues) with a CA atom"
     protein_residue_names = set(PROTEIN_CODES.values()) | {"MSE", "UNK"}
     for chain in structure[0]:
