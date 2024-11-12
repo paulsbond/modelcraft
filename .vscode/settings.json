@@ -19,6 +19,11 @@
     "--max-line-length=88",
     "--extend-ignore=E203",
   ],
+  "pylint.args": [
+    "--disable=missing-class-docstring",
+    "--disable=missing-function-docstring",
+    "--disable=missing-module-docstring",
+  ],
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.rulers": [
