@@ -33,7 +33,8 @@ def test_insulin_from_phases():
     args += ["--overwrite-directory"]
     with pytest.raises(SystemExit):
         main(args)
-    with open(os.path.join("my_modelcraft_dir", "modelcraft.json")) as report_file:
+    report_path = os.path.join("my_modelcraft_dir", "modelcraft.json")
+    with open(report_path, encoding="utf-8") as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
@@ -59,7 +60,8 @@ def test_1rxf_from_model():
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):
         main(args)
-    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
+    report_path = os.path.join("modelcraft", "modelcraft.json")
+    with open(report_path, encoding="utf-8") as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
@@ -80,7 +82,8 @@ def test_toxd():
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
         main(args)
-    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
+    report_path = os.path.join("modelcraft", "modelcraft.json")
+    with open(report_path, encoding="utf-8") as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
