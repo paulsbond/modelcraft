@@ -46,6 +46,7 @@ def build_missing_side_chains(
     with NamedTemporaryFile(suffix=".mtz") as temp_mtz:
         write_mtz(temp_mtz.name, [fphi_best], ["FWT,PHWT"])
         imap = mc.read_mtz(temp_mtz.name, "FWT", "PHWT", "", False, False)
+    mc.set_imol_refinement_map(imap)
     for chain in structure[0]:
         for residue in chain:
             if not has_full_side_chain(residue):
