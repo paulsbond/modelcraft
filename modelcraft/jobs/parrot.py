@@ -49,7 +49,12 @@ class Parrot(Job):
         if self.structure is not None:
             write_mmcif(self._path("xyzin.cif"), self.structure)
             self._args += ["-pdbin-mr", "xyzin.cif"]
-        solvent_content = solvent_fraction(self.contents, self.fsigf)
+        solvent_content = solvent_fraction(
+            contents=self.contents,
+            cell=self.fsigf.cell,
+            spacegroup=self.fsigf.spacegroup,
+            resolution=self.fsigf.resolution_high(),
+        )
         self._args += ["-solvent-content", f"{solvent_content:.3f}"]
         self._args += ["-cycles", "5"]
         self._args += ["-anisotropy-correction"]

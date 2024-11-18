@@ -5,9 +5,14 @@ import gemmi
 from .contents import AsuContents
 
 
-def solvent_fraction(contents: AsuContents, mtz: gemmi.Mtz) -> float:
-    asu_volume = mtz.cell.volume / len(mtz.spacegroup.operations())
-    copies = contents.copies or _guess_copies(contents, mtz)
+def solvent_fraction(
+    contents: AsuContents,
+    cell: gemmi.UnitCell,
+    spacegroup: gemmi.SpaceGroup,
+    resolution: float,
+) -> float:
+    asu_volume = cell.volume / len(spacegroup.operations())
+    copies = contents.copies or _guess_copies(contents, cell, spacegroup, resolution)
     return 1 - copies * contents.volume() / asu_volume
 
 
@@ -18,14 +23,18 @@ class CopiesOption:
     probability: float
 
 
-def copies_options(contents: AsuContents, mtz: gemmi.Mtz) -> list:
+def copies_options(
+    contents: AsuContents,
+    cell: gemmi.UnitCell,
+    spacegroup: gemmi.SpaceGroup,
+    resolution: float,
+) -> list:
     options = []
     nucleic_acids = contents.rnas + contents.dnas
     mwp = sum(p.weight() * (p.stoichiometry or 1) for p in contents.proteins)
     mwn = sum(n.weight() * (n.stoichiometry or 1) for n in nucleic_acids)
-    asu_volume = mtz.cell.volume / len(mtz.spacegroup.operations())
+    asu_volume = cell.volume / len(spacegroup.operations())
     contents_volume = contents.volume()
-    resolution = mtz.resolution_high()
     total_probability = 0
     for copies in range(1, 60):
         solvent = 1 - copies * contents_volume / asu_volume
@@ -39,8 +48,13 @@ def copies_options(contents: AsuContents, mtz: gemmi.Mtz) -> list:
     return options
 
 
-def _guess_copies(contents: AsuContents, mtz: gemmi.Mtz) -> int:
-    options = copies_options(contents, mtz)
+def _guess_copies(
+    contents: AsuContents,
+    cell: gemmi.UnitCell,
+    spacegroup: gemmi.SpaceGroup,
+    resolution: float,
+) -> int:
+    options = copies_options(contents, cell, spacegroup, resolution)
     if len(options) == 0:
         raise ValueError("Contents are too big to fit into the asymmetric unit")
     chosen = max(options, key=lambda option: option.probability)

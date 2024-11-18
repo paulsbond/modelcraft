@@ -45,7 +45,7 @@ def main(argument_list=None):
     print(f"| {'Total':44s} |               | {contents.volume():8.0f} |")
     print("")
 
-    options = copies_options(contents, mtz)
+    options = copies_options(contents, cell, mtz.spacegroup, mtz.resolution_high())
     print("## Copies\n")
     if len(options) == 0:
         print("Contents are too big to fit into the asymmetric unit")
