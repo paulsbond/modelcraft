@@ -98,7 +98,7 @@ class Refmac(Job):
             abcd=DataItem(mtz, "HLACOMB,HLBCOMB,HLCCOMB,HLDCOMB"),
             fphi_best=DataItem(mtz, "FWT,PHWT"),
             fphi_diff=DataItem(mtz, "DELFWT,PHDELWT"),
-            fphi_calc=DataItem(mtz, "FC_ALL_LS,PHIC_ALL_LS"),
+            fphi_calc=DataItem(mtz, "FC_ALL,PHIC_ALL"),
             rwork=float(rworks[-1].text),
             rfree=float(rfrees[-1].text),
             fsc=float(fscs[-1].text),

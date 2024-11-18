@@ -41,7 +41,7 @@ def test_insulin_from_phases():
     mtz_path = os.path.join("my_modelcraft_dir", "modelcraft.mtz")
     mtz = gemmi.read_mtz_file(mtz_path)
     columns = set(mtz.column_labels())
-    expected = {"FWT", "DELFWT", "FC_ALL_LS", "FOM", "HLACOMB"}
+    expected = {"FWT", "DELFWT", "FC_ALL", "FOM", "HLACOMB"}
     assert expected.issubset(columns)
 
 

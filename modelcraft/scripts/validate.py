@@ -57,7 +57,7 @@ def main(argument_list=None):
     mtz = gemmi.read_mtz_file(args.mtz)
     fphi_best = DataItem(mtz, "FWT,PHWT")
     fphi_diff = DataItem(mtz, "DELFWT,PHDELWT")
-    fphi_calc = DataItem(mtz, "FC_ALL_LS,PHIC_ALL_LS")
+    fphi_calc = DataItem(mtz, "FC_ALL,PHIC_ALL")
 
     metrics = validate(
         structure, fphi_best, fphi_diff, fphi_calc, args.model_index, args.libin
