@@ -47,12 +47,16 @@ def is_buffer(code: str) -> float:
 
 @functools.cache
 def volume(code: str) -> float:
-    return sum(18 for atom in chemcomp(code).atoms if not atom.is_hydrogen())
+    if in_library(code):
+        return sum(18 for atom in chemcomp(code).atoms if not atom.is_hydrogen())
+    return 0
 
 
 @functools.cache
 def weight(code: str) -> float:
-    return sum(atom.el.weight for atom in chemcomp(code).atoms)
+    if in_library(code):
+        return sum(atom.el.weight for atom in chemcomp(code).atoms)
+    return 0
 
 
 @functools.cache

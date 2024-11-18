@@ -239,6 +239,9 @@ class Ligand:
     def to_json(self) -> dict:
         return {"code": self.code, "stoichiometry": self.stoichiometry}
 
+    def volume(self) -> float:
+        return monlib.volume(self.code)
+
 
 class AsuContents:
     def __init__(
