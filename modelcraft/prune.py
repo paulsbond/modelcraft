@@ -1,4 +1,5 @@
 import gemmi
+from .monlib import MonLib
 from .reflections import DataItem
 from .structure import remove_isolated_fragments
 from .validation import validate
@@ -9,14 +10,14 @@ def prune(
     fphi_best: DataItem,
     fphi_diff: DataItem,
     fphi_calc: DataItem,
-    libin: str = "",
+    monlib: MonLib,
     residues: bool = True,
     chain_threshold: float = -2,
     residue_threshold: float = -5,
 ) -> gemmi.Structure:
     print("Performing validation for pruning")
     structure = structure.clone()
-    metrics = validate(structure, fphi_best, fphi_diff, fphi_calc, libin=libin)
+    metrics = validate(structure, fphi_best, fphi_diff, fphi_calc, monlib)
 
     max_deleted = int(len(metrics) * 0.2)
     num_deleted = 0
@@ -55,6 +56,6 @@ def prune(
 
     print("Removing isolated residues")
     for chain in structure[0]:
-        remove_isolated_fragments(chain, max_length=1)
+        remove_isolated_fragments(chain, monlib, max_length=1)
 
     return structure

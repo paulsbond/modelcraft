@@ -3,6 +3,7 @@ import sys
 import gemmi
 from tabulate import tabulate
 from ..environ import setup_environ
+from ..monlib import MonLib
 from ..reflections import DataItem
 from ..validation import validate
 
@@ -59,8 +60,9 @@ def main(argument_list=None):
     fphi_diff = DataItem(mtz, "DELFWT,PHDELWT")
     fphi_calc = DataItem(mtz, "FC_ALL,PHIC_ALL")
 
+    monlib = MonLib(structure[args.model_index].get_all_residue_names(), args.libin)
     metrics = validate(
-        structure, fphi_best, fphi_diff, fphi_calc, args.model_index, args.libin
+        structure, fphi_best, fphi_diff, fphi_calc, monlib, args.model_index
     )
     if args.sort:
         metrics.sort_values("Score", ascending=True, inplace=True)

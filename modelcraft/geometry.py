@@ -1,28 +1,13 @@
 import collections
-import os
 import gemmi
 import numpy as np
-
-
-def topology(
-    structure: gemmi.Structure, model_index: int = 0, libin: str = ""
-) -> gemmi.Topo:
-    monlib = gemmi.read_monomer_lib(
-        monomer_dir=os.environ["CLIBD_MON"],
-        resnames=structure[model_index].get_all_residue_names(),
-        libin=libin or "",
-    )
-    return gemmi.prepare_topology(
-        st=structure,
-        monlib=monlib,
-        model_index=model_index,
-    )
+from .monlib import MonLib
 
 
 def per_residue_geometry_rmsz(
-    structure: gemmi.Structure, model_index: int = 0, libin: str = ""
+    structure: gemmi.Structure, monlib: MonLib, model_index: int = 0
 ) -> dict:
-    atom_zs = _atom_zs(structure, model_index, libin)
+    atom_zs = _atom_zs(structure, monlib, model_index)
     rv = {}
     for chain in structure[model_index]:
         for residue in chain:
@@ -32,9 +17,9 @@ def per_residue_geometry_rmsz(
     return rv
 
 
-def _atom_zs(structure: gemmi.Structure, model_index, libin) -> dict:
+def _atom_zs(structure: gemmi.Structure, monlib: MonLib, model_index: int) -> dict:
     structure.assign_serial_numbers()
-    topo = topology(structure, model_index, libin)
+    topo = gemmi.prepare_topology(structure, monlib, model_index)
     atom_zs = collections.defaultdict(list)
     for bond in topo.bonds:
         z = bond.calculate_z()
@@ -45,7 +30,7 @@ def _atom_zs(structure: gemmi.Structure, model_index, libin) -> dict:
         for atom in angle.atoms:
             atom_zs[atom.serial].append(z)
     for torsion in topo.torsions:
-        if torsion.restr.esd > 0:
+        if torsion.restr.esd > 0:  # Some torsions are only restrained by planes
             z = torsion.calculate_z()
             for atom in torsion.atoms:
                 atom_zs[atom.serial].append(z)

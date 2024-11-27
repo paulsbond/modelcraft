@@ -1,10 +1,10 @@
 import dataclasses
 import xml.etree.ElementTree as ET
 import gemmi
-from ..contents import AsuContents, PolymerType
+from ..contents import AsuContents, DNA_CODES, PolymerType
 from ..job import Job
 from ..reflections import DataItem, write_mtz
-from ..structure import read_structure, remove_non_library_atoms, write_mmcif
+from ..structure import read_structure, write_mmcif
 
 
 @dataclasses.dataclass
@@ -66,7 +66,7 @@ class Nautilus(Job):
         self._check_files_exist("xmlout.xml", "xyzout.cif")
         xml = ET.parse(self._path("xmlout.xml")).getroot()
         structure = read_structure(self._path("xyzout.cif"))
-        remove_non_library_atoms(structure)
+        _deoxyfy(structure)
         return NautilusResult(
             structure=structure,
             fragments_built=int(xml.find("Final/FragmentsBuilt").text),
@@ -75,3 +75,13 @@ class Nautilus(Job):
             longest_fragment=int(xml.find("Final/ResiduesLongestFragment").text),
             seconds=self._seconds,
         )
+
+
+def _deoxyfy(structure: gemmi.Structure) -> None:
+    dna_codes = set(DNA_CODES.values())
+    for chain in structure[0]:
+        for residue in chain:
+            if residue.name in dna_codes and "O2'" in residue:
+                for i, atom in reversed(list(enumerate(residue))):
+                    if atom.name == "O2'":
+                        del residue[i]

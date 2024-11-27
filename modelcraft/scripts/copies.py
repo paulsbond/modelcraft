@@ -35,14 +35,14 @@ def main(argument_list=None):
     for component in contents.components():
         stoichiometry = component.stoichiometry or 1
         assumed = "(assumed)" if component.stoichiometry is None else ""
-        volume = component.volume()
+        volume = component.volume(monlib)
         print(
             f"| {str(component)[:44]:44s} "
             f"| {assumed:9s} {stoichiometry:3d} "
             f"| {volume:8.0f} |"
         )
     print("|----------------------------------------------|---------------|----------|")
-    print(f"| {'Total':44s} |               | {contents.volume():8.0f} |")
+    print(f"| {'Total':44s} |               | {contents.volume(monlib):8.0f} |")
     print("")
 
     options = copies_options(contents, cell, mtz.spacegroup, mtz.resolution_high())

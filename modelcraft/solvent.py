@@ -3,6 +3,7 @@ import dataclasses
 import math
 import gemmi
 from .contents import AsuContents
+from .monlib import MonLib
 
 
 def solvent_fraction(
@@ -11,9 +12,10 @@ def solvent_fraction(
     spacegroup: gemmi.SpaceGroup,
     resolution: float,
 ) -> float:
+    monlib = MonLib(contents.monomer_codes(), include_standard=True)
     asu_volume = cell.volume / len(spacegroup.operations())
     copies = contents.copies or _guess_copies(contents, cell, spacegroup, resolution)
-    return 1 - copies * contents.volume() / asu_volume
+    return 1 - copies * contents.volume(monlib) / asu_volume
 
 
 @dataclasses.dataclass
@@ -28,13 +30,14 @@ def copies_options(
     cell: gemmi.UnitCell,
     spacegroup: gemmi.SpaceGroup,
     resolution: float,
+    monlib: MonLib,
 ) -> list:
     options = []
     nucleic_acids = contents.rnas + contents.dnas
-    mwp = sum(p.weight() * (p.stoichiometry or 1) for p in contents.proteins)
-    mwn = sum(n.weight() * (n.stoichiometry or 1) for n in nucleic_acids)
+    mwp = sum(p.weight(monlib) * (p.stoichiometry or 1) for p in contents.proteins)
+    mwn = sum(n.weight(monlib) * (n.stoichiometry or 1) for n in nucleic_acids)
     asu_volume = cell.volume / len(spacegroup.operations())
-    contents_volume = contents.volume()
+    contents_volume = contents.volume(monlib)
     total_probability = 0
     for copies in range(1, 60):
         solvent = 1 - copies * contents_volume / asu_volume

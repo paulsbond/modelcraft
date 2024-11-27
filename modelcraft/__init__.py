@@ -26,11 +26,9 @@ from .pipeline import Pipeline
 from .reflections import DataItem
 from .reflections import write_mtz
 from .scripts.modelcraft import main as run
-from .solvent import solvent_fraction
 from .structure import contains_residue
 from .structure import ModelStats
 from .structure import read_structure
-from .structure import remove_non_library_atoms
 from .structure import remove_non_protein
 from .structure import remove_residues
 from .structure import write_mmcif
@@ -58,7 +56,6 @@ __all__ = [
     "read_structure",
     "Refmac",
     "RefmacMapToMtz",
-    "remove_non_library_atoms",
     "remove_non_protein",
     "remove_residues",
     "remove_scale",
@@ -67,7 +64,6 @@ __all__ = [
     "ServalcatRefine",
     "ServalcatTrim",
     "Sheetbend",
-    "solvent_fraction",
     "update_cell",
     "write_mmcif",
     "write_mtz",

@@ -2,6 +2,7 @@ import dataclasses
 import gemmi
 from ..contents import AsuContents
 from ..job import Job
+from ..monlib import MonLib
 from ..reflections import DataItem, write_mtz
 from ..solvent import solvent_fraction
 from ..structure import write_mmcif
@@ -21,6 +22,7 @@ class Parrot(Job):
         fsigf: DataItem,
         freer: DataItem,
         phases: DataItem,
+        monlib: MonLib,
         fphi: DataItem = None,
         structure: gemmi.Structure = None,
     ):
@@ -29,6 +31,7 @@ class Parrot(Job):
         self.fsigf = fsigf
         self.freer = freer
         self.phases = phases
+        self.monlib = monlib
         self.fphi = fphi
         self.structure = structure
 
@@ -54,6 +57,7 @@ class Parrot(Job):
             cell=self.fsigf.cell,
             spacegroup=self.fsigf.spacegroup,
             resolution=self.fsigf.resolution_high(),
+            monlib=self.monlib,
         )
         self._args += ["-solvent-content", f"{solvent_content:.3f}"]
         self._args += ["-cycles", "5"]

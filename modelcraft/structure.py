@@ -1,6 +1,6 @@
 from typing import Iterator
 import gemmi
-from .monlib import atom_ids, in_library, is_protein, is_nucleic
+from .monlib import MonLib
 
 
 def read_structure(path: str) -> gemmi.Structure:
@@ -28,15 +28,6 @@ def remove_residues(structure: gemmi.Structure, names) -> None:
     structure.remove_empty_chains()
 
 
-def remove_non_library_atoms(structure: gemmi.Structure) -> None:
-    for residue in _residues(structure):
-        if in_library(residue.name):
-            for i, atom in reversed(list(enumerate(residue))):
-                if atom.name not in atom_ids(residue.name):
-                    del residue[i]
-    structure.remove_empty_chains()
-
-
 def remove_non_protein(structure: gemmi.Structure) -> None:
     for model in structure:
         for chain in model:
@@ -54,7 +45,7 @@ def write_mmcif(path: str, structure: gemmi.Structure) -> None:
 
 
 class ModelStats:
-    def __init__(self, structure: gemmi.Structure):
+    def __init__(self, structure: gemmi.Structure, monlib: MonLib):
         self.residues: int = 0
         self.protein: int = 0
         self.nucleic: int = 0
@@ -68,9 +59,9 @@ class ModelStats:
                 self.dummy_atoms += 1
             else:
                 self.residues += 1
-                if is_protein(residue.name):
+                if monlib.is_protein(residue.name):
                     self.protein += 1
-                if is_nucleic(residue.name):
+                if monlib.is_nucleic(residue.name):
                     self.nucleic += 1
 
     def __eq__(self, other):
@@ -118,10 +109,12 @@ def _patch_names(structure: gemmi.Structure) -> None:
             atom.name = atom_patches.get((residue.name, atom.name), atom.name)
 
 
-def are_connected(residue1: gemmi.Residue, residue2: gemmi.Residue) -> bool:
+def _are_connected(
+    residue1: gemmi.Residue, residue2: gemmi.Residue, monlib: MonLib
+) -> bool:
     if (
-        is_protein(residue1.name)
-        and is_protein(residue2.name)
+        monlib.is_protein(residue1.name)
+        and monlib.is_protein(residue2.name)
         and "C" in residue1
         and "N" in residue2
     ):
@@ -130,8 +123,8 @@ def are_connected(residue1: gemmi.Residue, residue2: gemmi.Residue) -> bool:
                 if atom1.pos.dist(atom2.pos) < 2.5:
                     return True
     if (
-        is_nucleic(residue1.name)
-        and is_nucleic(residue2.name)
+        monlib.is_nucleic(residue1.name)
+        and monlib.is_nucleic(residue2.name)
         and "O3'" in residue1
         and "P" in residue2
     ):
@@ -142,11 +135,11 @@ def are_connected(residue1: gemmi.Residue, residue2: gemmi.Residue) -> bool:
     return False
 
 
-def remove_isolated_fragments(chain: gemmi.Chain, max_length: int):
+def remove_isolated_fragments(chain: gemmi.Chain, monlib: MonLib, max_length: int):
     to_remove = []
     fragment = []
     for i, residue in enumerate(chain):
-        if i > 0 and are_connected(chain[i - 1], residue):
+        if i > 0 and _are_connected(chain[i - 1], residue, monlib):
             fragment.append(i)
         else:
             if len(fragment) <= max_length:

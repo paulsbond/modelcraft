@@ -2,8 +2,9 @@ import enum
 import functools
 import json
 import math
-from . import monlib
+from .monlib import MonLib
 from . import pdbe
+
 
 PROTEIN_CODES = {
     "A": "ALA",
@@ -53,6 +54,29 @@ DNA_CODES = {
 }
 
 PIR_CODES = {"D1", "DC", "DL", "F1", "N1", "N3", "P1", "RC", "RL", "XX"}
+
+BUFFERS = {"12P", "144", "15P", "16D", "1BO", "1PS", "2OS", "3CO", "3NI", "ACA", "ACN"}
+BUFFERS |= {"ACT", "ACY", "AG", "AGC", "AL", "AZI", "B3P", "B7G", "BA", "BCN", "BE7"}
+BUFFERS |= {"BEQ", "BGC", "BMA", "BNG", "BOG", "BR", "BRO", "BTB", "BTC", "BU1", "BU2"}
+BUFFERS |= {"BU3", "C10", "C15", "C8E", "CA", "CAC", "CBM", "CBX", "CCN", "CD", "CE1"}
+BUFFERS |= {"CIT", "CL", "CLO", "CM", "CM5", "CN", "CO", "CPS", "CRY", "CS", "CU"}
+BUFFERS |= {"CU1", "CXE", "CYN", "CYS", "DDQ", "DHD", "DIA", "DIO", "DMF", "DMS", "DMU"}
+BUFFERS |= {"DMX", "DOX", "DPR", "DR6", "DXG", "EDO", "EEE", "EGL", "EOH", "ETF", "F"}
+BUFFERS |= {"FCL", "FCY", "FE", "FE2", "FLO", "FMT", "FRU", "GBL", "GCD", "GLC", "GLO"}
+BUFFERS |= {"GLY", "GOL", "GPX", "HEZ", "HG", "HTG", "HTO", "ICI", "ICT", "IDO", "IDT"}
+BUFFERS |= {"IOD", "IOH", "IPA", "IPH", "JEF", "K", "LAK", "LAT", "LBT", "LDA", "LI"}
+BUFFERS |= {"LMT", "MA4", "MAN", "MG", "MG8", "MHA", "MN", "MN3", "MOH", "MPD", "MPO"}
+BUFFERS |= {"MRD", "MRY", "MTL", "N8E", "NA", "NCO", "NH4", "NHE", "NI", "NO3", "OTE"}
+BUFFERS |= {"P33", "P4C", "PB", "PDO", "PE4", "PE7", "PE8", "PEU", "PG5", "PG6", "PGE"}
+BUFFERS |= {"PGO", "PGQ", "PGR", "PIG", "PIN", "POL", "RB", "SAL", "SBT", "SCN", "SDS"}
+BUFFERS |= {"SO4", "SOR", "SPD", "SPK", "SPM", "SR", "SUC", "SUL", "SYL", "TAR", "TAU"}
+BUFFERS |= {"TBU", "TEP", "TFP", "TLA", "TMA", "TRE", "TRS", "TRT", "UMQ", "UNX", "URE"}
+BUFFERS |= {"XPE", "Y1", "YT3", "ZN", "ZN2"}
+
+
+@functools.cache
+def is_buffer(code: str) -> bool:
+    return code.upper() in BUFFERS
 
 
 class PolymerType(enum.Enum):
@@ -163,13 +187,13 @@ class Polymer:
 
     def weight(self) -> float:
         codes = self.residue_codes(modified=False)
-        weight = sum(monlib.weight(code) for code in codes)
-        weight -= monlib.weight("HOH") * (len(codes) - 1)
+        weight = sum(MonLib.STANDARD.weight(code) for code in codes)
+        weight -= MonLib.STANDARD.weight("HOH") * (len(codes) - 1)
         return weight
 
-    def volume(self) -> float:
+    def volume(self, monlib: MonLib) -> float:
         density = 1.35 if self.type == PolymerType.PROTEIN else 2.0
-        return self.weight() / (density * 0.602214)
+        return self.weight(monlib) / (density * 0.602214)
 
 
 class Carb:
@@ -205,7 +229,7 @@ class Carb:
     def to_json(self) -> dict:
         return {"codes": self.codes, "stoichiometry": self.stoichiometry}
 
-    def volume(self) -> float:
+    def volume(self, monlib: MonLib) -> float:
         monomers = sum(self.codes.values())
         volume = sum(monlib.volume(code) for code in self.codes)
         volume -= monomers * monlib.volume("HOH")
@@ -239,7 +263,7 @@ class Ligand:
     def to_json(self) -> dict:
         return {"code": self.code, "stoichiometry": self.stoichiometry}
 
-    def volume(self) -> float:
+    def volume(self, monlib: MonLib) -> float:
         return monlib.volume(self.code)
 
 
@@ -327,7 +351,7 @@ class AsuContents:
                 contents.carbs.append(carb)
             elif "bound" in molecule_type:
                 ligand = Ligand.from_pdbe(mol)
-                if monlib.is_buffer(ligand.code):
+                if is_buffer(ligand.code):
                     contents.buffers.append(ligand.code)
                 else:
                     contents.ligands.append(ligand)
@@ -355,19 +379,19 @@ class AsuContents:
     def monomer_codes(self) -> set:
         codes = set()
         for polymer in self.proteins + self.rnas + self.dnas:
-            codes.update(set(polymer.residue_codes(modified=True)))
+            codes |= set(polymer.residue_codes(modified=True))
         for carb in self.carbs:
-            codes.update(set(carb.codes.keys()))
+            codes |= set(carb.codes.keys())
         for ligand in self.ligands:
             codes.add(ligand.code)
-        codes.update(set(self.buffers))
+        codes |= set(self.buffers)
         return codes
 
     def is_selenomet(self) -> bool:
         return len(self.proteins) > 0 and all(p.is_selenomet() for p in self.proteins)
 
-    def volume(self) -> float:
-        return sum(c.volume() * (c.stoichiometry or 1) for c in self.components())
+    def volume(self, monlib: MonLib) -> float:
+        return sum(c.volume(monlib) * (c.stoichiometry or 1) for c in self.components())
 
     def to_json(self) -> list:
         return {

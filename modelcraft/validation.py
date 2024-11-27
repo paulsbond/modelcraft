@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from .jobs.refmac import RefmacResult
 from .geometry import per_residue_geometry_rmsz
-from .monlib import is_protein
+from .monlib import MonLib
 from .reflections import DataItem
 from .utils import modified_zscore
 
@@ -14,8 +14,8 @@ def validate(
     fphi_best: DataItem,
     fphi_diff: DataItem,
     fphi_calc: DataItem,
+    monlib: MonLib,
     model_index: int = 0,
-    libin: str = "",
 ) -> pd.DataFrame:
     best_map = fphi_best.map(spacing=1.0)
     diff_map = fphi_diff.map(size=best_map.shape)
@@ -23,7 +23,7 @@ def validate(
 
     bfac = _bfac(structure[model_index])
     rscc, diff = _rscc_diff(structure, best_map, diff_map, calc_map, model_index)
-    geom = per_residue_geometry_rmsz(structure, model_index, libin)
+    geom = per_residue_geometry_rmsz(structure, monlib, model_index)
 
     data = {
         "Chain": [],
@@ -36,7 +36,7 @@ def validate(
     }
     for chain in structure[model_index]:
         for residue in chain:
-            if is_protein(residue.name):
+            if monlib.is_protein(residue.name):
                 key = (chain.name, str(residue.seqid))
                 data["Chain"].append(chain.name)
                 data["SeqId"].append(str(residue.seqid))
@@ -56,13 +56,9 @@ def validate(
     return df
 
 
-def validate_refmac(result: RefmacResult, libin: str = "") -> pd.DataFrame:
+def validate_refmac(result: RefmacResult, monlib: MonLib) -> pd.DataFrame:
     return validate(
-        result.structure,
-        result.fphi_best,
-        result.fphi_diff,
-        result.fphi_calc,
-        libin=libin,
+        result.structure, result.fphi_best, result.fphi_diff, result.fphi_calc, monlib
     )
 
 

@@ -1,24 +1,28 @@
 import gemmi
 from .jobs.refmac import RefmacResult
+from .monlib import MonLib
 from .structure import remove_isolated_fragments
-from .monlib import is_protein, is_nucleic
 
 
-def combine_results(buccaneer: RefmacResult, nautilus: RefmacResult) -> gemmi.Structure:
+def combine_results(
+    buccaneer: RefmacResult, nautilus: RefmacResult, monlib: MonLib
+) -> gemmi.Structure:
     structure = buccaneer.structure.clone()
     for i, chain in reversed(list(enumerate(structure[0]))):
-        if _is_nucleic_chain(chain):
+        if _is_nucleic_chain(chain, monlib):
             del structure[0][i]
-    chains_to_add, clashing_to_remove = _resolve_clashes(structure, buccaneer, nautilus)
+    chains_to_add, clashing_to_remove = _resolve_clashes(
+        structure, buccaneer, nautilus, monlib
+    )
     for chain in structure[0]:
-        protein = _is_protein_chain(chain)
+        protein = _is_protein_chain(chain, monlib)
         any_removed = False
         for i, residue in reversed(list(enumerate(chain))):
             if _key(chain, residue) in clashing_to_remove:
                 del chain[i]
                 any_removed = True
         if protein and any_removed:
-            remove_isolated_fragments(chain, max_length=5)
+            remove_isolated_fragments(chain, monlib, max_length=5)
     structure.remove_empty_chains()
     for chain in chains_to_add:
         structure[0].add_chain(chain, unique_name=True)
@@ -26,7 +30,10 @@ def combine_results(buccaneer: RefmacResult, nautilus: RefmacResult) -> gemmi.St
 
 
 def _resolve_clashes(
-    structure: gemmi.Structure, buccaneer: RefmacResult, nautilus: RefmacResult
+    structure: gemmi.Structure,
+    buccaneer: RefmacResult,
+    nautilus: RefmacResult,
+    monlib: MonLib,
 ) -> tuple:
     chains_to_add = []
     clashing_to_remove = set()
@@ -34,7 +41,7 @@ def _resolve_clashes(
     naut_scores = _scores(nautilus)
     search = gemmi.NeighborSearch(structure, max_radius=1).populate()
     for chain in nautilus.structure[0]:
-        if _is_nucleic_chain(chain):
+        if _is_nucleic_chain(chain, monlib):
             residues_to_remove = set()
             for keys, clashing in _clashing_zones(chain, search, structure):
                 if _mean_score(keys, naut_scores) < _mean_score(clashing, bucc_scores):
@@ -45,7 +52,7 @@ def _resolve_clashes(
                 for i, residue in reversed(list(enumerate(chain))):
                     if _key(chain, residue) in residues_to_remove:
                         del chain[i]
-                remove_isolated_fragments(chain, max_length=1)
+                remove_isolated_fragments(chain, monlib, max_length=1)
             if len(chain) > 0:
                 chains_to_add.append(chain)
     return chains_to_add, clashing_to_remove
@@ -75,12 +82,12 @@ def _key(chain: gemmi.Chain, residue: gemmi.Residue) -> tuple:
     return (chain.name, residue.seqid.num, residue.seqid.icode)
 
 
-def _is_nucleic_chain(chain: gemmi.Chain) -> bool:
-    return len(chain) > 1 and all(is_nucleic(res.name) for res in chain)
+def _is_nucleic_chain(chain: gemmi.Chain, monlib: MonLib) -> bool:
+    return len(chain) > 1 and all(monlib.is_nucleic(res.name) for res in chain)
 
 
-def _is_protein_chain(chain: gemmi.Chain) -> bool:
-    return len(chain) > 1 and all(is_protein(res.name) for res in chain)
+def _is_protein_chain(chain: gemmi.Chain, monlib: MonLib) -> bool:
+    return len(chain) > 1 and all(monlib.is_protein(res.name) for res in chain)
 
 
 def _clashing_zones(
