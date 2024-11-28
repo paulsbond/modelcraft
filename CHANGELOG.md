@@ -16,6 +16,12 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Coot ML-based pruning
 - Coot side-chain fixing step
 
+## [5.0.1] - 2024-11-28
+
+## Changed
+
+- Gemmi fractionalization_matrix to frac.mat and orthogonalization_matrix to orth.mat.
+
 ## [5.0.0] - 2024-11-08
 
 ### Added
