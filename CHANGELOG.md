@@ -3,7 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
-## [5.0.0] - Unreleased
+## [5.0.1] - 2024-11-28
+
+## Changed
+
+- Gemmi fractionalization_matrix to frac.mat and orthogonalization_matrix to orth.mat.
+
+## [5.0.0] - 2024-11-08
 
 ### Added
 

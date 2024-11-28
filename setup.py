@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="modelcraft",
-    version="5.0.0",
+    version="5.0.1",
     author="Paul Bond",
     author_email="paul.bond@york.ac.uk",
     description="Automated model building pipeline for X-ray crystallography",
@@ -26,7 +26,7 @@ setuptools.setup(
     ],
     python_requires="~=3.7",
     install_requires=[
-        "gemmi >=0.5.4",
+        "gemmi >=0.5.5",
         "numpy",
         "pandas",
         "requests",
