@@ -241,25 +241,27 @@ _GROUP.add_argument(
 
 _EM = _SUB_PARSERS.add_parser("em", parents=[_PARENT], formatter_class=_FORMATTER)
 _GROUP = _EM.add_argument_group("required arguments (em)")
-_GROUP.add_argument(
-    "--map",
-    required=True,
-    nargs="+",
+_MAP = _GROUP.add_mutually_exclusive_group(required=True)
+_MAP.add_argument(
+    "--half-maps",
+    nargs=2,
     metavar="X",
     help=(
-        "Either two half-maps or a single map in MRC format. "
-        "Input maps will be trimmed using Servalcat. "
-        "If two half-maps are provided then Servalcat will be used to calculate "
+        "Unsharpened, unweighted half-maps in MRC format for use in refinement. "
+        "This option is preferred over providing a single map. "
+        "If the --build-map argument is not provided "
+        "then Servalcat will be used to calculate "
         "a normalised expected (NE) map for model building."
     ),
 )
-_GROUP.add_argument(
-    "--mask",
+_MAP.add_argument(
+    "--single-map",
     metavar="X",
     help=(
-        "Mask with the same grid size and dimensions as the input map(s). "
-        "Servalcat will use this mask when trimming the maps. "
-        "If a mask is not provided then EMDA mapmask will be used to create one."
+        "A single unsharpened, unweighted map in MRC format for use in refinement. "
+        "Only use this option if you do not have two half-maps available. "
+        "If the --build-map argument is not provided "
+        "then this map will also be used for model building. "
     ),
 )
 _GROUP.add_argument(
@@ -267,19 +269,33 @@ _GROUP.add_argument(
     type=float,
     required=True,
     metavar="X",
-    help="High resolution limit in Angstroms",
+    help=(
+        "Best resolution (high resolution limit) in Angstroms. "
+        "Using a higher resolution (a smaller number) reduces the grid spacing, "
+        "which may give better results at the cost of slower calculations."
+    ),
 )
+_GROUP = _EM.add_argument_group("optional arguments (em)")
 _GROUP.add_argument(
-    "--blur",
-    default=0.0,
-    type=float,
+    "--build-map",
     metavar="X",
     help=(
-        "B-factor for global blurring or sharpening of the input map "
-        "(positive values for blurring and negative values for sharpening). "
-        "This value is only used if a single input map is provided. "
-        "If two half-maps are provided then local blurring and sharpening "
-        "is performed in the calculation of the normalised expected (NE) map."
+        "Optimally-sharpened map (e.g. from LocScale) for use in model building. "
+        "If this is not provided then a normalised expected (NE) map "
+        "will be calculated from the two half-maps. "
+        "If half-maps were not provided then the single map will be used."
+    ),
+)
+_GROUP.add_argument(
+    "--mask",
+    metavar="X",
+    help=(
+        "Mask for trimming the input maps in MRC format, "
+        "with the same grid size and dimensions as the input maps. "
+        "Having a box size that is too large will lead to worse building results, "
+        "slow down the programs, and make the FSC calculation less accurate. "
+        "If this argument is set to 'auto' "
+        "then EMDA mapmask will be used to create a mask."
     ),
 )
 
@@ -303,25 +319,30 @@ def _basic_check(args: argparse.Namespace):
         _PARSER.error(f"--threads must be between 1 and {(os.cpu_count() or 1)}")
     if args.mode == "em" and args.resolution <= 0:
         _PARSER.error("--resolution must be greater than 0")
-    if args.mode == "em" and len(args.map) > 2:
-        _PARSER.error("--map only takes two half-maps or a single map")
-    if args.mode == "em" and len(args.map) == 2 and args.blur != 0.0:
-        _PARSER.error("--blur can only be used with a single map and not two half-maps")
 
 
 def _check_paths(args: argparse.Namespace):
-    for arg in ("contents", "data", "map", "mask", "model", "restraints"):
+    for arg in (
+        "build_map",
+        "contents",
+        "data",
+        "half_maps",
+        "mask",
+        "model",
+        "restraints",
+        "single_map",
+    ):
         if hasattr(args, arg):
             attr = getattr(args, arg)
-            if isinstance(attr, str):
+            if isinstance(attr, str) and attr != "auto":
                 if not os.path.exists(attr):
-                    _PARSER.error("File not found: %s" % attr)
+                    _PARSER.error(f"File not found: {attr}")
                 attr = os.path.abspath(attr)
                 setattr(args, arg, attr)
             if isinstance(attr, list):
                 for i, path in enumerate(attr):
                     if not os.path.exists(path):
-                        _PARSER.error("File not found: %s" % path)
+                        _PARSER.error(f"File not found: {path}")
                     attr[i] = os.path.abspath(path)
 
 

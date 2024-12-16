@@ -12,9 +12,9 @@ def test_1ana():
     urllib.request.urlretrieve(url, "1ana.cif.gz")
     structure = read_structure("1ana.cif.gz")
     assert structure.cell.parameters == (41.1, 41.1, 26.7, 90, 90, 90)
-    assert structure.cell.fractionalization_matrix.tolist()[0][0] == 0
+    assert structure.cell.frac.mat.tolist()[0][0] == 0
     remove_scale(structure)
-    assert structure.cell.fractionalization_matrix.tolist()[0][0] != 0
+    assert structure.cell.frac.mat.tolist()[0][0] != 0
     new_parameters = (41, 41, 27, 90, 90, 90)
     new_cell = gemmi.UnitCell(*new_parameters)
     assert max_distortion(structure.cell, new_cell) < 0.05

@@ -17,8 +17,8 @@ def remove_scale(structure: gemmi.Structure) -> None:
 
 def max_distortion(old_cell: gemmi.UnitCell, new_cell: gemmi.UnitCell) -> float:
     "Return the maximum distortion between two cells as a fraction"
-    frac1 = old_cell.fractionalization_matrix
-    orth2 = new_cell.orthogonalization_matrix
+    frac1 = old_cell.frac.mat
+    orth2 = new_cell.orth.mat
     identity = gemmi.Mat33()
     matrix = np.array(identity) - np.array(orth2.multiply(frac1))
     eigenvalues, _ = scipy.linalg.eig(matrix)

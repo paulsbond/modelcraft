@@ -49,12 +49,12 @@ class ServalcatNemap(Job):
 @dataclasses.dataclass
 class ServalcatTrimResult:
     mask: gemmi.Ccp4Map
-    maps: list
+    maps: dict
     seconds: float
 
 
 class ServalcatTrim(Job):
-    def __init__(self, mask: gemmi.Ccp4Map, maps: list):
+    def __init__(self, mask: gemmi.Ccp4Map, maps: dict):
         super().__init__("servalcat")
         self.mask = mask
         self.maps = maps
@@ -64,21 +64,20 @@ class ServalcatTrim(Job):
         self.mask.write_ccp4_map(self._path("mask.ccp4"))
         self._args += ["--mask", "mask.ccp4"]
         self._args.append("--maps")
-        for i, map_ in enumerate(self.maps):
-            map_.write_ccp4_map(self._path(f"map{i}.ccp4"))
-            self._args.append(f"map{i}.ccp4")
+        for name, ccp4_map in self.maps.items():
+            ccp4_map.write_ccp4_map(self._path(f"{name}.ccp4"))
+            self._args.append(f"{name}.ccp4")
         self._args.append("--noncubic")
         self._args.append("--noncentered")
         self._args.append("--no_shift")
 
     def _result(self) -> ServalcatTrimResult:
-        self._check_files_exist("mask_trimmed.mrc", "map0_trimmed.mrc")
+        self._check_files_exist("mask_trimmed.mrc")
         return ServalcatTrimResult(
             mask=read_map(self._path("mask_trimmed.mrc")),
-            maps=[
-                read_map(self._path(f"map{i}_trimmed.mrc"))
-                for i in range(len(self.maps))
-            ],
+            maps={
+                name: read_map(self._path(f"{name}_trimmed.mrc")) for name in self.maps
+            },
             seconds=self._seconds,
         )
 

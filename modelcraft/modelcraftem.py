@@ -25,12 +25,17 @@ class ModelCraftEm(Pipeline):
         self.report["version"] = __version__
         self.report["args"] = raw_args
         self.report["cycles"] = []
+        self.maps = {}
+        self.fmean = None
+        self.phases = None
 
     def run(self):
         print(f"# ModelCraft {__version__}", flush=True)
         os.makedirs(self.args.directory, exist_ok=self.args.overwrite_directory)
         self.start_time = time.time()
-        self._process_input_maps()
+        self._read_input_maps()
+        self._trim_input_maps()
+        self._calculate_fmean_and_phases()
         structure = self.args.model
         best_fsc = None
         cycles_without_improvement = 0
@@ -58,36 +63,52 @@ class ModelCraftEm(Pipeline):
                 break
         self.terminate("Normal")
 
-    def _process_input_maps(self):
-        maps = [read_map(path) for path in self.args.map]
-        if self.args.mask is not None:
-            mask = read_map(self.args.mask)
+    def _read_input_maps(self):
+        if self.args.half_maps:
+            self.maps["half_map1"] = read_map(self.args.half_maps[0])
+            self.maps["half_map2"] = read_map(self.args.half_maps[1])
         else:
-            mask = EmdaMapMask(maps[0]).run(self).mask
-        trimmed = ServalcatTrim(mask, maps).run(self)
-        self.args.map = trimmed.maps
-        if len(maps) == 2:
-            nemap = ServalcatNemap(
-                halfmap1=trimmed.maps[0],
-                halfmap2=trimmed.maps[1],
+            self.maps["single_map"] = read_map(self.args.single_map)
+        if self.args.build_map:
+            self.maps["build_map"] = read_map(self.args.build_map)
+
+    def _trim_input_maps(self):
+        if self.args.mask:
+            if self.args.mask == "auto":
+                map_for_mask = self.maps.get("half_map1", self.maps.get("single_map"))
+                mask = EmdaMapMask(map_for_mask).run(self).mask
+            else:
+                mask = read_map(self.args.mask)
+            trimmed = ServalcatTrim(mask, self.maps).run(self)
+            self.maps.update(trimmed.maps)
+
+    def _calculate_fmean_and_phases(self):
+        if self.args.build_map:
+            refmac = RefmacMapToMtz(
+                density=self.maps["build_map"],
                 resolution=self.args.resolution,
-                mask=trimmed.mask,
             ).run(self)
-            self.args.fphi = nemap.fphi
+            fphi = refmac.fphi
+        elif self.args.half_maps:
+            nemap = ServalcatNemap(
+                halfmap1=self.maps["half_map1"],
+                halfmap2=self.maps["half_map2"],
+                resolution=self.args.resolution,
+            ).run(self)
+            fphi = nemap.fphi
         else:
             refmac = RefmacMapToMtz(
-                density=trimmed.maps[0],
+                density=self.maps["single_map"],
                 resolution=self.args.resolution,
-                blur=self.args.blur,
             ).run(self)
-            self.args.fphi = refmac.fphi
-        self.args.fmean, self.args.phases = convert_to_fsigf_and_phifom(self.args.fphi)
+            fphi = refmac.fphi
+        self.fmean, self.phases = convert_to_fsigf_and_phifom(fphi)
 
     def buccaneer(self, structure: gemmi.Structure) -> gemmi.Structure:
         result = Buccaneer(
             contents=self.args.contents,
-            fsigf=self.args.fmean,
-            phases=self.args.phases,
+            fsigf=self.fmean,
+            phases=self.phases,
             input_structure=structure,
             mr_structure=self.args.model,
             cycles=5,
@@ -99,8 +120,8 @@ class ModelCraftEm(Pipeline):
     def nautilus(self, structure: gemmi.Structure) -> gemmi.Structure:
         result = Nautilus(
             contents=self.args.contents,
-            fsigf=self.args.fmean,
-            phases=self.args.phases,
+            fsigf=self.fmean,
+            phases=self.phases,
             structure=structure,
         ).run(self)
         return result.structure
@@ -111,9 +132,9 @@ class ModelCraftEm(Pipeline):
         result = ServalcatRefine(
             structure=structure,
             resolution=self.args.resolution,
-            halfmap1=self.args.map[0] if len(self.args.map) == 2 else None,
-            halfmap2=self.args.map[1] if len(self.args.map) == 2 else None,
-            density=self.args.map[0] if len(self.args.map) == 1 else None,
+            halfmap1=self.maps.get("half_map1"),
+            halfmap2=self.maps.get("half_map2"),
+            density=self.maps.get("single_map"),
             ligand=self.args.restraints,
         ).run(self)
         return result.structure
@@ -122,8 +143,8 @@ class ModelCraftEm(Pipeline):
         result = ServalcatFsc(
             structure=structure,
             resolution=self.args.resolution,
-            halfmap1=self.args.map[0] if len(self.args.map) == 2 else None,
-            halfmap2=self.args.map[1] if len(self.args.map) == 2 else None,
-            density=self.args.map[0] if len(self.args.map) == 1 else None,
+            halfmap1=self.maps.get("half_map1"),
+            halfmap2=self.maps.get("half_map2"),
+            density=self.maps.get("single_map"),
         ).run(self)
         return result.fsc
