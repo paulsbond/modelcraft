@@ -1,7 +1,22 @@
+import os
 import setuptools
+from setuptools.command.install import install
 
 with open("README.md", "r") as f:
     LONG_DESCRIPTION = f.read()
+
+
+class InstallPackage(install):
+    def __init__(self, dist):
+        super(install, self).__init__(dist)
+
+    def run(self):
+        install.run(self)
+        self.install_nucleofind_models()
+
+    def install_nucleofind_models(self):
+        os.system('nucleofind-install --all')
+
 
 setuptools.setup(
     name="modelcraft",
@@ -31,6 +46,7 @@ setuptools.setup(
         "pandas",
         "requests",
         "scipy",
+        "nucleofind"
     ],
     entry_points={
         "console_scripts": [
@@ -39,4 +55,5 @@ setuptools.setup(
             "modelcraft-copies = modelcraft.scripts.copies:main",
         ]
     },
+    cmdclass={'install': InstallPackage}
 )
