@@ -49,12 +49,12 @@ class NucleoFindBuild(Job):
         self._args += ["-mtzin", "hklin.mtz"]
         self._args += ["-colin-fo", self.fsigf.label()]
         self.nucleofind_result.predicted_phosphate_map.write_ccp4_map(self._path("phosin.map"))
-        self.nucleofind_result.predicted_sugar_map.write_ccp4_map(self._path("sugarin.map"))
-        self.nucleofind_result.predicted_base_map.write_ccp4_map(self._path("basein.map"))
+        # self.nucleofind_result.predicted_sugar_map.write_ccp4_map(self._path("sugarin.map"))
+        # self.nucleofind_result.predicted_base_map.write_ccp4_map(self._path("basein.map"))
 
         self._args += ["-phosin", "phosin.map"]
-        self._args += ["-sugarin", "sugarin.map"]
-        self._args += ["-basein", "basein.map"]
+        # self._args += ["-sugarin", "sugarin.map"]
+        # self._args += ["-basein", "basein.map"]
 
         if self.fphi is not None:
             self._args += ["-colin-fc", self.fphi.label()]

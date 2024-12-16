@@ -123,24 +123,6 @@ class ModelCraftXray(Pipeline):
             self.prune(chains_only=True)
             self.findwaters()
 
-    def nucleofind(self):
-        nucleofind_result = NucleoFind(
-            fphi=self.current_fphi_best,
-        ).run(self)
-
-        build_result = NucleoFindBuild(
-            contents=self.args.contents,
-            fsigf=self.args.fmean,
-            phases=self.current_phases,
-            fphi=self.current_fphi_best,
-            freer=self.args.freer,
-            structure=self.current_structure,
-            nucleofind_result = nucleofind_result
-        ).run(self)
-
-        return self.run_refmac(build_result.structure, cycles=10)
-
-
     def run_buccaneer_and_nautilus(self):
         buccaneer = self.buccaneer()
         nautilus = self.nautilus()
@@ -186,6 +168,24 @@ class ModelCraftXray(Pipeline):
             return None
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
+
+
+    def nucleofind(self):
+        nucleofind_result = NucleoFind(
+            fphi=self.current_fphi_best,
+        ).run(self)
+
+        build_result = NucleoFindBuild(
+            contents=self.args.contents,
+            fsigf=self.args.fmean,
+            phases=self.current_phases,
+            fphi=self.current_fphi_best,
+            freer=self.args.freer,
+            structure=self.current_structure,
+            nucleofind_result = nucleofind_result
+        ).run(self)
+        # I think real space refinement may be good post nucleofind0build
+        return self.run_refmac(build_result.structure, cycles=10)
 
 
     def nautilus(self):
