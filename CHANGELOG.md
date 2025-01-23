@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [5.0.2] - 2025-01-23
+
+## Fixed
+
+- wwPDB URL in cell test
+
 ## [5.0.1] - 2024-11-28
 
 ## Changed
