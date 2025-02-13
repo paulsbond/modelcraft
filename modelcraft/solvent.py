@@ -11,10 +11,13 @@ def solvent_fraction(
     cell: gemmi.UnitCell,
     spacegroup: gemmi.SpaceGroup,
     resolution: float,
+    monlib: MonLib = None,
 ) -> float:
-    monlib = MonLib(contents.monomer_codes(), include_standard=True)
+    monlib = monlib or MonLib(contents.monomer_codes(), include_standard=True)
     asu_volume = cell.volume / len(spacegroup.operations())
-    copies = contents.copies or _guess_copies(contents, cell, spacegroup, resolution)
+    copies = contents.copies
+    if copies is None:
+        copies = _guess_copies(contents, cell, spacegroup, resolution, monlib)
     return 1 - copies * contents.volume(monlib) / asu_volume
 
 
@@ -34,8 +37,8 @@ def copies_options(
 ) -> list:
     options = []
     nucleic_acids = contents.rnas + contents.dnas
-    mwp = sum(p.weight(monlib) * (p.stoichiometry or 1) for p in contents.proteins)
-    mwn = sum(n.weight(monlib) * (n.stoichiometry or 1) for n in nucleic_acids)
+    mwp = sum(p.weight() * (p.stoichiometry or 1) for p in contents.proteins)
+    mwn = sum(n.weight() * (n.stoichiometry or 1) for n in nucleic_acids)
     asu_volume = cell.volume / len(spacegroup.operations())
     contents_volume = contents.volume(monlib)
     total_probability = 0
@@ -56,8 +59,9 @@ def _guess_copies(
     cell: gemmi.UnitCell,
     spacegroup: gemmi.SpaceGroup,
     resolution: float,
+    monlib: MonLib,
 ) -> int:
-    options = copies_options(contents, cell, spacegroup, resolution)
+    options = copies_options(contents, cell, spacegroup, resolution, monlib)
     if len(options) == 0:
         raise ValueError("Contents are too big to fit into the asymmetric unit")
     chosen = max(options, key=lambda option: option.probability)

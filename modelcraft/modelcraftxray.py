@@ -2,6 +2,8 @@ import os
 import time
 import gemmi
 from . import __version__
+from .cell import max_distortion, remove_scale, update_cell
+from .combine import combine_results
 from .jobs.buccaneer import Buccaneer
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
@@ -9,8 +11,7 @@ from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
-from .cell import max_distortion, remove_scale, update_cell
-from .combine import combine_results
+from .monlib import MonLib
 from .pipeline import Pipeline
 from .prune import prune
 from .reflections import DataItem, write_mtz
@@ -38,6 +39,10 @@ class ModelCraftXray(Pipeline):
         self.last_refmac = None
         self.output_refmac = None
         self.cycles_without_improvement = 0
+        resnames = []
+        if self.args.model:
+            resnames = self.args.model[0].get_all_residue_names()
+        self.monlib = MonLib(resnames, self.args.restraints, include_standard=True)
 
     @property
     def resolution(self):
@@ -58,7 +63,7 @@ class ModelCraftXray(Pipeline):
             if self.cycles_without_improvement == self.args.auto_stop_cycles > 0:
                 break
         print("\n## Best Model:", flush=True)
-        _print_refmac_result(self.output_refmac)
+        self._print_refmac_result(self.output_refmac)
         self._remove_current_files()
         self.terminate(reason="Normal")
 
@@ -91,7 +96,7 @@ class ModelCraftXray(Pipeline):
         self.args.model = self.current_structure
         if self.args.phases is not None:
             self.current_phases = self.args.phases
-        _print_refmac_result(self.last_refmac)
+        self._print_refmac_result(self.last_refmac)
 
     def run_cycle(self):
         if self.args.basic:
@@ -118,7 +123,8 @@ class ModelCraftXray(Pipeline):
         if buccaneer is None or nautilus is None:
             self.update_current_from_refmac_result(buccaneer or nautilus)
         else:
-            combined = self.run_refmac(combine_results(buccaneer, nautilus), cycles=5)
+            combined_structure = combine_results(buccaneer, nautilus, self.monlib)
+            combined = self.run_refmac(combined_structure, cycles=5)
             best = min((buccaneer, nautilus, combined), key=lambda result: result.rfree)
             self.update_current_from_refmac_result(best)
 
@@ -139,7 +145,10 @@ class ModelCraftXray(Pipeline):
             cycles=3 if self.cycle == 1 else 2,
             threads=self.args.threads,
         ).run(self)
-        if result.structure is None or ModelStats(result.structure).residues == 0:
+        if (
+            result.structure is None
+            or ModelStats(result.structure, self.monlib).residues == 0
+        ):
             return None
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
@@ -155,7 +164,10 @@ class ModelCraftXray(Pipeline):
             freer=self.args.freer,
             structure=self.current_structure,
         ).run(self)
-        if result.structure is None or ModelStats(result.structure).residues == 0:
+        if (
+            result.structure is None
+            or ModelStats(result.structure, self.monlib).residues == 0
+        ):
             return None
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
@@ -171,7 +183,7 @@ class ModelCraftXray(Pipeline):
             write_mmcif(self.path("current.cif"), self.current_structure)
 
     def run_refmac(self, structure: gemmi.Structure, cycles: int):
-        if ModelStats(structure).residues == 0:
+        if ModelStats(structure, self.monlib).residues == 0:
             self.terminate(reason="No residues to refine")
         use_phases = self.args.unbiased and (
             self.output_refmac is None or self.output_refmac.rwork > 0.35
@@ -204,6 +216,7 @@ class ModelCraftXray(Pipeline):
             fsigf=self.args.fmean,
             freer=self.args.freer,
             phases=self.current_phases,
+            monlib=self.monlib,
             fphi=self.current_fphi_best,
             structure=self.current_structure,
         ).run(self)
@@ -219,7 +232,7 @@ class ModelCraftXray(Pipeline):
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
             fphi_calc=self.current_fphi_calc,
-            libin=self.args.restraints,
+            monlib=self.monlib,
             residues=not chains_only,
         )
         write_mmcif(self.path("current.cif"), pruned)
@@ -239,8 +252,8 @@ class ModelCraftXray(Pipeline):
         self.refmac(result.structure, cycles=10, auto_accept=False)
 
     def process_cycle_output(self, result):
-        _print_refmac_result(result)
-        model_stats = ModelStats(result.structure)
+        self._print_refmac_result(result)
+        model_stats = ModelStats(result.structure, self.monlib)
         stats = {
             "cycle": self.cycle,
             "residues": model_stats.residues,
@@ -289,13 +302,12 @@ class ModelCraftXray(Pipeline):
             except FileNotFoundError:
                 pass
 
-
-def _print_refmac_result(result):
-    model_stats = ModelStats(result.structure)
-    print("")
-    print(f"Residues: {model_stats.residues:6d}")
-    print(f"Protein:  {model_stats.protein:6d}")
-    print(f"Nucleic:  {model_stats.nucleic:6d}")
-    print(f"Waters:   {model_stats.waters:6d}")
-    print(f"R-work:   {result.rwork:6.4f}")
-    print(f"R-free:   {result.rfree:6.4f}", flush=True)
+    def _print_refmac_result(self, result):
+        model_stats = ModelStats(result.structure, self.monlib)
+        print("")
+        print(f"Residues: {model_stats.residues:6d}")
+        print(f"Protein:  {model_stats.protein:6d}")
+        print(f"Nucleic:  {model_stats.nucleic:6d}")
+        print(f"Waters:   {model_stats.waters:6d}")
+        print(f"R-work:   {result.rwork:6.4f}")
+        print(f"R-free:   {result.rfree:6.4f}", flush=True)

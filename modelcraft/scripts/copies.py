@@ -3,6 +3,7 @@ import sys
 import gemmi
 from ..contents import AsuContents
 from ..environ import setup_environ
+from ..monlib import MonLib
 from ..solvent import copies_options
 
 
@@ -13,9 +14,12 @@ def main(argument_list=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("contents", help="Path to contents file")
     parser.add_argument("mtz", help="Path to MTZ file")
+    parser.add_argument("libin", help="Path to custom restraint dictionary")
     args = parser.parse_args(argument_list)
+
     contents = AsuContents.from_file(args.contents)
     mtz = gemmi.read_mtz_file(args.mtz)
+    monlib = MonLib(contents.monomer_codes(), args.libin, include_standard=True)
 
     cell = mtz.cell
     asu_volume = cell.volume / len(mtz.spacegroup.operations())
@@ -45,7 +49,9 @@ def main(argument_list=None):
     print(f"| {'Total':44s} |               | {contents.volume(monlib):8.0f} |")
     print("")
 
-    options = copies_options(contents, cell, mtz.spacegroup, mtz.resolution_high())
+    options = copies_options(
+        contents, cell, mtz.spacegroup, mtz.resolution_high(), monlib
+    )
     print("## Copies\n")
     if len(options) == 0:
         print("Contents are too big to fit into the asymmetric unit")

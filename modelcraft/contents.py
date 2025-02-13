@@ -1,59 +1,11 @@
-import enum
+import abc
 import functools
 import json
 import math
-from .monlib import MonLib
 from . import pdbe
+from .monlib import MonLib
+from .sequence import PolymerType, sequences_in_file
 
-
-PROTEIN_CODES = {
-    "A": "ALA",
-    "B": "ASX",
-    "C": "CYS",
-    "D": "ASP",
-    "E": "GLU",
-    "F": "PHE",
-    "G": "GLY",
-    "H": "HIS",
-    "I": "ILE",
-    "K": "LYS",
-    "L": "LEU",
-    "M": "MET",
-    "N": "ASN",
-    "O": "PYL",
-    "P": "PRO",
-    "Q": "GLN",
-    "R": "ARG",
-    "S": "SER",
-    "T": "THR",
-    "U": "SEC",
-    "V": "VAL",
-    "W": "TRP",
-    "X": "UNK",
-    "Y": "TYR",
-    "Z": "GLX",
-}
-
-RNA_CODES = {
-    "A": "A",
-    "C": "C",
-    "G": "G",
-    "I": "I",
-    "U": "U",
-    "X": "N",
-}
-
-DNA_CODES = {
-    "A": "DA",
-    "C": "DC",
-    "G": "DG",
-    "I": "DI",
-    "T": "DT",
-    "U": "DU",
-    "X": "DN",
-}
-
-PIR_CODES = {"D1", "DC", "DL", "F1", "N1", "N3", "P1", "RC", "RL", "XX"}
 
 BUFFERS = {"12P", "144", "15P", "16D", "1BO", "1PS", "2OS", "3CO", "3NI", "ACA", "ACN"}
 BUFFERS |= {"ACT", "ACY", "AG", "AGC", "AL", "AZI", "B3P", "B7G", "BA", "BCN", "BE7"}
@@ -79,13 +31,13 @@ def is_buffer(code: str) -> bool:
     return code.upper() in BUFFERS
 
 
-class PolymerType(enum.Enum):
-    PROTEIN = "PROTEIN"
-    RNA = "RNA"
-    DNA = "DNA"
+class Component(abc.ABC):
+    @abc.abstractmethod
+    def volume(self, monlib: MonLib):
+        pass
 
 
-class Polymer:
+class Polymer(Component):
     def __init__(
         self,
         sequence: str,
@@ -95,7 +47,7 @@ class Polymer:
     ):
         self.sequence = sequence.upper()
         self.stoichiometry = stoichiometry
-        self.type = polymer_type or guess_sequence_type(self.sequence)
+        self.type = polymer_type or PolymerType.guess(self.sequence)
         self.modifications = modifications or []
 
     def __eq__(self, other) -> bool:
@@ -108,12 +60,7 @@ class Polymer:
         return NotImplemented
 
     def __str__(self) -> str:
-        kind = {
-            PolymerType.PROTEIN: "Protein",
-            PolymerType.RNA: "RNA",
-            PolymerType.DNA: "DNA",
-        }[self.type]
-        s = f"{kind} with {len(self.sequence)} residues: "
+        s = f"{self.type.name} with {len(self.sequence)} residues: "
         if len(self.sequence) > 9:
             s += f"{self.sequence[:3]}...{self.sequence[-3:]}"
         else:
@@ -169,7 +116,7 @@ class Polymer:
         }
 
     def residue_codes(self, modified: bool = True) -> list:
-        codes = [code1_to_code3(code1, self.type) for code1 in self.sequence]
+        codes = self.type.parse(self.sequence)
         if modified:
             for mod in self.modifications:
                 source, code = mod.split("->")
@@ -193,10 +140,10 @@ class Polymer:
 
     def volume(self, monlib: MonLib) -> float:
         density = 1.35 if self.type == PolymerType.PROTEIN else 2.0
-        return self.weight(monlib) / (density * 0.602214)
+        return self.weight() / (density * 0.602214)
 
 
-class Carb:
+class Carb(Component):
     def __init__(self, codes: dict, stoichiometry: int = None):
         self.codes = codes
         self.stoichiometry = stoichiometry
@@ -236,7 +183,7 @@ class Carb:
         return volume
 
 
-class Ligand:
+class Ligand(Component):
     def __init__(self, code: str, stoichiometry: int = None):
         self.code = code
         self.stoichiometry = stoichiometry
@@ -358,7 +305,7 @@ class AsuContents:
         contents.divide_stoichiometry()
         return contents
 
-    def components(self) -> list:
+    def components(self) -> list[Component]:
         return self.proteins + self.rnas + self.dnas + self.carbs + self.ligands
 
     def divide_stoichiometry(self):
@@ -417,52 +364,3 @@ class AsuContents:
                     stream.write(f">{polymer.type.value}\n")
                     for i in range(0, len(polymer.sequence), line_length):
                         stream.write(polymer.sequence[i : i + line_length] + "\n")
-
-
-def code1_to_code3(code1: str, polymer_type: PolymerType) -> str:
-    return {
-        PolymerType.PROTEIN: PROTEIN_CODES.get(code1) or PROTEIN_CODES["X"],
-        PolymerType.RNA: RNA_CODES.get(code1) or RNA_CODES["X"],
-        PolymerType.DNA: DNA_CODES.get(code1) or DNA_CODES["X"],
-    }[polymer_type]
-
-
-def guess_sequence_type(sequence: str) -> PolymerType:
-    codes = set(sequence)
-    if "U" in codes:
-        return PolymerType.RNA
-    if codes & set("DEFHIKLMNPQRSVWY"):
-        return PolymerType.PROTEIN
-    if codes == {"A"}:
-        return PolymerType.PROTEIN
-    if codes == {"G"}:
-        return PolymerType.PROTEIN
-    if "T" in codes:
-        return PolymerType.DNA
-    return PolymerType.RNA
-
-
-def sequences_in_file(contents: str) -> list:
-    sequence = ""
-    sequences = []
-    skip_line = False
-    skip_lines = False
-    lines = contents.splitlines(keepends=False)
-    for line in lines:
-        if skip_line:
-            skip_line = False
-            continue
-        if line[:1] == ">":
-            if len(sequence) > 0:
-                sequences.append(sequence)
-            sequence = ""
-            if line[1:3] in PIR_CODES and line[3:4] == ";":
-                skip_line = True
-            skip_lines = False
-        elif line[:1] != ";" and not skip_lines:
-            sequence += "".join(c for c in line if c.isalpha())
-            if line[-1:] == "*":
-                skip_lines = True
-    if len(sequence) > 0:
-        sequences.append(sequence)
-    return sequences
