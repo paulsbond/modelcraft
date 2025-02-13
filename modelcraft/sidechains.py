@@ -35,6 +35,15 @@ def has_full_side_chain(residue: gemmi.Residue) -> bool:
     return built > expected
 
 
+def any_missing_side_chains(structure: gemmi.Structure) -> bool:
+    "Check if any residue in a structure has missing side chain atoms."
+    for chain in structure[0]:
+        for residue in chain:
+            if not has_full_side_chain(residue):
+                return True
+    return False
+
+
 def build_missing_side_chains(
     structure: gemmi.Structure, fphi_best: DataItem
 ) -> gemmi.Structure:
