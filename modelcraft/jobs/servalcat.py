@@ -38,8 +38,8 @@ class ServalcatNemap(Job):
             self._args += ["--mask", "mask.ccp4"]
 
     def _result(self) -> ServalcatNemapResult:
-        self._check_files_exist("nemap.mtz")
-        mtz = gemmi.read_mtz_file(self._path("nemap.mtz"))
+        self._check_files_exist("nemap_maps.mtz")
+        mtz = gemmi.read_mtz_file(self._path("nemap_maps.mtz"))
         return ServalcatNemapResult(
             fphi=DataItem(mtz, "FWT,PHWT"),
             seconds=self._seconds,
