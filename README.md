@@ -50,13 +50,13 @@ instead of starting from phases in the data file.
 modelcraft xray --contents contents.json --data data.mtz --model model.cif
 ```
 
-For cryo-EM, either two halfmaps or a single map must be provided,
+For cryo-EM, either two halfmaps (recommended) or a single map must be provided,
 along with a resolution.
 A starting model can be provided in the same way as with X-ray data.
 
 ```bash
-modelcraft em --contents contents.json --map half1.mrc half2.mrc --resolution 2.5
-modelcraft em --contents contents.json --map map.mrc --resolution 2.5
+modelcraft em --contents contents.json --halfmaps half1.mrc half2.mrc --resolution 2.5
+modelcraft em --contents contents.json --single-map map.mrc --resolution 2.5
 ```
 
 The command line documentation
@@ -91,33 +91,31 @@ An example JSON file is shown below:
 
 ```json
 {
-"copies": 2,
-"proteins": [
+  "copies": 2,
+  "proteins": [
     {
-        "sequence": "LPGECSVNVIPKMNLDKAKFFSGTWYETHYLDMDPQATEKFCFSFAPRESGGTVMEALYHFNVDSKV",
-        "stoichiometry": 1,
-        "modifications": ["M->MSE"]
+      "sequence": "LPGECSVNVIPKMNLDKAKFFSGTWYETHYLDMDPQATEKFCFSFAPRESGGTVMEALYHFNVDSKV",
+      "stoichiometry": 1,
+      "modifications": ["M->MSE"]
     },
     {
-        "sequence": "GGG"
+      "sequence": "GGG"
     }
-],
-"rnas": [
+  ],
+  "rnas": [
     {
-        "sequence": "GGUAACUGUUACAGUUACC",
-        "stoichiometry": 2,
-        "modifications": ["1->GTP", "19->CCC"]
+      "sequence": "GGUAACUGUUACAGUUACC",
+      "stoichiometry": 2,
+      "modifications": ["1->GTP", "19->CCC"]
     }
-],
-"dnas": [],
-"carbs": [
+  ],
+  "dnas": [],
+  "carbs": [
     { "codes": { "NAG": 2 }, "stoichiometry": 1 },
     { "codes": { "MAN": 1, "NAG": 2 }, "stoichiometry": 1 }
-],
-"ligands": [
-    { "code": "HEM", "stoichiometry": 1 }
-],
-"buffers": ["GOL", "NA", "CL"]
+  ],
+  "ligands": [{ "code": "HEM", "stoichiometry": 1 }],
+  "buffers": ["GOL", "NA", "CL"]
 }
 ```
 
