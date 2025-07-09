@@ -1,6 +1,8 @@
 import dataclasses
 import os
 import gemmi
+
+from .nucleofind import NucleoFindResult
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
@@ -102,3 +104,94 @@ class FixSideChains(Coot):
         super().__init__(
             script=script, structures=[structure], fphis=[fphi_best, fphi_diff]
         )
+
+
+@dataclasses.dataclass
+class CootNucleoFindRSRResult:
+    structure: gemmi.Structure
+    seconds: int
+
+
+class CootNucleoFindRSR(Job):
+    def __init__(self,
+                 fsigf: DataItem,
+                 phases: DataItem,
+                 fphi: DataItem = None,
+                 freer: DataItem = None,
+                 structure: gemmi.Structure = None,
+                 nucleofind_result: NucleoFindResult = None,
+                 chain: str = "",
+                 res_range_start: int = None,
+                 res_range_end: int = None):
+        super().__init__("coot-mini-rsr")
+
+        self.fsigf = fsigf
+        self.phases = phases
+        self.fphi = fphi
+        self.freer = freer
+        self.structure = structure
+        self.chain = chain
+        self.res_range_start = res_range_start
+        self.res_range_end = res_range_end
+        self.nucleofind_result = nucleofind_result
+        self.other_chains = []
+
+    def _setup(self):
+        data_items = [self.fsigf, self.phases, self.fphi, self.freer]
+        write_mtz(self._path("hklin.mtz"), data_items)
+
+        if self.nucleofind_result:
+            mtz = gemmi.read_mtz_file(self._path("hklin.mtz"))
+            grid = mtz.transform_f_phi_to_map(self.fphi.label(0), self.fphi.label(1))
+            grid.normalize()
+            grid = self._weight_map(grid)
+            grid_name = "grid.map"
+            self._save_map(grid, grid_name)
+            self._args += ["--mapin", grid_name]
+        else:
+            if self.fphi is not None:
+                self._args += ["--f", self.fphi.label(0)]
+                self._args += ["--phi", self.fphi.label(1)]
+            self._args += ["--hklin", "hklin.mtz"]
+
+        if self.structure is not None:
+            write_mmcif(self._path("xyzin.cif"), self.structure)
+            self._args += ["--pdbin", "xyzin.cif"]
+
+        self._args += ["--pdbout", "xyzout.cif"]
+        if self.chain:
+            self._args += ["--chain-id", self.chain]
+        if self.res_range_start is not None:
+            self._args += ["--resno-start", self.res_range_start]
+        if self.res_range_end is not None:
+            self._args += ["--resno-end", self.res_range_end]
+
+    def _weight_map(self, grid: gemmi.FloatGrid) -> gemmi.FloatGrid:
+        for point in grid:
+            position = grid.point_to_position(point)
+            phosphate_value = self.nucleofind_result.predicted_phosphate_map.grid.interpolate_value(position)
+            sugar_value = self.nucleofind_result.predicted_sugar_map.grid.interpolate_value(position)
+            base_value = self.nucleofind_result.predicted_base_map.grid.interpolate_value(position)
+            point.value = point.value * (sugar_value + phosphate_value + base_value)
+        return grid
+
+    def _save_map(self, grid: gemmi.FloatGrid, name: str = "grid.map"):
+        m = gemmi.Ccp4Map()
+        m.grid = grid
+        m.update_ccp4_header()
+        m.write_ccp4_map(self._path(name))
+
+
+    def _result(self) -> gemmi.Structure:
+        self._check_files_exist("xyzout.cif")
+
+        refined_structure = read_structure(self._path("xyzout.cif"))
+
+        refined_chain = refined_structure[0].find_chain(self.chain)
+        original_chain = self.structure[0].find_chain(self.chain)
+        superposition = gemmi.calculate_superposition(original_chain.whole(), refined_chain.whole(),
+                                                      gemmi.PolymerType.Rna, gemmi.SupSelect.All, trim_cycles=5)
+        threshold = 2
+        if superposition.rmsd > threshold:
+            return CootNucleoFindRSR(self.structure, self._seconds)
+        return CootNucleoFindRSR(refined_structure, self._seconds)

@@ -43,29 +43,29 @@ class NucleoFindBuild(Job):
     def _setup(self) -> None:
         types = [PolymerType.RNA, PolymerType.DNA]
         self.contents.write_sequence_file(self._path("seqin.seq"), types)
-        self._args += ["-seqin", "seqin.seq"]
+        self._args += ["--seqin", "seqin.seq"]
         data_items = [self.fsigf, self.phases, self.fphi, self.freer]
         write_mtz(self._path("hklin.mtz"), data_items)
-        self._args += ["-mtzin", "hklin.mtz"]
-        self._args += ["-colin-fo", self.fsigf.label()]
+        self._args += ["--mtzin", "hklin.mtz"]
+        self._args += ["--colin-fo", self.fsigf.label()]
         self.nucleofind_result.predicted_phosphate_map.write_ccp4_map(self._path("phosin.map"))
         self.nucleofind_result.predicted_sugar_map.write_ccp4_map(self._path("sugarin.map"))
         self.nucleofind_result.predicted_base_map.write_ccp4_map(self._path("basein.map"))
 
-        self._args += ["-phosin", "phosin.map"]
-        self._args += ["-sugarin", "sugarin.map"]
-        self._args += ["-basein", "basein.map"]
+        self._args += ["--phosin", "phosin.map"]
+        self._args += ["--sugarin", "sugarin.map"]
+        self._args += ["--basein", "basein.map"]
 
         if self.fphi is not None:
-            self._args += ["-colin-fc", self.fphi.label()]
+            self._args += ["--colin-fc", self.fphi.label()]
         if self.freer is not None:
-            self._args += ["-colin-free", self.freer.label()]
+            self._args += ["--colin-free", self.freer.label()]
         if self.structure is not None:
             write_mmcif(self._path("xyzin.cif"), self.structure)
-            self._args += ["-pdbin", "xyzin.cif"]
-        self._args += ["-cycles", str(self.cycles)]
-        self._args += ["-pdbout", "xyzout.cif"]
-        self._args += ["-xmlout", "xmlout.xml"]
+            self._args += ["--pdbin", "xyzin.cif"]
+        self._args += ["--cycles", str(self.cycles)]
+        self._args += ["--pdbout", "xyzout.cif"]
+        self._args += ["--xmlout", "xmlout.xml"]
 
     def _result(self) -> NucleoFindBuildResult:
         self._check_files_exist("xmlout.xml", "xyzout.cif")
