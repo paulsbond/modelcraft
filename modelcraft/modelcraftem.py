@@ -34,6 +34,7 @@ class ModelCraftEm(Pipeline):
         os.makedirs(self.args.directory, exist_ok=self.args.overwrite_directory)
         self.start_time = time.time()
         self._read_input_maps()
+        original_map_centre = self.map_centre()
         self._trim_input_maps()
         self._calculate_fmean_and_phases()
         structure = self.args.model
@@ -54,6 +55,7 @@ class ModelCraftEm(Pipeline):
             if best_fsc is None or fsc > best_fsc:
                 best_fsc = fsc
                 cycles_without_improvement = 0
+                self.shift(structure, original_map_centre)
                 write_mmcif(self.path("modelcraft.cif"), structure)
                 self.report["final"] = stats
             else:
@@ -148,3 +150,19 @@ class ModelCraftEm(Pipeline):
             density=self.maps.get("single_map"),
         ).run(self)
         return result.fsc
+
+    def map_centre(self):
+        first_map = next(iter(self.maps.values()))
+        fractional = gemmi.Fractional(0.5, 0.5, 0.5)
+        return first_map.grid.unit_cell.orthogonalize(fractional)
+
+    def shift(self, structure: gemmi.Structure, original_map_centre: gemmi.Position):
+        model_centre = structure[0].calculate_center_of_mass()
+        diff = original_map_centre - model_centre
+        shift = gemmi.Vec3(
+            round(diff[0] / structure.cell.a) * structure.cell.a,
+            round(diff[1] / structure.cell.b) * structure.cell.b,
+            round(diff[2] / structure.cell.c) * structure.cell.c,
+        )
+        transform = gemmi.Transform(gemmi.Mat33(), shift)
+        structure[0].transform_pos_and_adp(transform)
