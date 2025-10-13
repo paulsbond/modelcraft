@@ -3,7 +3,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
-## [5.0.4] - 2025-10-13
+## [5.1.0] - 2025-10-13
+
+## Added
+
+- Added --freerflag-value argument and default handling of alternative flag definitions
 
 ## Fixed
 

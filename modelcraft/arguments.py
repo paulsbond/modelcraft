@@ -182,6 +182,16 @@ _GROUP.add_argument(
     ),
 )
 _GROUP.add_argument(
+    "--freerflag-value",
+    type=int,
+    metavar="X",
+    help=(
+        "Value of the free-R flag to identify reflections as free. "
+        "It defaults to the lowest flag with <50% of reflections. "
+        "If the chosen flag is not 0 it will changed to match the CCP4 convention."
+    ),
+)
+_GROUP.add_argument(
     "--unbiased",
     action="store_true",
     help=(
@@ -387,9 +397,24 @@ def _parse_freerflag(args: argparse.Namespace, mtz: gemmi.Mtz):
     else:
         args.freer = _item_from_label(mtz, args.freerflag_label, ["I"])
     values = list(args.freer.columns[-1])
-    percentage = values.count(0) / len(values) * 100
-    if percentage == 0 or percentage > 50:
-        _PARSER.error(f"{percentage}% of the reflections are in the free set (flag 0)")
+    if args.freerflag_value is None:
+        print("Selecting for a suitable free-R flag value", flush=True)
+        for value in sorted(set(values)):
+            fraction = values.count(value) / len(values)
+            if fraction < 0.5:
+                args.freerflag_value = value
+                print(f"Selected flag {value}", flush=True)
+                break
+        else:
+            _PARSER.error("No suitable value found for the free-R flag")
+    else:
+        percentage = values.count(args.freerflag_value) / len(values) * 100
+        if percentage == 0 or percentage > 50:
+            _PARSER.error(f"{percentage}% of the reflections are in the free set")
+    if args.freerflag_value != 0:
+        print("Changing the free-R flag to match CCP4 convention", flush=True)
+        values = [0 if v == args.freerflag_value else 1 for v in values]
+        args.freer.array[:, -1] = values
 
 
 def _parse_phases(args: argparse.Namespace, mtz: gemmi.Mtz):
