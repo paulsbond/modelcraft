@@ -1,8 +1,10 @@
 {
-  "black-formatter.args": [
-    "--line-length=88"
-  ],
   "diffEditor.ignoreTrimWhitespace": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
   "editor.trimAutoWhitespace": true,
@@ -11,23 +13,12 @@
     "**/__pycache__": true,
     "**/.pytest_cache": true,
     "**/*.egg-info": true,
-    "**/*.pyc": true,
+    "**/*.pyc": true
   },
+  "ruff.nativeServer": "on",
   "files.insertFinalNewline": true,
-  "flake8.args": [
-    "--max-complexity=10",
-    "--max-line-length=88",
-    "--extend-ignore=E203",
-  ],
-  "pylint.args": [
-    "--disable=missing-class-docstring",
-    "--disable=missing-function-docstring",
-    "--disable=missing-module-docstring",
-  ],
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
-    "editor.rulers": [
-      88,
-    ],
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.rulers": [88]
   }
 }
