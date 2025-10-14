@@ -1,8 +1,10 @@
 import dataclasses
 import os
 import xml.etree.ElementTree as ET
+
 import gemmi
-from ..contents import AsuContents, PolymerType, PROTEIN_CODES
+
+from ..contents import PROTEIN_CODES, AsuContents, PolymerType
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif

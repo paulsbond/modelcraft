@@ -1,5 +1,6 @@
 import gemmi
 import pytest
+
 from modelcraft.contents import AsuContents
 from modelcraft.solvent import solvent_fraction
 

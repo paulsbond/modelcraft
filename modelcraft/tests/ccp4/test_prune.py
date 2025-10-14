@@ -1,5 +1,5 @@
-from ...structure import ModelStats
 from ...prune import prune
+from ...structure import ModelStats
 from . import insulin_refmac
 
 

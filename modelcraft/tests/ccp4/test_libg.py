@@ -1,5 +1,6 @@
 from modelcraft.jobs.libg import Libg
 from modelcraft.structure import read_structure
+
 from . import ccp4_path
 
 

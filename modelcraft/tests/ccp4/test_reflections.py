@@ -1,6 +1,9 @@
 from typing import List
+
 import gemmi
+
 from modelcraft.reflections import DataItem, convert_to_fsigf_and_phifom
+
 from . import ccp4_path
 
 

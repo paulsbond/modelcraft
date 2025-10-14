@@ -1,7 +1,9 @@
 import argparse
 import sys
+
 import gemmi
 from tabulate import tabulate
+
 from ..environ import setup_environ
 from ..monlib import MonLib
 from ..reflections import DataItem

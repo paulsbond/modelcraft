@@ -1,4 +1,5 @@
 import dataclasses
+
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 

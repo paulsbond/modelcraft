@@ -36,5 +36,8 @@ modelcraft-validate = "modelcraft.scripts.validate:main"
 Source = "https://github.com/paulsbond/modelcraft"
 Issues = "https://github.com/paulsbond/modelcraft/issues"
 
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
 [tool.setuptools.dynamic]
 version = { attr = "modelcraft.__version__" }

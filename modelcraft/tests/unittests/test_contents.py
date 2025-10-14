@@ -1,8 +1,9 @@
 import pytest
+
 from modelcraft.contents import (
+    PolymerType,
     code1_to_code3,
     guess_sequence_type,
-    PolymerType,
     sequences_in_file,
 )
 

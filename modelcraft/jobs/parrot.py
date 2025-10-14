@@ -1,5 +1,7 @@
 import dataclasses
+
 import gemmi
+
 from ..contents import AsuContents
 from ..job import Job
 from ..monlib import MonLib

@@ -1,6 +1,8 @@
 import dataclasses
 import shutil
+
 import gemmi
+
 from ..job import Job
 from ..maps import read_map
 from ..reflections import DataItem

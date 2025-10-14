@@ -1,16 +1,19 @@
 import json
 import os
+
 import gemmi
 import pytest
-from modelcraft.scripts.modelcraft import main
+
 from modelcraft.reflections import write_mtz
+from modelcraft.scripts.modelcraft import main
 from modelcraft.structure import contains_residue, read_structure
+
 from . import (
     ccp4_path,
     in_temp_directory,
     insulin_contents,
-    insulin_fsigf,
     insulin_freer,
+    insulin_fsigf,
     insulin_refmac,
     pdb1rxf_contents,
 )

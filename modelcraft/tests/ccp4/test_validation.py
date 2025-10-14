@@ -1,5 +1,7 @@
 import math
+
 import numpy as np
+
 from ...monlib import MonLib
 from ...validation import validate_refmac
 from . import insulin_refmac

@@ -1,14 +1,15 @@
-from typing import List, Optional
 import argparse
 import os
 import sys
+from typing import List, Optional
+
 import gemmi
 import numpy as np
+
 from . import __version__
 from .contents import AsuContents
 from .reflections import DataItem
 from .structure import read_structure
-
 
 _PROG = None
 if os.path.basename(sys.argv[0]) == "__main__.py":

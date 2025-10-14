@@ -1,7 +1,9 @@
 import math
+
 import gemmi
 import pytest
-from modelcraft.contents import PROTEIN_CODES, DNA_CODES, RNA_CODES
+
+from modelcraft.contents import DNA_CODES, PROTEIN_CODES, RNA_CODES
 from modelcraft.monlib import MonLib
 
 

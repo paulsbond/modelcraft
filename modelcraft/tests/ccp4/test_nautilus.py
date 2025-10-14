@@ -1,4 +1,5 @@
 import gemmi
+
 from modelcraft.jobs.freerflag import FreeRFlag
 from modelcraft.jobs.nautilus import Nautilus
 from modelcraft.jobs.refmac import Refmac
@@ -6,11 +7,12 @@ from modelcraft.pipeline import Pipeline
 from modelcraft.reflections import DataItem
 from modelcraft.scripts.contents import AsuContents
 from modelcraft.structure import (
-    contains_residue,
     ModelStats,
+    contains_residue,
     read_structure,
     remove_residues,
 )
+
 from . import in_temp_directory, pdbe_download
 
 

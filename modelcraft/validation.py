@@ -1,9 +1,11 @@
 from collections import defaultdict
+
 import gemmi
 import numpy as np
 import pandas as pd
-from .jobs.refmac import RefmacResult
+
 from .geometry import per_residue_geometry_rmsz
+from .jobs.refmac import RefmacResult
 from .monlib import MonLib
 from .reflections import DataItem
 from .utils import modified_zscore

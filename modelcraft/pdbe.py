@@ -1,7 +1,7 @@
 import multiprocessing
 import re
-import requests
 
+import requests
 
 _MULTIPROCESSING_LOCK = multiprocessing.Lock()
 _SERVER = "https://www.ebi.ac.uk/pdbe"

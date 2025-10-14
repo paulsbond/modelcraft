@@ -1,7 +1,8 @@
-from typing import Iterator, Iterable, List, Optional, Union
-from functools import partial
 import itertools
 import re
+from functools import partial
+from typing import Iterable, Iterator, List, Optional, Union
+
 import gemmi
 import numpy
 import pandas

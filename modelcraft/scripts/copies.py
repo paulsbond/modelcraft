@@ -1,6 +1,8 @@
 import argparse
 import sys
+
 import gemmi
+
 from ..contents import AsuContents
 from ..environ import setup_environ
 from ..monlib import MonLib

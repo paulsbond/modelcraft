@@ -1,6 +1,8 @@
 import os
+
 import gemmi
-from .contents import PROTEIN_CODES, RNA_CODES, DNA_CODES
+
+from .contents import DNA_CODES, PROTEIN_CODES, RNA_CODES
 
 
 class MonLib(gemmi.MonLib):

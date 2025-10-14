@@ -1,6 +1,8 @@
 from os import environ
 from pathlib import Path
+
 import gemmi
+
 from modelcraft.jobs.emda import EmdaMapMask
 from modelcraft.maps import read_map
 

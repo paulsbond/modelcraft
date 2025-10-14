@@ -1,6 +1,8 @@
 import os
 import time
+
 import gemmi
+
 from . import __version__
 from .cell import max_distortion, remove_scale, update_cell
 from .combine import combine_results

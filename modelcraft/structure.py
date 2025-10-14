@@ -1,5 +1,7 @@
 from typing import Iterator
+
 import gemmi
+
 from .monlib import MonLib
 
 

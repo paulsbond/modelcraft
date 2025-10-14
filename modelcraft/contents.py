@@ -2,10 +2,10 @@ import abc
 import functools
 import json
 import math
+
 from . import pdbe
 from .monlib import MonLib
 from .sequence import PolymerType, sequences_in_file
-
 
 BUFFERS = {"12P", "144", "15P", "16D", "1BO", "1PS", "2OS", "3CO", "3NI", "ACA", "ACN"}
 BUFFERS |= {"ACT", "ACY", "AG", "AGC", "AL", "AZI", "B3P", "B7G", "BA", "BCN", "BE7"}

@@ -1,9 +1,11 @@
 import functools
 import os
 import shutil
-import uuid
 import urllib.request
+import uuid
+
 import gemmi
+
 from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
 from modelcraft.jobs.refmac import Refmac
 from modelcraft.reflections import DataItem

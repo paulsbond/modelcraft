@@ -1,6 +1,8 @@
 import os
 import time
+
 import gemmi
+
 from . import __version__
 from .jobs.buccaneer import Buccaneer
 from .jobs.emda import EmdaMapMask

@@ -1,6 +1,9 @@
 import subprocess
+
 import pytest
+
 from modelcraft.arguments import parse
+
 from . import ccp4_path, in_temp_directory, pdbe_download
 
 

@@ -1,5 +1,6 @@
 import pytest
-from modelcraft.reflections import column_refs, expand_label, contract_label
+
+from modelcraft.reflections import column_refs, contract_label, expand_label
 
 
 @pytest.mark.parametrize(
