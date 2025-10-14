@@ -1,5 +1,4 @@
 {
-  "diffEditor.ignoreTrimWhitespace": false,
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit"
@@ -8,15 +7,14 @@
   "editor.formatOnSave": true,
   "editor.renderWhitespace": "boundary",
   "editor.trimAutoWhitespace": true,
-  "editor.tabSize": 4,
   "files.exclude": {
     "**/__pycache__": true,
     "**/.pytest_cache": true,
     "**/*.egg-info": true,
     "**/*.pyc": true
   },
-  "ruff.nativeServer": "on",
   "files.insertFinalNewline": true,
+  "flake8.enabled": false,
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.rulers": [88]
