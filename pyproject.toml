@@ -7,7 +7,7 @@ name = "modelcraft"
 dynamic = ["version"]
 authors = [{ name = "Paul Bond", email = "paul.bond@york.ac.uk" }]
 maintainers = [{ name = "Paul Bond", email = "paul.bond@york.ac.uk" }]
-description = "Automated model building pipeline for X-ray crystallography"
+description = "Automated model-building pipeline for X-ray crystallography and cryo-EM"
 readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
