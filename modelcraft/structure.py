@@ -66,19 +66,6 @@ class ModelStats:
                 if monlib.is_nucleic(residue.name):
                     self.nucleic += 1
 
-    def __eq__(self, other):
-        if isinstance(other, ModelStats):
-            return (
-                self.residues == other.residues
-                and self.waters == other.waters
-                and self.dummy_atoms == other.dummy_atoms
-            )
-        return NotImplemented
-
-    def __ne__(self, other):
-        equal = self.__eq__(other)
-        return NotImplemented if equal is not NotImplemented else not equal
-
 
 def _residues(structure: gemmi.Structure) -> Iterator[gemmi.Residue]:
     for model in structure:

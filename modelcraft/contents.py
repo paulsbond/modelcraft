@@ -50,15 +50,6 @@ class Polymer(Component):
         self.type = polymer_type or PolymerType.guess(self.sequence)
         self.modifications = modifications or []
 
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Polymer):
-            return (
-                self.sequence == other.sequence
-                and self.type == other.type
-                and self.modifications == other.modifications
-            )
-        return NotImplemented
-
     def __str__(self) -> str:
         s = f"{self.type.name} with {len(self.sequence)} residues: "
         if len(self.sequence) > 9:
@@ -148,11 +139,6 @@ class Carb(Component):
         self.codes = codes
         self.stoichiometry = stoichiometry
 
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Carb):
-            return self.codes == other.codes
-        return NotImplemented
-
     def __str__(self) -> str:
         s = "Carb:"
         for code, count in self.codes.items():
@@ -187,11 +173,6 @@ class Ligand(Component):
     def __init__(self, code: str, stoichiometry: int = None):
         self.code = code
         self.stoichiometry = stoichiometry
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Ligand):
-            return self.code == other.code
-        return NotImplemented
 
     def __str__(self) -> str:
         return f"Ligand: {self.code}"
