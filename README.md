@@ -52,10 +52,13 @@ modelcraft xray --contents contents.json --data data.mtz --model model.cif
 
 For cryo-EM, either two halfmaps (recommended) or a single map must be provided,
 along with a resolution.
+These maps will be used for refinement.
+To provide a separate map for building use the `--build-map` argument.
 A starting model can be provided in the same way as with X-ray data.
 
 ```bash
-modelcraft em --contents contents.json --halfmaps half1.mrc half2.mrc --resolution 2.5
+modelcraft em --contents contents.json --half-maps half1.mrc half2.mrc --resolution 2.5
+modelcraft em --contents contents.json --half-maps half1.mrc half2.mrc --resolution 2.5 --build-map sharpened.mrc
 modelcraft em --contents contents.json --single-map map.mrc --resolution 2.5
 ```
 
