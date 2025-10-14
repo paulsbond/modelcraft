@@ -29,6 +29,7 @@ dependencies = [
 modelcraft = "modelcraft.scripts.modelcraft:main"
 modelcraft-contents = "modelcraft.scripts.contents:main"
 modelcraft-copies = "modelcraft.scripts.copies:main"
+modelcraft-sidechains = "modelcraft.scripts.sidechains:main"
 modelcraft-validate = "modelcraft.scripts.validate:main"
 
 [project.urls]
