@@ -10,8 +10,10 @@
   "files.exclude": {
     "**/__pycache__": true,
     "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
     "**/*.egg-info": true,
-    "**/*.pyc": true
+    "**/*.pyc": true,
+    "build": true
   },
   "files.insertFinalNewline": true,
   "flake8.enabled": false,
