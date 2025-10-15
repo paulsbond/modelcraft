@@ -16,7 +16,7 @@ def main(argument_list=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("contents", help="Path to contents file")
     parser.add_argument("mtz", help="Path to MTZ file")
-    parser.add_argument("libin", help="Path to custom restraint dictionary")
+    parser.add_argument("--libin", help="Path to custom restraint dictionary")
     args = parser.parse_args(argument_list)
 
     contents = AsuContents.from_file(args.contents)
