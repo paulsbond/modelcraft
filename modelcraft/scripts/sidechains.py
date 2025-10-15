@@ -22,10 +22,7 @@ def _parse_args(argument_list):
     )
     parser.add_argument(
         "mtz",
-        help=(
-            "MTZ file from Refmac with standard output column labels "
-            "(the output MTZ from ModelCraft meets this requirement)."
-        ),
+        help="MTZ file amplitudes and phases (FWT and PHWT by default)",
     )
     parser.add_argument(
         "output",
@@ -37,6 +34,16 @@ def _parse_args(argument_list):
         default=0,
         metavar="N",
         help="Index of the model to analyse (with 0 being the first model)",
+    )
+    parser.add_argument(
+        "--f_label",
+        default="FWT",
+        help="Column label for structure factor amplitudes",
+    )
+    parser.add_argument(
+        "--phi_label",
+        default="PHWT",
+        help="Column label for structure factor phases",
     )
     return parser.parse_args(argument_list or sys.argv[1:])
 
@@ -107,7 +114,7 @@ def main(argument_list=None):
             print("WARNING: No CIF file found for non-standard residue", comp_id)
             continue
         mc.import_cif_dictionary(path, imol)
-    imap = mc.read_mtz(args.mtz, "FWT", "PHWT", "", False, False)
+    imap = mc.read_mtz(args.mtz, args.f_label, args.phi_label, "", False, False)
     mc.set_imol_refinement_map(imap)
     mc.set_use_torsion_restraints(True)
     mc.set_use_rama_plot_restraints(True)
