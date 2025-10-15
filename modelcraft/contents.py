@@ -342,6 +342,6 @@ class AsuContents:
         with open(path, "w", encoding="utf-8") as stream:
             for polymer in self.proteins + self.rnas + self.dnas:
                 if types is None or polymer.type in types:
-                    stream.write(f">{polymer.type.value}\n")
+                    stream.write(f">{polymer.type.name}\n")
                     for i in range(0, len(polymer.sequence), line_length):
                         stream.write(polymer.sequence[i : i + line_length] + "\n")
