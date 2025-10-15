@@ -17,7 +17,7 @@ class MonLib(gemmi.MonLib):
             resnames |= set(PROTEIN_CODES.values())
             resnames |= set(RNA_CODES.values())
             resnames |= set(DNA_CODES.values())
-            resnames |= {"HOH"}
+            resnames |= {"MSE", "HOH"}
         ok = self.read_monomer_lib(os.environ["CLIBD_MON"], list(resnames))
         if not ok:
             raise ValueError("Please create definitions for missing monomers.")
