@@ -47,7 +47,7 @@ def write_mmcif(path: str, structure: gemmi.Structure) -> None:
 
 
 class ModelStats:
-    def __init__(self, structure: gemmi.Structure, monlib: MonLib):
+    def __init__(self, structure: gemmi.Structure, monlib: MonLib = MonLib.STANDARD):
         self.residues: int = 0
         self.protein: int = 0
         self.nucleic: int = 0
