@@ -2,6 +2,8 @@
 
 import argparse
 import sys
+from os import environ
+from pathlib import Path
 
 import chapi
 import gemmi
@@ -78,6 +80,17 @@ def any_missing_side_chains(structure: gemmi.Structure) -> bool:
     return False
 
 
+def cif_path(name: str):
+    directory = Path(environ["CLIBD_MON"]) / name[0].lower()
+    single_path = directory / f"{name}.cif"
+    double_path = directory / f"{name}_{name}.cif"
+    if single_path.exists():
+        return str(single_path)
+    if double_path.exists():
+        return str(double_path)
+    return None
+
+
 def main(argument_list=None):
     setup_environ()
     args = _parse_args(argument_list)
@@ -88,11 +101,17 @@ def main(argument_list=None):
     mc = chapi.molecules_container_t(True)
     mc.set_use_gemmi(False)
     imol = mc.read_coordinates(args.structure)
+    non_standard = mc.non_standard_residue_types_in_model(imol)
+    for comp_id in non_standard:
+        if (path := cif_path(comp_id)) is None:
+            print("WARNING: No CIF file found for non-standard residue", comp_id)
+            continue
+        mc.import_cif_dictionary(path, imol)
     imap = mc.read_mtz(args.mtz, "FWT", "PHWT", "", False, False)
     mc.set_imol_refinement_map(imap)
     mc.set_use_torsion_restraints(True)
     mc.set_use_rama_plot_restraints(True)
-    for chain in structure[0]:
+    for chain in structure[args.model_index]:
         for residue in chain:
             if not has_full_side_chain(residue):
                 num = residue.seqid.num
