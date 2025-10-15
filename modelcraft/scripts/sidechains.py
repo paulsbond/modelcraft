@@ -6,7 +6,6 @@ import sys
 import chapi
 import gemmi
 
-from ..contents import AsuContents
 from ..environ import setup_environ
 
 
@@ -82,8 +81,6 @@ def any_missing_side_chains(structure: gemmi.Structure) -> bool:
 def main(argument_list=None):
     setup_environ()
     args = _parse_args(argument_list)
-    contents = AsuContents.from_pdbe(args.structure)
-    contents.write_json_file(args.contents)
     structure = gemmi.read_structure(args.structure)
     if not any_missing_side_chains(structure):
         print("No missing side chains detected, no action taken")
