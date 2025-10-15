@@ -3,8 +3,8 @@ import math
 import gemmi
 import pytest
 
-from modelcraft.contents import DNA_CODES, PROTEIN_CODES, RNA_CODES
 from modelcraft.monlib import MonLib
+from modelcraft.sequence import DNA_CODES, PROTEIN_CODES, RNA_CODES
 
 
 @pytest.fixture(name="monlib", scope="module")

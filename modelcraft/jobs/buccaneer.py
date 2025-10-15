@@ -4,9 +4,10 @@ import xml.etree.ElementTree as ET
 
 import gemmi
 
-from ..contents import PROTEIN_CODES, AsuContents, PolymerType
+from ..contents import AsuContents
 from ..job import Job
 from ..reflections import DataItem, write_mtz
+from ..sequence import PROTEIN_CODES, PolymerType
 from ..structure import read_structure, write_mmcif
 
 

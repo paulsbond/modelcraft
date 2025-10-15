@@ -2,7 +2,7 @@ import os
 
 import gemmi
 
-from .contents import DNA_CODES, PROTEIN_CODES, RNA_CODES
+from .sequence import DNA_CODES, PROTEIN_CODES, RNA_CODES
 
 
 class MonLib(gemmi.MonLib):

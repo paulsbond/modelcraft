@@ -26,12 +26,12 @@ PROTEIN_CODES = {
     "Z": "GLX",
 }
 
-
 DNA_CODES = {
     "A": "DA",
     "C": "DC",
     "G": "DG",
     "I": "DI",
+    "N": "DN",
     "T": "DT",
     "U": "DU",
     "X": "DN",
@@ -42,6 +42,7 @@ RNA_CODES = {
     "C": "C",
     "G": "G",
     "I": "I",
+    "N": "N",
     "U": "U",
     "X": "N",
 }
