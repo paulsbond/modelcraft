@@ -399,12 +399,10 @@ def _parse_freerflag(args: argparse.Namespace, mtz: gemmi.Mtz):
         args.freer = _item_from_label(mtz, args.freerflag_label, ["I"])
     values = list(args.freer.columns[-1])
     if args.freerflag_value is None:
-        print("Selecting for a suitable free-R flag value", flush=True)
         for value in sorted(set(values)):
             fraction = values.count(value) / len(values)
             if fraction < 0.5:
                 args.freerflag_value = value
-                print(f"Selected flag {value}", flush=True)
                 break
         else:
             _PARSER.error("No suitable value found for the free-R flag")
