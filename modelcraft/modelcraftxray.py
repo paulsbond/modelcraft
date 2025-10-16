@@ -249,8 +249,9 @@ class ModelCraftXray(Pipeline):
             monlib=self.monlib,
             residues=not chains_only,
         )
-        write_mmcif(self.path("current.cif"), pruned)
-        self.refmac(pruned, cycles=5, auto_accept=True)
+        if pruned:
+            write_mmcif(self.path("current.cif"), pruned)
+            self.refmac(pruned, cycles=5, auto_accept=True)
 
     def fixsidechains(self):
         result = Sidechains(
