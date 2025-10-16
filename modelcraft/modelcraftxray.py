@@ -13,10 +13,12 @@ from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
+from .jobs.sidechains import Sidechains
 from .monlib import MonLib
 from .pipeline import Pipeline
 from .prune import prune
 from .reflections import DataItem, write_mtz
+from .scripts.sidechains import any_missing_side_chains
 from .structure import ModelStats, remove_residues, write_mmcif
 
 
@@ -64,6 +66,16 @@ class ModelCraftXray(Pipeline):
             self.process_cycle_output(self.last_refmac)
             if self.cycles_without_improvement == self.args.auto_stop_cycles > 0:
                 break
+        if (
+            not self.args.basic
+            and not self.args.disable_side_chain_fixing
+            and any_missing_side_chains(self.output_refmac.structure)
+        ):
+            print("\n## Adding missing side chains\n", flush=True)
+            self.cycle += 1
+            self.update_current_from_refmac_result(self.output_refmac)
+            self.fixsidechains()
+            self.process_cycle_output(self.last_refmac)
         print("\n## Best Model:", flush=True)
         self._print_refmac_result(self.output_refmac)
         self._remove_current_files()
@@ -239,6 +251,15 @@ class ModelCraftXray(Pipeline):
         )
         write_mmcif(self.path("current.cif"), pruned)
         self.refmac(pruned, cycles=5, auto_accept=True)
+
+    def fixsidechains(self):
+        result = Sidechains(
+            structure=self.current_structure,
+            fphi=self.current_fphi_best,
+        ).run(self)
+        if result.structure:
+            write_mmcif(self.path("current.cif"), result.structure)
+            self.refmac(result.structure, cycles=5, auto_accept=False)
 
     def findwaters(self, dummy=False):
         if dummy and self.args.disable_dummy_atoms:
