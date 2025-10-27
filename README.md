@@ -20,7 +20,7 @@ For X-ray crystallography, ModelCraft can be used through
 [CCP4i2](https://ccp4i2.gitlab.io/rstdocs/tasks/modelcraft/index.html) or
 [CCP4 Cloud](https://cloud.ccp4.ac.uk/manuals/html-taskref/doc.task.ModelCraft.html).
 For cryo-EM, it is available in
-[Doppio](https://www.ccpem.ac.uk/docs/doppio/user_guide.html).
+[CCP-EM Doppio](https://www.ccpem.ac.uk/docs/doppio/user_guide.html).
 
 ## Command-line interface
 
