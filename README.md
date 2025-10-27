@@ -30,6 +30,9 @@ The command line documentation has detailed information on individual arguments.
 
 ```bash
 modelcraft xray --help
+```
+
+```bash
 modelcraft em --help
 ```
 
