@@ -24,12 +24,16 @@ _GROUP.add_argument(
     required=True,
     metavar="X",
     help=(
-        "A file with a description of the assymetric unit contents, "
+        "A file with a description of the full asymmetric unit contents, "
         "either as a sequence file (in FASTA or PIR format) "
         "with both protein and nucleic acid sequences, "
         "or a more detailed contents file in JSON format. "
         "Example JSON files for existing PDB entries "
-        "can be created using the modelcraft-contents script."
+        "can be created using the modelcraft-contents script. "
+        "Currently, the only advantage of using the JSON format "
+        "is a more accurate calculation of the solvent fraction "
+        "for Parrot density modification in the X-ray pipeline. "
+        "Otherwise, the solvent fraction will be calculated using Matthews probability."
     ),
 )
 _GROUP = _PARENT.add_argument_group("optional arguments (shared)")
