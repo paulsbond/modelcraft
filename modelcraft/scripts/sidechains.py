@@ -5,7 +5,7 @@ import sys
 from os import environ
 from pathlib import Path
 
-import chapi
+import coot_headless_api
 import gemmi
 
 from ..environ import setup_environ
@@ -105,7 +105,7 @@ def main(argument_list=None):
     if not any_missing_side_chains(structure):
         print("No missing side chains detected, no action taken")
         return
-    mc = chapi.molecules_container_t(True)
+    mc = coot_headless_api.molecules_container_t(True)
     mc.set_use_gemmi(False)
     imol = mc.read_coordinates(args.structure)
     non_standard = mc.non_standard_residue_types_in_model(imol)
