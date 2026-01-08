@@ -20,7 +20,7 @@ class InstallPackage(install):
 
 setuptools.setup(
     name="modelcraft",
-    version="5.0.3",
+    version="5.1.0",
     author="Paul Bond",
     author_email="paul.bond@york.ac.uk",
     description="Automated model building pipeline for X-ray crystallography",
