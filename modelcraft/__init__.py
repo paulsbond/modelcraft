@@ -17,6 +17,7 @@ from .jobs.phasematch import PhaseMatch
 from .jobs.refmac import Refmac, RefmacMapToMtz
 from .jobs.servalcat import ServalcatNemap, ServalcatRefine, ServalcatTrim
 from .jobs.sheetbend import Sheetbend
+from .monlib import MonLib
 from .pipeline import Pipeline
 from .reflections import DataItem, write_mtz
 from .scripts.modelcraft import main as run
@@ -43,6 +44,7 @@ __all__ = [
     "max_cell_distortion",
     "ModelStats",
     "Molrep",
+    "MonLib",
     "Nautilus",
     "Parrot",
     "PhaseMatch",
