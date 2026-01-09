@@ -68,7 +68,6 @@ def insulin_refmac():
 
 @functools.lru_cache(maxsize=None)
 def insulin_contents():
-    contents = AsuContents()
     chain_a = Polymer(
         sequence="GIVEQCCASVCSLYQLENYCN",
         polymer_type=PolymerType.PROTEIN,
@@ -77,9 +76,8 @@ def insulin_contents():
         sequence="FVNQHLCGSHLVEALYLVCGERGFFYTPKA",
         polymer_type=PolymerType.PROTEIN,
     )
-    contents.add_polymer(chain_a)
-    contents.add_polymer(chain_b)
-    return contents
+    ligand = Ligand("GOL")
+    return AsuContents(proteins=[chain_a, chain_b], ligands=[ligand])
 
 
 @functools.lru_cache(maxsize=None)

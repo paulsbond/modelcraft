@@ -43,9 +43,9 @@ class ModelCraftXray(Pipeline):
         self.last_refmac = None
         self.output_refmac = None
         self.cycles_without_improvement = 0
-        resnames = []
+        resnames = self.args.contents.monomer_codes()
         if self.args.model:
-            resnames = self.args.model[0].get_all_residue_names()
+            resnames |= set(self.args.model[0].get_all_residue_names())
         self.monlib = MonLib(resnames, self.args.restraints, include_standard=True)
 
     @property
