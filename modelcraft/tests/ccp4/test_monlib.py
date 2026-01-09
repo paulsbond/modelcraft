@@ -73,6 +73,11 @@ def test_volume(monlib: MonLib, code: str, expected: float):
     assert math.isclose(monlib.volume(code), expected, abs_tol=0.01)
 
 
+def test_not_in_monlib(monlib: MonLib):
+    with pytest.raises(KeyError):
+        monlib["NOT_IN_MONLIB"]
+
+
 @pytest.mark.parametrize(
     "code,expected",
     [

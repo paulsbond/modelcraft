@@ -29,6 +29,8 @@ class MonLib(gemmi.MonLib):
         return code in self.monomers
 
     def __getitem__(self, code: str):
+        if code not in self:
+            raise KeyError(f"Monomer {code} not in monomer library")
         return self.monomers[code]
 
     def atom_ids(self, code: str):
