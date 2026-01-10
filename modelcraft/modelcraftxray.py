@@ -225,7 +225,7 @@ class ModelCraftXray(Pipeline):
         # )
 
         # write_mmcif(self.path("current.cif"), refined_structure)
-        return self.run_refmac(build_result, cycles=10)
+        return self.run_refmac(build_result.structure, cycles=10)
 
 
     def nautilus(self):
