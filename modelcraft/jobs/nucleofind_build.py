@@ -66,6 +66,8 @@ class NucleoFindBuild(Job):
         self._args += ["--cycles", str(self.cycles)]
         self._args += ["--pdbout", "xyzout.cif"]
         self._args += ["--xmlout", "xmlout.xml"]
+        self._args += ["--remove_clashing_protein"]
+
 
     def _result(self) -> NucleoFindBuildResult:
         self._check_files_exist("xmlout.xml", "xyzout.cif")
