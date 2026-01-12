@@ -1,5 +1,7 @@
 import os
 import time
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import gemmi
 
@@ -13,12 +15,12 @@ from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
-from .jobs.sidechains import Sidechains
 from .monlib import MonLib
 from .pipeline import Pipeline
 from .prune import prune
 from .reflections import DataItem, write_mtz
 from .scripts.sidechains import any_missing_side_chains
+from .scripts.sidechains import main as fix_side_chains
 from .structure import ModelStats, remove_residues, write_mmcif
 
 
@@ -254,13 +256,17 @@ class ModelCraftXray(Pipeline):
             self.refmac(pruned, cycles=5, auto_accept=True)
 
     def fixsidechains(self):
-        result = Sidechains(
-            structure=self.current_structure,
-            fphi=self.current_fphi_best,
-        ).run(self)
-        if result.structure:
-            write_mmcif(self.path("current.cif"), result.structure)
-            self.refmac(result.structure, cycles=5, auto_accept=False)
+        with TemporaryDirectory() as tempdir:
+            xyzin = str(Path(tempdir, "input.cif"))
+            hklin = str(Path(tempdir, "input.mtz"))
+            xyzout = str(Path(tempdir, "output.cif"))
+            write_mmcif(xyzin, self.current_structure)
+            write_mtz(hklin, [self.current_fphi_best], ["FWT,PHWT"])
+            fix_side_chains([xyzin, hklin, xyzout])
+            if os.path.exists(xyzout):
+                structure = gemmi.read_structure(xyzout)
+                write_mmcif(self.path("current.cif"), structure)
+                self.refmac(structure, cycles=5, auto_accept=False)
 
     def findwaters(self, dummy=False):
         if dummy and self.args.disable_dummy_atoms:
