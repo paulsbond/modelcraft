@@ -58,12 +58,7 @@ class PolymerType:
         self.codes = codes
 
     def parse(self, sequence: str) -> list[str]:
-        names = []
-        for code in sequence:
-            if code not in self.codes:
-                raise ValueError(f"'{code}' is not a valid {self.name} code")
-            names.append(self.codes[code])
-        return names
+        return [self.codes.get(c, self.codes["X"]) for c in sequence]
 
     @classmethod
     def guess(cls, sequence: str):
