@@ -4,6 +4,7 @@ import argparse
 import sys
 from os import environ
 from pathlib import Path
+from shutil import rmtree
 
 import coot_headless_api
 import gemmi
@@ -99,6 +100,8 @@ def cif_path(name: str):
 
 
 def main(argument_list=None):
+    backup_path = Path("coot-backup")
+    backup_existed_before = backup_path.exists()
     setup_environ()
     args = _parse_args(argument_list)
     structure = gemmi.read_structure(args.structure)
@@ -107,6 +110,7 @@ def main(argument_list=None):
         return
     mc = coot_headless_api.molecules_container_t(True)
     mc.set_use_gemmi(False)
+    mc.set_make_backups(False)
     imol = mc.read_coordinates(args.structure)
     non_standard = mc.non_standard_residue_types_in_model(imol)
     for comp_id in non_standard:
@@ -129,6 +133,8 @@ def main(argument_list=None):
                 mc.auto_fit_rotamer(imol, chain.name, num, icode, "", imap)
                 mc.refine_residues(imol, chain.name, num, icode, "", "TRIPLE", 1000)
     mc.write_coordinates(imol, args.output)
+    if not backup_existed_before and backup_path.exists():
+        rmtree(backup_path, ignore_errors=True)
 
 
 if __name__ == "__main__":
