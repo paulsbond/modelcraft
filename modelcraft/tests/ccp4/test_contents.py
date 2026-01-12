@@ -261,6 +261,11 @@ def test_3ue7():
     _test_contents("3ue7", expected, selenomet=False)
 
 
+def test_5vz8():
+    contents = AsuContents.from_pdbe("5vz8")
+    contents.monomer_codes()
+
+
 def test_polymer_weight():
     polymer = Polymer("GG", polymer_type=PolymerType.PROTEIN)
     assert polymer.weight() == approx(132.12, abs=0.01)
