@@ -24,9 +24,9 @@ class Parrot(Job):
         fsigf: DataItem,
         freer: DataItem,
         phases: DataItem,
-        monlib: MonLib,
         fphi: DataItem = None,
         structure: gemmi.Structure = None,
+        monlib: MonLib = None,
     ):
         super().__init__("cparrot")
         self.contents = contents

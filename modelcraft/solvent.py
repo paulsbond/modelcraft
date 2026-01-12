@@ -39,8 +39,8 @@ def copies_options(
 ) -> list:
     options = []
     nucleic_acids = contents.rnas + contents.dnas
-    mwp = sum(p.weight() * (p.stoichiometry or 1) for p in contents.proteins)
-    mwn = sum(n.weight() * (n.stoichiometry or 1) for n in nucleic_acids)
+    mwp = sum(p.weight(monlib) * (p.stoichiometry or 1) for p in contents.proteins)
+    mwn = sum(n.weight(monlib) * (n.stoichiometry or 1) for n in nucleic_acids)
     asu_volume = cell.volume / len(spacegroup.operations())
     contents_volume = contents.volume(monlib)
     total_probability = 0

@@ -123,15 +123,15 @@ class Polymer(Component):
     def is_selenomet(self) -> bool:
         return "M->MSE" in self.modifications
 
-    def weight(self) -> float:
+    def weight(self, monlib: MonLib) -> float:
         codes = self.residue_codes(modified=False)
-        weight = sum(MonLib.STANDARD.weight(code) for code in codes)
-        weight -= MonLib.STANDARD.weight("HOH") * (len(codes) - 1)
+        weight = sum(monlib.weight(code) for code in codes)
+        weight -= monlib.weight("HOH") * (len(codes) - 1)
         return weight
 
     def volume(self, monlib: MonLib) -> float:
         density = 1.35 if self.type == PolymerType.PROTEIN else 2.0
-        return self.weight() / (density * 0.602214)
+        return self.weight(monlib) / (density * 0.602214)
 
 
 class Carb(Component):

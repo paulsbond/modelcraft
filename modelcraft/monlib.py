@@ -7,8 +7,6 @@ from .sequence import DNA_CODES, PROTEIN_CODES, RNA_CODES
 
 
 class MonLib(gemmi.MonLib):
-    STANDARD: "MonLib"
-
     def __init__(self, resnames, libin: str = "", include_standard: bool = False):
         super().__init__()
         if libin:
@@ -58,6 +56,3 @@ class MonLib(gemmi.MonLib):
 
     def weight(self, code: str):
         return sum(atom.el.weight for atom in self[code].atoms)
-
-
-MonLib.STANDARD = MonLib({}, include_standard=True)

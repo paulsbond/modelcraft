@@ -47,12 +47,14 @@ def write_mmcif(path: str, structure: gemmi.Structure) -> None:
 
 
 class ModelStats:
-    def __init__(self, structure: gemmi.Structure, monlib: MonLib = MonLib.STANDARD):
+    def __init__(self, structure: gemmi.Structure, monlib: MonLib = None):
         self.residues: int = 0
         self.protein: int = 0
         self.nucleic: int = 0
         self.waters: int = 0
         self.dummy_atoms: int = 0
+
+        monlib = monlib or MonLib(structure[0].get_all_residue_names())
 
         for residue in _residues(structure):
             if residue.name == "HOH":

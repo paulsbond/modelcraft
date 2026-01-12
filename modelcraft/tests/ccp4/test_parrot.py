@@ -2,7 +2,6 @@ import gemmi
 
 from modelcraft.contents import AsuContents
 from modelcraft.jobs.parrot import Parrot
-from modelcraft.monlib import MonLib
 from modelcraft.reflections import DataItem
 
 from . import ccp4_path
@@ -16,8 +15,7 @@ def test_parrot_after_parrot():
     fsigf = DataItem(mtz, "FPHASED,SIGFPHASED")
     freer = DataItem(mtz, "FreeR_flag")
     phases = DataItem(mtz, "HLA,HLB,HLC,HLD")
-    monlib = MonLib.STANDARD
-    parrot1 = Parrot(contents, fsigf, freer, phases, monlib).run()
-    parrot2 = Parrot(contents, fsigf, freer, parrot1.abcd, monlib, parrot1.fphi).run()
+    parrot1 = Parrot(contents, fsigf, freer, phases).run()
+    parrot2 = Parrot(contents, fsigf, freer, parrot1.abcd, parrot1.fphi).run()
     assert parrot2.abcd.nreflections == freer.nreflections
     assert parrot2.fphi.nreflections == freer.nreflections

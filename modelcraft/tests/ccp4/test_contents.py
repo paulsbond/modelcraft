@@ -1,6 +1,7 @@
 from pytest import approx
 
 from modelcraft.contents import AsuContents, Polymer, PolymerType
+from modelcraft.monlib import MonLib
 
 
 def _test_contents(entry: str, expected_json: list, selenomet: bool):
@@ -268,4 +269,5 @@ def test_5vz8():
 
 def test_polymer_weight():
     polymer = Polymer("GG", polymer_type=PolymerType.PROTEIN)
-    assert polymer.weight() == approx(132.12, abs=0.01)
+    monlib = MonLib(["GLY"], include_standard=True)
+    assert polymer.weight(monlib) == approx(132.12, abs=0.01)

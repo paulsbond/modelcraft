@@ -1,4 +1,3 @@
-from ...monlib import MonLib
 from ...prune import prune
 from ...structure import ModelStats
 from . import insulin_refmac
@@ -11,7 +10,6 @@ def test_insulin_prune():
         fphi_best=refmac.fphi_best,
         fphi_diff=refmac.fphi_diff,
         fphi_calc=refmac.fphi_calc,
-        monlib=MonLib.STANDARD,
         residue_threshold=-2,
     )
     stats_in = ModelStats(refmac.structure)

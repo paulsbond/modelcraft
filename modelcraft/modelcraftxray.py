@@ -232,9 +232,9 @@ class ModelCraftXray(Pipeline):
             fsigf=self.args.fmean,
             freer=self.args.freer,
             phases=self.current_phases,
-            monlib=self.monlib,
             fphi=self.current_fphi_best,
             structure=self.current_structure,
+            monlib=self.monlib,
         ).run(self)
         self.current_phases = result.abcd
         self.current_fphi_best = result.fphi
@@ -248,8 +248,8 @@ class ModelCraftXray(Pipeline):
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
             fphi_calc=self.current_fphi_calc,
-            monlib=self.monlib,
             residues=not chains_only,
+            monlib=self.monlib,
         )
         if pruned:
             write_mmcif(self.path("current.cif"), pruned)

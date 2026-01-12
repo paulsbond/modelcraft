@@ -11,13 +11,14 @@ def prune(
     fphi_best: DataItem,
     fphi_diff: DataItem,
     fphi_calc: DataItem,
-    monlib: MonLib,
     residues: bool = True,
     chain_threshold: float = -2,
     residue_threshold: float = -5,
+    monlib: MonLib = None,
 ) -> gemmi.Structure:
     print("Performing validation for pruning", flush=True)
     structure = structure.clone()
+    monlib = monlib or MonLib(structure[0].get_all_residue_names())
     metrics = validate(structure, fphi_best, fphi_diff, fphi_calc, monlib)
 
     max_deleted = int(len(metrics) * 0.2)
