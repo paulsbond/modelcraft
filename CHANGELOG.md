@@ -3,11 +3,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
-## [6.0.0] - 2025-10-13
+## [6.0.0] - 2026-01-12
 
 - New validation using Mean B-factor, RSCC, difference density RMS and geometry RMSZ
-- New validation script: modelcraft-validation
+- New scripts: modelcraft-sidechains and modelcraft-validation
 - New pruning step based on new validation metric
+- New side-chain fixing step using CHAPI
 - Removed Coot ML-based pruning
 - Removed Coot side-chain fixing step
 
