@@ -3,7 +3,8 @@ import gemmi
 from ..contents import AsuContents, PolymerType
 from ..job import Job
 from ..reflections import DataItem, write_mtz
-from ..structure import read_structure, remove_non_library_atoms, write_mmcif
+from ..structure import read_structure, write_mmcif
+from ..jobs.nautilus import _deoxyfy
 import xml.etree.ElementTree as ET
 from .nucleofind import NucleoFindResult
 
@@ -73,7 +74,7 @@ class NucleoFindBuild(Job):
         self._check_files_exist("xmlout.xml", "xyzout.cif")
         xml = ET.parse(self._path("xmlout.xml")).getroot()
         structure = read_structure(self._path("xyzout.cif"))
-        remove_non_library_atoms(structure)
+        _deoxyfy(structure)
 
         return NucleoFindBuildResult(
             structure=structure,
