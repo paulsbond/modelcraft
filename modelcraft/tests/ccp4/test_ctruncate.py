@@ -1,6 +1,8 @@
 import gemmi
+
 from modelcraft.jobs.ctruncate import CTruncate
 from modelcraft.reflections import DataItem
+
 from . import ccp4_path
 
 

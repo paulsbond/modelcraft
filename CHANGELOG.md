@@ -3,18 +3,27 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [6.0.0] - 2026-01-12
+
+- New validation using Mean B-factor, RSCC, difference density RMS and geometry RMSZ
+- New scripts: modelcraft-sidechains and modelcraft-validation
+- New pruning step based on new validation metric
+- New side-chain fixing step using CHAPI
+- Removed Coot ML-based pruning
+- Removed Coot side-chain fixing step
+
 ## [5.1.0] - 2025-10-13
 
-- Added --freerflag-value argument and default handling of alternative flag definitions
+- Added --freerflag-value option and default handling of alternative flag definitions
 - Shifting output models to the centre of the map
 
 ## [5.0.3] - 2025-05-14
 
-- Output filename for Servalcat nemap
+- Updated output filename for Servalcat nemap
 
 ## [5.0.2] - 2025-01-23
 
-- wwPDB URL in cell test
+- Updated wwPDB URL in cell test
 
 ## [5.0.1] - 2024-11-28
 
@@ -22,20 +31,21 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ## [5.0.0] - 2024-11-08
 
-- EM --half-maps, --single-map and --build-map arguments.
-- EM --map and --blur arguments.
+- Added EM --half-maps, --single-map and --build-map arguments.
+- Changed EM --mask argument default to None with 'auto' as an option for EMDA mapmask.
+- Removed EM --map and --blur arguments.
 
 ## [4.0.2] - 2024-10-24
 
-- Crash when no residues are built.
+- Fixed crash when no residues are built.
 
 ## [4.0.1] - 2024-05-14
 
-- Monomer library groups when a residue name is not in the library
+- Fixed monomer library groups when a residue name is not in the library
 
 ## [4.0.0] - 2024-03-18
 
-- Coot RSR morph
+- Removed Coot RSR morph
 
 ## [3.6.0] - 2024-03-13
 
@@ -56,11 +66,11 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ## [3.5.0] - 2024-01-09
 
-- Option --threads to allow Buccaneer to use multiprocessing
+- Added option --threads to allow Buccaneer to use multiprocessing
 
 ## [3.4.0] - 2023-09-21
 
-- Option --mask to provide a custom mask in EM mode instead of using EMDA mapmask
+- Added option --mask to provide a custom mask in EM mode instead of using EMDA mapmask
 
 ## [3.3.0] - 2023-08-01
 
@@ -79,7 +89,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 ## [3.1.0] - 2023-03-29
 
-- Command line option: --overwrite-directory
+- Added --overwrite-directory option
 - Writing current.cif and current.mtz while running
 
 ## [3.0.0] - 2023-03-09
@@ -94,7 +104,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Renaming SUL residues to SO4 and HOH O1 atoms to O on reading a structure
 - Renamed RefmacXray to Refmac
 - Flushing print statements so they are written when piping to a file
-- Refmac EM job
+- Removed Refmac EM job
 
 ## [2.4.1] - 2022-07-12
 
@@ -216,8 +226,8 @@ This project adheres to [Semantic Versioning](https://semver.org).
 - Input phases not overwritten by dummy atom phases in first cycle.
 - Cycles into a list in the JSON output.
 - Setting model cell to the same as the MTZ file.
-- Polymer start parameter in the ASU contents description.
-- Support for custom Buccaneer, Parrot and Sheetbend paths.
+- Removed polymer start parameter in the ASU contents description.
+- Removed support for custom Buccaneer, Parrot and Sheetbend paths.
 - Bug in the Coot side chains script.
 
 ## [1.0.0] - 2021-07-08

@@ -1,140 +1,69 @@
 import collections
 import dataclasses
-import functools
 import math
-import re
+
 import gemmi
-from .contents import AsuContents, Polymer, PolymerType
-from .monlib import chemcomp
+
+from .contents import AsuContents
+from .monlib import MonLib
 
 
-def solvent_fraction(contents: AsuContents, mtz: gemmi.Mtz) -> float:
-    volume = _contents_volume(contents)
-    asu_volume = mtz.cell.volume / len(mtz.spacegroup.operations())
-    copies = contents.copies or _guess_copies(contents, mtz)
-    return 1 - copies * volume / asu_volume
-
-
-@functools.lru_cache(maxsize=None)
-def _library_weight(code: str) -> float:
-    return sum(atom.el.weight for atom in chemcomp(code).atoms)
-
-
-@functools.lru_cache(maxsize=None)
-def _library_volume(code: str) -> float:
-    return sum(18 for atom in chemcomp(code).atoms if not atom.is_hydrogen())
-
-
-def _polymer_weight(polymer: Polymer) -> float:
-    codes = polymer.residue_codes(modified=False)
-    total = sum(_library_weight(code) for code in codes)
-    total -= _library_weight("HOH") * (len(codes) - 1)
-    return total
-
-
-def _polymer_volume(polymer: Polymer) -> float:
-    density = 1.35 if polymer.type == PolymerType.PROTEIN else 2.0
-    return _polymer_weight(polymer) / (density * 0.602214)
-
-
-def _smiles_volume(smiles: str) -> float:
-    atoms = re.findall(pattern="[A-Z][a-z]?", string=smiles)
-    return 18 * len(atoms)
-
-
-def _contents_volume(contents: AsuContents) -> float:
-    return sum(
-        item.volume * item.stoichiometry for item in _volume_components(contents)
-    )
+def solvent_fraction(
+    contents: AsuContents,
+    cell: gemmi.UnitCell,
+    spacegroup: gemmi.SpaceGroup,
+    resolution: float,
+    monlib: MonLib = None,
+) -> float:
+    monlib = monlib or MonLib(contents.monomer_codes(), include_standard=True)
+    asu_volume = cell.volume / len(spacegroup.operations())
+    copies = contents.copies
+    if copies is None:
+        copies = _guess_copies(contents, cell, spacegroup, resolution, monlib)
+    return 1 - copies * contents.volume(monlib) / asu_volume
 
 
 @dataclasses.dataclass
-class _VolumeComponent:
-    description: str
-    stoichiometry: int
-    stoichiometry_assumed: bool
-    volume: float
-
-
-def _volume_components(contents: AsuContents):
-    for kind, polymers in (
-        ("Protein", contents.proteins),
-        ("RNA", contents.rnas),
-        ("DNA", contents.dnas),
-    ):
-        for polymer in polymers:
-            sequence = polymer.sequence
-            description = f"{kind} with {len(sequence)} residues: "
-            if len(sequence) > 9:
-                description += f"{sequence[:3]}...{sequence[-3:]}"
-            else:
-                description += f"{sequence:9}"
-            stoichiometry = polymer.stoichiometry or 1
-            stoichiometry_assumed = polymer.stoichiometry is None
-            volume = _polymer_volume(polymer)
-            yield _VolumeComponent(
-                description, stoichiometry, stoichiometry_assumed, volume
-            )
-    for carb in contents.carbs:
-        description = "Carb:"
-        stoichiometry = carb.stoichiometry or 1
-        stoichiometry_assumed = carb.stoichiometry is None
-        volume = 0
-        length = 0
-        for code, count in carb.codes.items():
-            description += f" {count}x{code}"
-            length += count
-            if code in contents.smiles:
-                volume += _smiles_volume(contents.smiles[code]) * count
-            else:
-                volume += _library_volume(code) * count
-        volume -= _library_volume("HOH") * length
-        yield _VolumeComponent(
-            description, stoichiometry, stoichiometry_assumed, volume
-        )
-    for ligand in contents.ligands:
-        description = "Ligand: " + ligand.code
-        stoichiometry = ligand.stoichiometry or 1
-        stoichiometry_assumed = ligand.stoichiometry is None
-        if ligand.code in contents.smiles:
-            volume = _smiles_volume(contents.smiles[ligand.code])
-        else:
-            volume = _library_volume(ligand.code)
-        yield _VolumeComponent(
-            description, stoichiometry, stoichiometry_assumed, volume
-        )
-
-
-@dataclasses.dataclass
-class _CopiesOption:
+class CopiesOption:
     copies: int
     solvent: float
     probability: float
 
 
-def _copies_options(contents: AsuContents, mtz: gemmi.Mtz) -> list:
+def copies_options(
+    contents: AsuContents,
+    cell: gemmi.UnitCell,
+    spacegroup: gemmi.SpaceGroup,
+    resolution: float,
+    monlib: MonLib,
+) -> list:
     options = []
     nucleic_acids = contents.rnas + contents.dnas
-    mwp = sum(_polymer_weight(p) * (p.stoichiometry or 1) for p in contents.proteins)
-    mwn = sum(_polymer_weight(n) * (n.stoichiometry or 1) for n in nucleic_acids)
-    asu_volume = mtz.cell.volume / len(mtz.spacegroup.operations())
-    contents_volume = _contents_volume(contents)
-    resolution = mtz.resolution_high()
+    mwp = sum(p.weight(monlib) * (p.stoichiometry or 1) for p in contents.proteins)
+    mwn = sum(n.weight(monlib) * (n.stoichiometry or 1) for n in nucleic_acids)
+    asu_volume = cell.volume / len(spacegroup.operations())
+    contents_volume = contents.volume(monlib)
     total_probability = 0
     for copies in range(1, 60):
         solvent = 1 - copies * contents_volume / asu_volume
-        probability = _probability(mwp, mwn, copies, asu_volume, resolution)
+        probability = _matthews_probability(mwp, mwn, copies, asu_volume, resolution)
         if solvent < 0:
             break
-        options.append(_CopiesOption(copies, solvent, probability))
+        options.append(CopiesOption(copies, solvent, probability))
         total_probability += probability
     for option in options:
         option.probability /= total_probability
     return options
 
 
-def _guess_copies(contents: AsuContents, mtz: gemmi.Mtz) -> int:
-    options = _copies_options(contents, mtz)
+def _guess_copies(
+    contents: AsuContents,
+    cell: gemmi.UnitCell,
+    spacegroup: gemmi.SpaceGroup,
+    resolution: float,
+    monlib: MonLib,
+) -> int:
+    options = copies_options(contents, cell, spacegroup, resolution, monlib)
     if len(options) == 0:
         raise ValueError("Contents are too big to fit into the asymmetric unit")
     chosen = max(options, key=lambda option: option.probability)
@@ -165,15 +94,15 @@ _MATTHEWS_PROBABILITY_SETTINGS = [
 ]
 
 
-def _probability(
+def _matthews_probability(
     protein_mw: float,
     nucleic_mw: float,
     copies: int,
     asu_volume: float,
     resolution: float,
 ) -> float:
-    total_mw = protein_mw + nucleic_mw
-    matt = asu_volume / (total_mw * copies)
+    total_mw = (protein_mw + nucleic_mw) * copies
+    matthews = asu_volume / total_mw
     if protein_mw > 0.9 * total_mw:
         for index in range(12):
             if resolution < _MATTHEWS_PROBABILITY_SETTINGS[index].rbin:
@@ -183,5 +112,5 @@ def _probability(
     else:
         index = 14
     _, p0, vmbar, w, a, s = _MATTHEWS_PROBABILITY_SETTINGS[index]
-    z = (matt - vmbar) / w
+    z = (matthews - vmbar) / w
     return p0 + a * (math.exp(-math.exp(-z) - z * s + 1))

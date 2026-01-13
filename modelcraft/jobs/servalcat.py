@@ -1,10 +1,44 @@
 import dataclasses
 import shutil
+
 import gemmi
+
 from ..job import Job
 from ..maps import read_map
-from ..reflections import DataItem
+from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
+
+
+@dataclasses.dataclass
+class ServalcatFwResult:
+    fmean: DataItem
+    fanom: DataItem
+    imean: DataItem
+    seconds: float
+
+
+class ServalcatFw(Job):
+    def __init__(self, observations: DataItem):
+        super().__init__("servalcat")
+        self.observations = observations
+
+    def _setup(self) -> None:
+        write_mtz(self._path("hklin.mtz"), [self.observations])
+        self._args += ["fw", "--hklin", "hklin.mtz", "-o", "output"]
+
+    def _result(self) -> ServalcatFwResult:
+        self._check_files_exist("output.mtz")
+        mtz = gemmi.read_mtz_file(self._path("output.mtz"))
+        result = ServalcatFwResult(
+            fmean=DataItem(mtz, "F,SIGF"),
+            fanom=None,
+            imean=None,
+            seconds=self._seconds,
+        )
+        if self.observations.types == "KMKM":
+            result.fanom = DataItem(mtz, "F(+),SIGF(+),F(-),SIGF(-)")
+            result.imean = DataItem(mtz, "I,SIGI")
+        return result
 
 
 @dataclasses.dataclass
@@ -190,7 +224,7 @@ class ServalcatFsc(Job):
     def _result(self) -> ServalcatFscResult:
         self._check_files_exist("fsc.dat")
         fsc = None
-        with open(self._path("fsc.dat")) as text:
+        with open(self._path("fsc.dat"), encoding="utf-8") as text:
             for line in text:
                 if line.startswith("# FSCaverage of fsc_FC_full ="):
                     fsc = float(line.strip().split()[-1])

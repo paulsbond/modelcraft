@@ -1,9 +1,11 @@
 import functools
 import os
 import shutil
-import uuid
 import urllib.request
+import uuid
+
 import gemmi
+
 from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
 from modelcraft.jobs.refmac import Refmac
 from modelcraft.reflections import DataItem
@@ -16,7 +18,7 @@ def ccp4_path(*paths: str) -> str:
 
 def in_temp_directory(func):
     def wrapper():
-        tmp_dir = "tmp%s" % uuid.uuid4()
+        tmp_dir = f"tmp{uuid.uuid4()}"
         os.mkdir(tmp_dir)
         os.chdir(tmp_dir)
         try:
@@ -66,7 +68,6 @@ def insulin_refmac():
 
 @functools.lru_cache(maxsize=None)
 def insulin_contents():
-    contents = AsuContents()
     chain_a = Polymer(
         sequence="GIVEQCCASVCSLYQLENYCN",
         polymer_type=PolymerType.PROTEIN,
@@ -75,9 +76,8 @@ def insulin_contents():
         sequence="FVNQHLCGSHLVEALYLVCGERGFFYTPKA",
         polymer_type=PolymerType.PROTEIN,
     )
-    contents.add_polymer(chain_a)
-    contents.add_polymer(chain_b)
-    return contents
+    ligand = Ligand("GOL")
+    return AsuContents(proteins=[chain_a, chain_b], ligands=[ligand])
 
 
 @functools.lru_cache(maxsize=None)
@@ -92,8 +92,4 @@ def pdb1rxf_contents():
     )
     protein = Polymer(sequence=sequence, polymer_type=PolymerType.PROTEIN)
     ligand = Ligand(code="FE")
-    contents = AsuContents()
-    contents.proteins.append(protein)
-    contents.ligands.append(ligand)
-    contents.copies = 1
-    return contents
+    return AsuContents(copies=1, proteins=[protein], ligands=[ligand])

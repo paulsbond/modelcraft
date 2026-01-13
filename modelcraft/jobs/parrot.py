@@ -1,7 +1,10 @@
 import dataclasses
+
 import gemmi
+
 from ..contents import AsuContents
 from ..job import Job
+from ..monlib import MonLib
 from ..reflections import DataItem, write_mtz
 from ..solvent import solvent_fraction
 from ..structure import write_mmcif
@@ -23,12 +26,14 @@ class Parrot(Job):
         phases: DataItem,
         fphi: DataItem = None,
         structure: gemmi.Structure = None,
+        monlib: MonLib = None,
     ):
         super().__init__("cparrot")
         self.contents = contents
         self.fsigf = fsigf
         self.freer = freer
         self.phases = phases
+        self.monlib = monlib
         self.fphi = fphi
         self.structure = structure
 
@@ -49,8 +54,14 @@ class Parrot(Job):
         if self.structure is not None:
             write_mmcif(self._path("xyzin.cif"), self.structure)
             self._args += ["-pdbin-mr", "xyzin.cif"]
-        solvent_content = solvent_fraction(self.contents, self.fsigf)
-        self._args += ["-solvent-content", "%.3f" % solvent_content]
+        solvent_content = solvent_fraction(
+            contents=self.contents,
+            cell=self.fsigf.cell,
+            spacegroup=self.fsigf.spacegroup,
+            resolution=self.fsigf.resolution_high(),
+            monlib=self.monlib,
+        )
+        self._args += ["-solvent-content", f"{solvent_content:.3f}"]
         self._args += ["-cycles", "5"]
         self._args += ["-anisotropy-correction"]
         self._args += ["-mtzout", "hklout.mtz"]

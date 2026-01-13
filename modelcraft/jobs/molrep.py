@@ -1,6 +1,8 @@
 import dataclasses
 import xml.etree.ElementTree as ET
+
 import gemmi
+
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure

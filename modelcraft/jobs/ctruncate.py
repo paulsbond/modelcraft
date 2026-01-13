@@ -1,7 +1,9 @@
 import dataclasses
+
 import gemmi
-from ..reflections import DataItem, write_mtz
+
 from ..job import Job
+from ..reflections import DataItem, write_mtz
 
 
 @dataclasses.dataclass

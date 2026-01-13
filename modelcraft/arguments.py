@@ -1,14 +1,15 @@
-from typing import List, Optional
 import argparse
 import os
 import sys
+from typing import List, Optional
+
 import gemmi
 import numpy as np
+
 from . import __version__
 from .contents import AsuContents
 from .reflections import DataItem
 from .structure import read_structure
-
 
 _PROG = None
 if os.path.basename(sys.argv[0]) == "__main__.py":
@@ -23,12 +24,16 @@ _GROUP.add_argument(
     required=True,
     metavar="X",
     help=(
-        "A file with a description of the assymetric unit contents, "
+        "A file with a description of the full asymmetric unit contents, "
         "either as a sequence file (in FASTA or PIR format) "
         "with both protein and nucleic acid sequences, "
         "or a more detailed contents file in JSON format. "
         "Example JSON files for existing PDB entries "
-        "can be created using the modelcraft-contents script."
+        "can be created using the modelcraft-contents script. "
+        "Currently, the only advantage of using the JSON format "
+        "is a more accurate calculation of the solvent fraction "
+        "for Parrot density modification in the X-ray pipeline. "
+        "Otherwise, the solvent fraction will be calculated using Matthews probability."
     ),
 )
 _GROUP = _PARENT.add_argument_group("optional arguments (shared)")
@@ -398,12 +403,10 @@ def _parse_freerflag(args: argparse.Namespace, mtz: gemmi.Mtz):
         args.freer = _item_from_label(mtz, args.freerflag_label, ["I"])
     values = list(args.freer.columns[-1])
     if args.freerflag_value is None:
-        print("Selecting for a suitable free-R flag value", flush=True)
         for value in sorted(set(values)):
             fraction = values.count(value) / len(values)
             if fraction < 0.5:
                 args.freerflag_value = value
-                print(f"Selected flag {value}", flush=True)
                 break
         else:
             _PARSER.error("No suitable value found for the free-R flag")

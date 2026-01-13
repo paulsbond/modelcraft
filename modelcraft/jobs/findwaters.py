@@ -1,5 +1,7 @@
 import dataclasses
+
 import gemmi
+
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif

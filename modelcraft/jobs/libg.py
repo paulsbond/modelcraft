@@ -1,5 +1,7 @@
 import dataclasses
+
 import gemmi
+
 from ..job import Job
 from ..structure import write_mmcif
 

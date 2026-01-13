@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modelcraft"
+dynamic = ["version"]
+authors = [{ name = "Paul Bond", email = "paul.bond@york.ac.uk" }]
+maintainers = [{ name = "Paul Bond", email = "paul.bond@york.ac.uk" }]
+description = "Automated model-building pipeline for X-ray crystallography and cryo-EM"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "gemmi >=0.5.5",
+    "numpy",
+    "pandas",
+    "requests",
+    "scipy",
+    "tabulate",
+]
+
+[project.scripts]
+modelcraft = "modelcraft.scripts.modelcraft:main"
+modelcraft-contents = "modelcraft.scripts.contents:main"
+modelcraft-copies = "modelcraft.scripts.copies:main"
+modelcraft-sidechains = "modelcraft.scripts.sidechains:main"
+modelcraft-validate = "modelcraft.scripts.validate:main"
+
+[project.urls]
+Source = "https://github.com/paulsbond/modelcraft"
+Issues = "https://github.com/paulsbond/modelcraft/issues"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # Pyflakes
+    "I",  # isort
+    "PL", # Pylint
+    "W",  # pycodestyle warnings
+]
+ignore = [
+    "PLR0913", # Too many arguments
+    "PLR2004", # Magic constant value
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "modelcraft.__version__" }

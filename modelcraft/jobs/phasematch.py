@@ -1,4 +1,5 @@
 import dataclasses
+
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 
@@ -35,7 +36,7 @@ class PhaseMatch(Job):
     def _result(self) -> PhaseMatchResult:
         self._check_files_exist("hklout.mtz")
         path = self._path("stdout.txt")
-        with open(path) as stream:
+        with open(path, encoding="utf-8") as stream:
             for line in stream:
                 if line[:19] == "Overall statistics:":
                     keys = next(stream).split()

@@ -4,8 +4,9 @@ import shutil
 import subprocess
 import textwrap
 import time
+
 from .pipeline import Pipeline
-from .utils import random_id
+from .utils import puid
 
 
 class Job(abc.ABC):
@@ -22,13 +23,13 @@ class Job(abc.ABC):
         if self._exe_path is None:
             raise ValueError(f"Executable '{self._exe_name}' not found")
         if pipeline is None:
-            self._directory = f"job_{self._exe_name}_{random_id(length=20)}"
+            self._directory = f"job_{self._exe_name}_{puid(length=20)}"
         else:
             self._directory = pipeline.next_job_directory(self._exe_name)
             pipeline.report_job_start(self._exe_name)
         os.makedirs(self._directory, exist_ok=True)
         self._setup()
-        with open(self._path("script.sh"), "w") as stream:
+        with open(self._path("script.sh"), "w", encoding="utf-8") as stream:
             stream.write(self._script())
         os.chmod(self._path("script.sh"), 0o755)
         start_time = time.time()
@@ -56,8 +57,8 @@ class Job(abc.ABC):
         pass
 
     def _run_subprocess(self):
-        with open(self._path("stdout.txt"), "w") as out_stream:
-            with open(self._path("stderr.txt"), "w") as err_stream:
+        with open(self._path("stdout.txt"), "w", encoding="utf-8") as out_stream:
+            with open(self._path("stderr.txt"), "w", encoding="utf-8") as err_stream:
                 process = subprocess.Popen(
                     args=[self._exe_path] + self._args,
                     stdin=subprocess.PIPE if self._stdin else None,

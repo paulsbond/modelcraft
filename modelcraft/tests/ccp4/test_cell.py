@@ -1,13 +1,16 @@
 import urllib.request
+
 import gemmi
+
 from modelcraft.cell import max_distortion, remove_scale, update_cell
 from modelcraft.structure import read_structure
+
 from . import in_temp_directory
 
 
 @in_temp_directory
 def test_1ana():
-    url = "https://files-versioned.wwpdb.org/pdb_versioned/data/entries/"
+    url = "https://ftp.ebi.ac.uk/pub/databases/pdb_versioned/data/entries/"
     url += "an/pdb_00001ana/pdb_00001ana_xyz_v1-2.cif.gz"
     urllib.request.urlretrieve(url, "1ana.cif.gz")
     structure = read_structure("1ana.cif.gz")

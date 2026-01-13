@@ -1,8 +1,11 @@
-from modelcraft.scripts.contents import _entry_contents, _smiles
+from pytest import approx
+
+from modelcraft.contents import AsuContents, Polymer, PolymerType
+from modelcraft.monlib import MonLib
 
 
 def _test_contents(entry: str, expected_json: list, selenomet: bool):
-    contents = _entry_contents(entry)
+    contents = AsuContents.from_pdbe(entry)
     assert contents.to_json() == expected_json
     assert contents.is_selenomet() == selenomet
     return contents
@@ -13,7 +16,10 @@ def test_1o6a():
         "copies": 2,
         "proteins": [
             {
-                "sequence": "SETRKTEVPSDKLELLLDIPLKVTVELGRTRMTLKRVLEMIHGSIIELDKLTGEPVDILVNGKLIARGEVVVIDENFGVRITEIVSPKERLELLNE",
+                "sequence": (
+                    "SETRKTEVPSDKLELLLDIPLKVTVELGRTRMTLKRVLEMIHGSIIELDKLTGEPVDILV"
+                    "NGKLIARGEVVVIDENFGVRITEIVSPKERLELLNE"
+                ),
                 "stoichiometry": 1,
                 "modifications": ["M->MSE"],
             }
@@ -23,7 +29,6 @@ def test_1o6a():
         "carbs": [],
         "ligands": [],
         "buffers": [],
-        "smiles": {},
     }
     _test_contents("1o6a", expected, selenomet=True)
 
@@ -34,7 +39,11 @@ def test_4gxy():
         "proteins": [],
         "rnas": [
             {
-                "sequence": "GGCGGCAGGUGCUCCCGACCCUGCGGUCGGGAGUUAAAAGGGAAGCCGGUGCAAGUCCGGCACGGUCCCGCCACUGUGACGGGGAGUCGCCCCUCGGGAUGUGCCACUGGCCCGAAGGCCGGGAAGGCGGAGGGGCGGCGAGGAUCCGGAGUCAGGAAACCUGCCUGCCGUC",
+                "sequence": (
+                    "GGCGGCAGGUGCUCCCGACCCUGCGGUCGGGAGUUAAAAGGGAAGCCGGUGCAAGUCCGG"
+                    "CACGGUCCCGCCACUGUGACGGGGAGUCGCCCCUCGGGAUGUGCCACUGGCCCGAAGGCC"
+                    "GGGAAGGCGGAGGGGCGGCGAGGAUCCGGAGUCAGGAAACCUGCCUGCCGUC"
+                ),
                 "stoichiometry": 1,
                 "modifications": ["1->GTP", "172->CCC"],
             }
@@ -46,7 +55,6 @@ def test_4gxy():
             {"code": "IRI", "stoichiometry": 7},
         ],
         "buffers": ["MG"],
-        "smiles": {},
     }
     _test_contents("4gxy", expected, selenomet=False)
 
@@ -56,7 +64,24 @@ def test_6as7():
         "copies": 1,
         "proteins": [
             {
-                "sequence": "DEEQVFHFYWLDAYEDQYNQPGVVFLFGKVWIESAETHVSCCVMVKNIERTLYFLPREMKIDLNTGKETGTPISMKDVYEEFDEKIATKYKIMKFKSKPVEKNYAFEIPDVPEKSEYLEVKYSAEMPQLPQDLKGETFSHVFGTNTSSLELFLMNRKIKGPCWLEVKSPQLLNQPVSWCKAEAMALKPDLVNVIKDVSPPPLVVMAFSMKTMQNAKNHQNEIIAMAALVHHSFALDKAAPKPPFQSHFCVVSKPKDCIFPYAFKEVIEKKNVKVEVAATERTLLGFFLAKVHKIDPDIIVGHNIYGFELEVLLQRINVCKAPHWSKIGRLKRSNMPKLGGRSGFGERNATCGRMICDVEISAKELIRCKSYHLSELVQQILKTERVVIPMENIQNMYSESSQLLYLLEHTWKDAKFILQIMCELNVLPLALQITNIAGNIMSRTLMGGRSERNEFLLLHAFYENNYIVPDKQIFRKPQQKLGDEDEEIDGDTNKYKKGRKKAAYAGGLVLDPKVGFYDKFILLLDFNSLYPSIIQEFNICFTTVQRVASEAQKVTEDGEQEQIPELPDPSLEMGILPREIRKLVERRKQVKQLMKQQDLNPDLILQYDIRQKALKLTANSMYGCLGFSYSRFYAKPLAALVTYKGREILMHTKEMVQKMNLEVIYGDTDSIMINTNSTNLEEVFKLGNKVKSEVNKLYKLLEIDIDGVFKSLLLLKKKKYAALVVEPTSDGNYVTKQELKGLDIVRRDWCDLAKDTGNFVIGQILSDQSRDTIVENIQKRLIEIGENVLNGSVPVSQFEINKALTKDPQDYPDKKSLPHVHVALWINSQGGRKVKAGDTVSYVICQDGSNLTASQRAYAPEQLQKQDNLTIDTQYYLAQQIHPVVARICEPIDGIDAVLIATWLGLDPTQFRVHHYHKDEEN",
+                "sequence": (
+                    "DEEQVFHFYWLDAYEDQYNQPGVVFLFGKVWIESAETHVSCCVMVKNIERTLYFLPREMK"
+                    "IDLNTGKETGTPISMKDVYEEFDEKIATKYKIMKFKSKPVEKNYAFEIPDVPEKSEYLEV"
+                    "KYSAEMPQLPQDLKGETFSHVFGTNTSSLELFLMNRKIKGPCWLEVKSPQLLNQPVSWCK"
+                    "AEAMALKPDLVNVIKDVSPPPLVVMAFSMKTMQNAKNHQNEIIAMAALVHHSFALDKAAPK"
+                    "PPFQSHFCVVSKPKDCIFPYAFKEVIEKKNVKVEVAATERTLLGFFLAKVHKIDPDIIVGH"
+                    "NIYGFELEVLLQRINVCKAPHWSKIGRLKRSNMPKLGGRSGFGERNATCGRMICDVEISAK"
+                    "ELIRCKSYHLSELVQQILKTERVVIPMENIQNMYSESSQLLYLLEHTWKDAKFILQIMCEL"
+                    "NVLPLALQITNIAGNIMSRTLMGGRSERNEFLLLHAFYENNYIVPDKQIFRKPQQKLGDED"
+                    "EEIDGDTNKYKKGRKKAAYAGGLVLDPKVGFYDKFILLLDFNSLYPSIIQEFNICFTTVQR"
+                    "VASEAQKVTEDGEQEQIPELPDPSLEMGILPREIRKLVERRKQVKQLMKQQDLNPDLILQY"
+                    "DIRQKALKLTANSMYGCLGFSYSRFYAKPLAALVTYKGREILMHTKEMVQKMNLEVIYGDT"
+                    "DSIMINTNSTNLEEVFKLGNKVKSEVNKLYKLLEIDIDGVFKSLLLLKKKKYAALVVEPTS"
+                    "DGNYVTKQELKGLDIVRRDWCDLAKDTGNFVIGQILSDQSRDTIVENIQKRLIEIGENVLN"
+                    "GSVPVSQFEINKALTKDPQDYPDKKSLPHVHVALWINSQGGRKVKAGDTVSYVICQDGSNL"
+                    "TASQRAYAPEQLQKQDNLTIDTQYYLAQQIHPVVARICEPIDGIDAVLIATWLGLDPTQFR"
+                    "VHHYHKDEEN"
+                ),
                 "stoichiometry": 1,
                 "modifications": [],
             }
@@ -77,7 +102,6 @@ def test_6as7():
         "carbs": [],
         "ligands": [{"code": "DCP", "stoichiometry": 1}],
         "buffers": ["MG", "CO"],
-        "smiles": {},
     }
     _test_contents("6as7", expected, selenomet=False)
 
@@ -87,7 +111,17 @@ def test_4aqd():
         "copies": 1,
         "proteins": [
             {
-                "sequence": "RSEDDIIIATKNGKVRGMNLTVFGGTVTAFLGIPYAQPPLGRLRFKKPQSLTKWSDIWNATKYANSCCQNIDQSFPGFHGSEMWNPNTDLSEDCLYLNVWIPAPKPKNATVLIWIYGGGFQTGTSSLHVYDGKFLARVERVIVVSMNYRVGALGFLALPGNPEAPGNMGLFDQQLALQWVQKNIAAFGGNPKSVTLFGESAGAASVSLHLLSPGSHSLFTRAILQSGSFNAPWAVTSLYEARNRTLNLAKLTGCSRENETEIIKCLRNKDPQEILLNEAFVVPYGTPLSVNFGPTVDGDFLTDMPDILLELGQFKKTQILVGVNKDEGTAFLVYGAPGFSKDNNSIITRKEFQEGLKIFFPGVSEFGKESILFHYTDWVDDQRPENYREALGDVVGDYNFICPALEFTKKFSEWGNNAFFYYFEHRSSKLPWPEWMGVMHGYEIEFVFGLPLERRDNYTKAEEILSRSIVKRWANFAKYGNPNETQNNSTSWPVFKSTEQKYLTLNTESTRIMTKLRAQQCRFWTSFFPKV",
+                "sequence": (
+                    "RSEDDIIIATKNGKVRGMNLTVFGGTVTAFLGIPYAQPPLGRLRFKKPQSLTKWSDIWNA"
+                    "TKYANSCCQNIDQSFPGFHGSEMWNPNTDLSEDCLYLNVWIPAPKPKNATVLIWIYGGGF"
+                    "QTGTSSLHVYDGKFLARVERVIVVSMNYRVGALGFLALPGNPEAPGNMGLFDQQLALQWV"
+                    "QKNIAAFGGNPKSVTLFGESAGAASVSLHLLSPGSHSLFTRAILQSGSFNAPWAVTSLYE"
+                    "ARNRTLNLAKLTGCSRENETEIIKCLRNKDPQEILLNEAFVVPYGTPLSVNFGPTVDGDF"
+                    "LTDMPDILLELGQFKKTQILVGVNKDEGTAFLVYGAPGFSKDNNSIITRKEFQEGLKIFF"
+                    "PGVSEFGKESILFHYTDWVDDQRPENYREALGDVVGDYNFICPALEFTKKFSEWGNNAFF"
+                    "YYFEHRSSKLPWPEWMGVMHGYEIEFVFGLPLERRDNYTKAEEILSRSIVKRWANFAKYG"
+                    "NPNETQNNSTSWPVFKSTEQKYLTLNTESTRIMTKLRAQQCRFWTSFFPKV"
+                ),
                 "stoichiometry": 2,
                 "modifications": [],
             }
@@ -105,8 +139,7 @@ def test_4aqd():
             {"code": "PG4", "stoichiometry": 2},
             {"code": "PEG", "stoichiometry": 2},
         ],
-        "buffers": ["EDO", "CL", "GLY"],
-        "smiles": {},
+        "buffers": ["EDO", "UNX", "CL", "GLY"],
     }
     _test_contents("4aqd", expected, selenomet=False)
 
@@ -116,7 +149,13 @@ def test_1vjr():
         "copies": 1,
         "proteins": [
             {
-                "sequence": "MGSDKIHHHHHHVLDKIELFILDMDGTFYLDDSLLPGSLEFLETLKEKNKRFVFFTNNSSLGAQDYVRKLRNMGVDVPDDAVVTSGEITAEHMLKRFGRCRIFLLGTPQLKKVFEAYGHVIDEENPDFVVLGFDKTLTYERLKKACILLRKGKFYIATHPDINCPSKEGPVPDAGSIMAAIEASTGRKPDLIAGKPNPLVVDVISEKFGVPKERMAMVGDRLYTDVKLGKNAGIVSILVLTGETTPEDLERAETKPDFVFKNLGELAKAVQ",
+                "sequence": (
+                    "MGSDKIHHHHHHVLDKIELFILDMDGTFYLDDSLLPGSLEFLETLKEKNKRFVFFTNNSS"
+                    "LGAQDYVRKLRNMGVDVPDDAVVTSGEITAEHMLKRFGRCRIFLLGTPQLKKVFEAYGHV"
+                    "IDEENPDFVVLGFDKTLTYERLKKACILLRKGKFYIATHPDINCPSKEGPVPDAGSIMAA"
+                    "IEASTGRKPDLIAGKPNPLVVDVISEKFGVPKERMAMVGDRLYTDVKLGKNAGIVSILVL"
+                    "TGETTPEDLERAETKPDFVFKNLGELAKAVQ"
+                ),
                 "stoichiometry": 1,
                 "modifications": ["M->MSE"],
             }
@@ -126,7 +165,6 @@ def test_1vjr():
         "carbs": [],
         "ligands": [],
         "buffers": ["NI", "CL"],
-        "smiles": {},
     }
     _test_contents("1vjr", expected, selenomet=True)
 
@@ -157,7 +195,6 @@ def test_1cag():
         "carbs": [],
         "ligands": [],
         "buffers": ["ACY"],
-        "smiles": {},
     }
     contents = _test_contents("1cag", expected, selenomet=False)
     polymer = contents.proteins[0]
@@ -182,10 +219,55 @@ def test_1iha():
         "carbs": [],
         "ligands": [{"code": "RHD", "stoichiometry": 1}],
         "buffers": ["CL"],
-        "smiles": {},
     }
     _test_contents("1iha", expected, selenomet=False)
 
 
-def test_0pr_smiles():
-    assert _smiles("0PR") == "Cc1c(c(c(cn1)COP(=O)(O)O)CN[C@@H](Cc2ccc(cc2)O)C(=O)O)O"
+def test_3ue7():
+    expected = {
+        "copies": 1,
+        "proteins": [
+            {
+                "sequence": "TTCCPSIVARSNFNACRLPGTPEALCATYTGCIIIPGATCPGDYAN",
+                "stoichiometry": 1,
+                "modifications": [
+                    "T->DTH",
+                    "C->DCY",
+                    "P->DPR",
+                    "S->DSN",
+                    "I->DIL",
+                    "V->DVA",
+                    "A->DAL",
+                    "R->DAR",
+                    "N->DSG",
+                    "F->DPN",
+                    "L->DLE",
+                    "E->DGL",
+                    "Y->DTY",
+                    "D->DAS",
+                ],
+            },
+            {
+                "sequence": "TTCCPSIVAKSNFNACRLPGTPEALCATYTGCIIIPGATCPGDYAN",
+                "stoichiometry": 1,
+                "modifications": [],
+            },
+        ],
+        "rnas": [],
+        "dnas": [],
+        "carbs": [],
+        "ligands": [],
+        "buffers": [],
+    }
+    _test_contents("3ue7", expected, selenomet=False)
+
+
+def test_5vz8():
+    contents = AsuContents.from_pdbe("5vz8")
+    contents.monomer_codes()
+
+
+def test_polymer_weight():
+    polymer = Polymer("GG", polymer_type=PolymerType.PROTEIN)
+    monlib = MonLib(["GLY"], include_standard=True)
+    assert polymer.weight(monlib) == approx(132.12, abs=0.01)
