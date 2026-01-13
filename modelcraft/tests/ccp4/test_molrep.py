@@ -1,8 +1,11 @@
 import os
+
 import gemmi
+
 from modelcraft.jobs.molrep import Molrep
 from modelcraft.reflections import DataItem
 from modelcraft.structure import read_structure
+
 from . import ccp4_path
 
 

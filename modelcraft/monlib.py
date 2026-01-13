@@ -1,55 +1,58 @@
-import functools
 import os
+import sys
+
 import gemmi
 
-
-@functools.lru_cache(maxsize=None)
-def _path(code: str) -> str:
-    directory = os.path.join(os.environ["CLIBD_MON"], code[0].lower())
-    single = os.path.join(directory, f"{code.upper()}.cif")
-    double = os.path.join(directory, f"{code.upper()}_{code.upper()}.cif")
-    return double if os.path.exists(double) else single
+from .sequence import DNA_CODES, PROTEIN_CODES, RNA_CODES
 
 
-@functools.lru_cache(maxsize=None)
-def atom_ids(code: str) -> set:
-    return {atom.id for atom in chemcomp(code).atoms}
+class MonLib(gemmi.MonLib):
+    def __init__(self, resnames, libin: str = "", include_standard: bool = False):
+        super().__init__()
+        if libin:
+            self.read_monomer_cif(libin)
+        if include_standard:
+            resnames = set(resnames)
+            resnames |= set(PROTEIN_CODES.values())
+            resnames |= set(RNA_CODES.values())
+            resnames |= set(DNA_CODES.values())
+            resnames |= {"MSE", "HOH"}
+        ok = self.read_monomer_lib(
+            os.environ["CLIBD_MON"], list(resnames), logging=sys.stderr
+        )
+        if not ok:
+            raise ValueError("Please create definitions for missing monomers.")
 
+    def __contains__(self, code: str):
+        return code in self.monomers
 
-@functools.lru_cache(maxsize=None)
-def chemcomp(code: str) -> gemmi.ChemComp:
-    doc = gemmi.cif.read(_path(code))
-    return gemmi.make_chemcomp_from_block(doc[-1])
+    def __getitem__(self, code: str):
+        if code not in self:
+            raise KeyError(f"Monomer {code} not in this monomer library instance")
+        return self.monomers[code]
 
+    def atom_ids(self, code: str):
+        return {atom.id for atom in self[code].atoms}
 
-@functools.lru_cache(maxsize=None)
-def in_library(code: str) -> bool:
-    return os.path.exists(_path(code))
+    def group(self, code: str):
+        return self[code].group if code in self else gemmi.ChemComp.Group.Null
 
+    def is_nucleic(self, code: str) -> bool:
+        return self.group(code) in {
+            gemmi.ChemComp.Group.Dna,
+            gemmi.ChemComp.Group.Rna,
+            gemmi.ChemComp.Group.DnaRna,
+        }
 
-@functools.lru_cache(maxsize=None)
-def group(code: str) -> gemmi.ChemComp.Group:
-    if in_library(code):
-        doc = gemmi.cif.read(_path(code))
-        monlib = gemmi.MonLib()
-        monlib.read_monomer_doc(doc)
-        return monlib.monomers[code].group
-    return None
+    def is_protein(self, code: str) -> bool:
+        return self.group(code) in {
+            gemmi.ChemComp.Group.Peptide,
+            gemmi.ChemComp.Group.PPeptide,
+            gemmi.ChemComp.Group.MPeptide,
+        }
 
+    def volume(self, code: str):
+        return sum(18 for atom in self[code].atoms if not atom.is_hydrogen())
 
-@functools.lru_cache(maxsize=None)
-def is_protein(code: str) -> bool:
-    return group(code) in {
-        gemmi.ChemComp.Group.Peptide,
-        gemmi.ChemComp.Group.PPeptide,
-        gemmi.ChemComp.Group.MPeptide,
-    }
-
-
-@functools.lru_cache(maxsize=None)
-def is_nucleic(code: str) -> bool:
-    return group(code) in {
-        gemmi.ChemComp.Group.Dna,
-        gemmi.ChemComp.Group.Rna,
-        gemmi.ChemComp.Group.DnaRna,
-    }
+    def weight(self, code: str):
+        return sum(atom.el.weight for atom in self[code].atoms)

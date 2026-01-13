@@ -1,11 +1,12 @@
 from modelcraft.jobs.buccaneer import Buccaneer, _known_structure_ids
 from modelcraft.structure import ModelStats, read_structure
+
 from . import (
     in_temp_directory,
-    insulin_fsigf,
-    insulin_freer,
-    insulin_refmac,
     insulin_contents,
+    insulin_freer,
+    insulin_fsigf,
+    insulin_refmac,
     pdbe_download,
 )
 

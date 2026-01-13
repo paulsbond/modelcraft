@@ -1,7 +1,10 @@
 import json
 import os
+
 import pytest
+
 from modelcraft.scripts.modelcraft import main
+
 from ..ccp4 import in_temp_directory
 from . import (
     density_path,

@@ -1,6 +1,8 @@
 import gemmi
+
 from modelcraft.jobs.findwaters import FindWaters
 from modelcraft.structure import ModelStats
+
 from . import insulin_refmac
 
 

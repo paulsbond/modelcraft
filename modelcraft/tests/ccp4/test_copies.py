@@ -1,4 +1,5 @@
 from modelcraft.scripts.copies import main
+
 from . import ccp4_path, in_temp_directory, insulin_contents
 
 

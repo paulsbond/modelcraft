@@ -1,4 +1,5 @@
 import pytest
+
 from ...structure import read_structure
 from . import ccp4_path
 

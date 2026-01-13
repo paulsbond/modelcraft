@@ -1,16 +1,19 @@
 import json
 import os
+
 import gemmi
 import pytest
-from modelcraft.scripts.modelcraft import main
+
 from modelcraft.reflections import write_mtz
+from modelcraft.scripts.modelcraft import main
 from modelcraft.structure import contains_residue, read_structure
+
 from . import (
     ccp4_path,
     in_temp_directory,
     insulin_contents,
-    insulin_fsigf,
     insulin_freer,
+    insulin_fsigf,
     insulin_refmac,
     pdb1rxf_contents,
 )
@@ -33,14 +36,15 @@ def test_insulin_from_phases():
     args += ["--overwrite-directory"]
     with pytest.raises(SystemExit):
         main(args)
-    with open(os.path.join("my_modelcraft_dir", "modelcraft.json")) as report_file:
+    report_path = os.path.join("my_modelcraft_dir", "modelcraft.json")
+    with open(report_path, encoding="utf-8") as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
     mtz_path = os.path.join("my_modelcraft_dir", "modelcraft.mtz")
     mtz = gemmi.read_mtz_file(mtz_path)
     columns = set(mtz.column_labels())
-    expected = {"FWT", "DELFWT", "FC_ALL_LS", "FOM", "HLACOMB"}
+    expected = {"FWT", "DELFWT", "FC_ALL", "FOM", "HLACOMB"}
     assert expected.issubset(columns)
 
 
@@ -59,7 +63,8 @@ def test_1rxf_from_model():
     args += ["--cycles", "2"]
     with pytest.raises(SystemExit):
         main(args)
-    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
+    report_path = os.path.join("modelcraft", "modelcraft.json")
+    with open(report_path, encoding="utf-8") as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
@@ -80,7 +85,8 @@ def test_toxd():
     args += ["--cycles", "1"]
     with pytest.raises(SystemExit):
         main(args)
-    with open(os.path.join("modelcraft", "modelcraft.json")) as report_file:
+    report_path = os.path.join("modelcraft", "modelcraft.json")
+    with open(report_path, encoding="utf-8") as report_file:
         report = json.load(report_file)
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"

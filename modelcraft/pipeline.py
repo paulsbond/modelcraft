@@ -55,7 +55,7 @@ class Pipeline:
     def write_report(self):
         if self.json_name:
             self.seconds["total"] = time.time() - self.start_time
-            with open(self.path(self.json_name), "w") as report_file:
+            with open(self.path(self.json_name), "w", encoding="utf-8") as report_file:
                 json.dump(self.report, report_file, indent=4)
 
     def terminate(self, reason: str):

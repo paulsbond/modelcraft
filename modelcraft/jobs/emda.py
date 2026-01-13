@@ -1,5 +1,7 @@
 import dataclasses
+
 import gemmi
+
 from ..job import Job
 from ..maps import read_map
 
