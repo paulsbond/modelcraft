@@ -1,6 +1,8 @@
 import dataclasses
 import shutil
+
 import gemmi
+
 from ..job import Job
 from ..reflections import DataItem, write_mtz
 
@@ -45,17 +47,24 @@ class NucleoFind(Job):
         else:
             raise RuntimeError("Incorrect columns passed to NucleoFind")
         self._args += ["-m", "core"]
-        self._args += ["--gpu"] # If we can know what system they are on, we can use the GPU
-        
+        self._args += [
+            "--gpu"
+        ]  # If we can know what system they are on, we can use the GPU
 
     def _result(self) -> NucleoFindResult:
         self._check_files_exist("nucleofind/nucleofind-phosphate.map")
         self._check_files_exist("nucleofind/nucleofind-sugar.map")
         self._check_files_exist("nucleofind/nucleofind-base.map")
 
-        predicted_phosphate_map = gemmi.read_ccp4_map(self._path("nucleofind/nucleofind-phosphate.map"))
-        predicted_sugar_map = gemmi.read_ccp4_map(self._path("nucleofind/nucleofind-sugar.map"))
-        predicted_base_map = gemmi.read_ccp4_map(self._path("nucleofind/nucleofind-base.map"))
+        predicted_phosphate_map = gemmi.read_ccp4_map(
+            self._path("nucleofind/nucleofind-phosphate.map")
+        )
+        predicted_sugar_map = gemmi.read_ccp4_map(
+            self._path("nucleofind/nucleofind-sugar.map")
+        )
+        predicted_base_map = gemmi.read_ccp4_map(
+            self._path("nucleofind/nucleofind-base.map")
+        )
 
         return NucleoFindResult(
             predicted_phosphate_map=predicted_phosphate_map,

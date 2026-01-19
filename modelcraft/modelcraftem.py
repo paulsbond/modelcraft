@@ -58,7 +58,9 @@ class ModelCraftEm(Pipeline):
             if self.args.contents.rnas or self.args.contents.dnas:
                 if nucleofind_prediction_result is None:
                     raise RuntimeError("No nucleofind prediction result")
-                structure = self.nucleofind_build(nucleofind_prediction_result, structure)
+                structure = self.nucleofind_build(
+                    nucleofind_prediction_result, structure
+                )
                 structure = self.servalcat_refine(structure)
             model_stats = ModelStats(structure)
             fsc = self.servalcat_fsc(structure)
@@ -147,7 +149,9 @@ class ModelCraftEm(Pipeline):
 
         return nucleofind_result
 
-    def nucleofind_build(self, nucleofind_result: NucleoFindResult, structure: gemmi.Structure) -> gemmi.Structure:
+    def nucleofind_build(
+        self, nucleofind_result: NucleoFindResult, structure: gemmi.Structure
+    ) -> gemmi.Structure:
         if not NucleoFind.is_available():
             # WARN?
             raise RuntimeError("NucleoFind is not available")
@@ -159,7 +163,7 @@ class ModelCraftEm(Pipeline):
             fsigf=self.fmean,
             fphi=self.fphi,
             structure=structure,
-            nucleofind_result = nucleofind_result
+            nucleofind_result=nucleofind_result,
         ).run(self)
 
         return build_result.structure

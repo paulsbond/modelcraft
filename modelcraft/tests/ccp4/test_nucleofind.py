@@ -1,4 +1,5 @@
 import gemmi
+
 from modelcraft.jobs.freerflag import FreeRFlag
 from modelcraft.jobs.nucleofind import NucleoFind
 from modelcraft.jobs.refmac import Refmac
@@ -6,13 +7,14 @@ from modelcraft.pipeline import Pipeline
 from modelcraft.reflections import DataItem
 from modelcraft.scripts.contents import _entry_contents
 from modelcraft.structure import (
-    contains_residue,
     ModelStats,
+    contains_residue,
     read_structure,
     remove_residues,
 )
-from . import in_temp_directory, pdbe_download
+
 from ...jobs.nucleofind_build import NucleoFindBuild
+from . import in_temp_directory, pdbe_download
 
 
 @in_temp_directory
@@ -34,19 +36,19 @@ def test_102d():
     nucleofind_result = NucleoFind(
         fphi=refmac.fphi_best,
     ).run(pipeline)
-    
+
     build_result = NucleoFindBuild(
         contents=contents,
         fsigf=fsigf,
         phases=refmac.abcd,
         fphi=refmac.fphi_best,
         freer=freer,
-        nucleofind_result=nucleofind_result
+        nucleofind_result=nucleofind_result,
     ).run(pipeline)
-    
+
     stats = ModelStats(build_result.structure)
     assert stats.residues > 12
-    
+
     # Test with an input structure
     remove_residues(structure, ["HOH"])
     nucleofind_result = NucleoFind(
@@ -60,7 +62,7 @@ def test_102d():
         fphi=refmac.fphi_best,
         freer=freer,
         structure=structure,
-        nucleofind_result=nucleofind_result
+        nucleofind_result=nucleofind_result,
     ).run(pipeline)
     stats = ModelStats(build_result.structure)
     assert contains_residue(build_result.structure, "DT")

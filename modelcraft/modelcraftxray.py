@@ -7,18 +7,17 @@ import gemmi
 
 from . import __version__
 from .cell import max_distortion, remove_scale, update_cell
+from .combine import combine_results
 from .jobs.buccaneer import Buccaneer
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
+from .jobs.nucleofind import NucleoFind
+from .jobs.nucleofind_build import NucleoFindBuild
 from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
 from .monlib import MonLib
-from .jobs.nucleofind import NucleoFind
-from .jobs.nucleofind_build import NucleoFindBuild
-from .cell import max_distortion, remove_scale, update_cell
-from .combine import combine_results
 from .pipeline import Pipeline
 from .prune import prune
 from .reflections import DataItem, write_mtz
@@ -140,7 +139,6 @@ class ModelCraftXray(Pipeline):
             self.prune(chains_only=True)
             self.findwaters()
 
-
     def run_nucleofind_cycle(self):
         if self.args.basic:
             if self.cycle == 1:
@@ -167,7 +165,6 @@ class ModelCraftXray(Pipeline):
 
             self.prune(chains_only=True)
             self.findwaters()
-
 
     def run_buccaneer_and_nautilus(self):
         buccaneer = self.buccaneer()
@@ -207,7 +204,6 @@ class ModelCraftXray(Pipeline):
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
 
-
     def nucleofind(self):
         if not self.args.contents.rnas and not self.args.contents.dnas:
             return None
@@ -227,7 +223,7 @@ class ModelCraftXray(Pipeline):
             fphi=self.current_fphi_best,
             freer=self.args.freer,
             structure=self.current_structure,
-            nucleofind_result = nucleofind_result
+            nucleofind_result=nucleofind_result,
         ).run(self)
 
         # refined_structure = self.nucleic_acid_rsr(
@@ -241,7 +237,6 @@ class ModelCraftXray(Pipeline):
 
         # write_mmcif(self.path("current.cif"), refined_structure)
         return self.run_refmac(build_result.structure, cycles=10)
-
 
     def nautilus(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):

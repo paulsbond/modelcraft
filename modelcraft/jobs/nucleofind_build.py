@@ -1,11 +1,13 @@
 import dataclasses
+import xml.etree.ElementTree as ET
+
 import gemmi
+
 from ..contents import AsuContents, PolymerType
 from ..job import Job
+from ..jobs.nautilus import _deoxyfy
 from ..reflections import DataItem, write_mtz
 from ..structure import read_structure, write_mmcif
-from ..jobs.nautilus import _deoxyfy
-import xml.etree.ElementTree as ET
 from .nucleofind import NucleoFindResult
 
 
@@ -21,15 +23,15 @@ class NucleoFindBuildResult:
 
 class NucleoFindBuild(Job):
     def __init__(
-            self,
-            contents: AsuContents,
-            fsigf: DataItem,
-            phases: DataItem,
-            fphi: DataItem = None,
-            freer: DataItem = None,
-            structure: gemmi.Structure = None,
-            nucleofind_result: NucleoFindResult = None,
-            cycles: int = 3,
+        self,
+        contents: AsuContents,
+        fsigf: DataItem,
+        phases: DataItem,
+        fphi: DataItem = None,
+        freer: DataItem = None,
+        structure: gemmi.Structure = None,
+        nucleofind_result: NucleoFindResult = None,
+        cycles: int = 3,
     ):
         super().__init__("nucleofind-build")
         self.contents = contents
@@ -49,9 +51,15 @@ class NucleoFindBuild(Job):
         write_mtz(self._path("hklin.mtz"), data_items)
         self._args += ["--mtzin", "hklin.mtz"]
         self._args += ["--colin-fo", self.fsigf.label()]
-        self.nucleofind_result.predicted_phosphate_map.write_ccp4_map(self._path("phosin.map"))
-        self.nucleofind_result.predicted_sugar_map.write_ccp4_map(self._path("sugarin.map"))
-        self.nucleofind_result.predicted_base_map.write_ccp4_map(self._path("basein.map"))
+        self.nucleofind_result.predicted_phosphate_map.write_ccp4_map(
+            self._path("phosin.map")
+        )
+        self.nucleofind_result.predicted_sugar_map.write_ccp4_map(
+            self._path("sugarin.map")
+        )
+        self.nucleofind_result.predicted_base_map.write_ccp4_map(
+            self._path("basein.map")
+        )
 
         self._args += ["--phosin", "phosin.map"]
         self._args += ["--sugarin", "sugarin.map"]
@@ -68,7 +76,6 @@ class NucleoFindBuild(Job):
         self._args += ["--pdbout", "xyzout.cif"]
         self._args += ["--xmlout", "xmlout.xml"]
         self._args += ["--remove_clashing_protein"]
-
 
     def _result(self) -> NucleoFindBuildResult:
         self._check_files_exist("xmlout.xml", "xyzout.cif")
