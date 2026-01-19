@@ -7,10 +7,10 @@ from ..modelcraftxray import ModelCraftXray
 
 
 def main(args=None):
-    setup_environ()
     raw_args = args or sys.argv[1:]
     parsed_args = parse(args)
     pipeline = ModelCraftEm if parsed_args.mode == "em" else ModelCraftXray
+    setup_environ()
     pipeline(parsed_args, raw_args).run()
 
 
