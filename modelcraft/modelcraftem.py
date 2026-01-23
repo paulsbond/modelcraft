@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 
 import gemmi
@@ -7,8 +8,7 @@ from . import __version__
 from .jobs.buccaneer import Buccaneer
 from .jobs.emda import EmdaMapMask
 from .jobs.nautilus import Nautilus
-from .jobs.nucleofind import NucleoFind, NucleoFindResult
-from .jobs.nucleofind_build import NucleoFindBuild
+from .jobs.nucleofind import NucleoFindBuild, NucleoFindPredict
 from .jobs.refmac import RefmacMapToMtz
 from .jobs.servalcat import ServalcatFsc, ServalcatNemap, ServalcatRefine, ServalcatTrim
 from .maps import read_map
@@ -33,6 +33,7 @@ class ModelCraftEm(Pipeline):
         self.fmean = None
         self.phases = None
         self.fphi = None
+        self.nucleofind_prediction = None
 
     def run(self):
         print(f"# ModelCraft {__version__}", flush=True)
@@ -45,22 +46,22 @@ class ModelCraftEm(Pipeline):
         structure = self.args.model
         best_fsc = None
         cycles_without_improvement = 0
-
-        nucleofind_prediction_result = None
-        if self.args.contents.rnas or self.args.contents.dnas:
-            nucleofind_prediction_result = self.nucleofind()
-
+        build_nucleic = self.args.contents.rnas or self.args.contents.dnas
+        if build_nucleic and shutil.which("nucleofind"):
+            try:
+                self.nucleofind_prediction = NucleoFindPredict(self.fphi).run(self)
+            except FileNotFoundError:
+                print("Warning: nucleofind prediction failed", flush=True)
         for cycle in range(1, self.args.cycles + 1):
             print(f"\n## Cycle {cycle}\n", flush=True)
             if self.args.contents.proteins:
                 structure = self.buccaneer(structure)
                 structure = self.servalcat_refine(structure)
-            if self.args.contents.rnas or self.args.contents.dnas:
-                if nucleofind_prediction_result is None:
-                    raise RuntimeError("No nucleofind prediction result")
-                structure = self.nucleofind_build(
-                    nucleofind_prediction_result, structure
-                )
+            if build_nucleic:
+                if self.nucleofind_prediction is None:
+                    structure = self.nautilus(structure)
+                else:
+                    structure = self.nucleofind(structure)
                 structure = self.servalcat_refine(structure)
             model_stats = ModelStats(structure)
             fsc = self.servalcat_fsc(structure)
@@ -142,31 +143,15 @@ class ModelCraftEm(Pipeline):
         ).run(self)
         return result.structure
 
-    def nucleofind(self) -> NucleoFindResult:
-        nucleofind_result = NucleoFind(
-            fphi=self.fphi,
-        ).run(self)
-
-        return nucleofind_result
-
-    def nucleofind_build(
-        self, nucleofind_result: NucleoFindResult, structure: gemmi.Structure
-    ) -> gemmi.Structure:
-        if not NucleoFind.is_available():
-            # WARN?
-            raise RuntimeError("NucleoFind is not available")
-            # return self.nautilus(structure)
-
-        build_result = NucleoFindBuild(
+    def nucleofind(self, structure: gemmi.Structure) -> gemmi.Structure:
+        result = NucleoFindBuild(
             contents=self.args.contents,
-            phases=self.phases,
-            fsigf=self.fmean,
             fphi=self.fphi,
+            prediction=self.nucleofind_prediction,
             structure=structure,
-            nucleofind_result=nucleofind_result,
+            em=True,
         ).run(self)
-
-        return build_result.structure
+        return result.structure
 
     def servalcat_refine(self, structure: gemmi.Structure) -> gemmi.Structure:
         if ModelStats(structure).residues == 0:
