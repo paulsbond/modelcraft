@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -12,8 +13,7 @@ from .jobs.buccaneer import Buccaneer
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
 from .jobs.nautilus import Nautilus
-from .jobs.nucleofind import NucleoFind
-from .jobs.nucleofind_build import NucleoFindBuild
+from .jobs.nucleofind import NucleoFindBuild, NucleoFindPredict
 from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac
 from .jobs.sheetbend import Sheetbend
@@ -117,16 +117,10 @@ class ModelCraftXray(Pipeline):
         self._print_refmac_result(self.last_refmac)
 
     def run_cycle(self):
-        if NucleoFind.is_available():
-            self.run_nucleofind_cycle()
-        else:
-            self.run_combine_cycle()
-
-    def run_combine_cycle(self):
         if self.args.basic:
             if self.cycle == 1:
                 self.parrot()
-            self.run_buccaneer_and_nautilus()
+            self.run_model_building()
         else:
             if self.cycle > 1 and self.resolution < 2.3:
                 self.prune()
@@ -135,39 +129,17 @@ class ModelCraftXray(Pipeline):
                 if self.cycle > 1 or self.args.phases is None:
                     self.findwaters(dummy=True)
                 remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
-            self.run_buccaneer_and_nautilus()
+            self.run_model_building()
             self.prune(chains_only=True)
             self.findwaters()
 
-    def run_nucleofind_cycle(self):
-        if self.args.basic:
-            if self.cycle == 1:
-                self.parrot()
-            if buccaneer := self.buccaneer():
-                self.update_current_from_refmac_result(buccaneer)
-            if nucleofind := self.nucleofind():
-                self.update_current_from_refmac_result(nucleofind)
-
-        else:
-            if self.cycle > 1 and self.resolution < 2.3:
-                self.prune()
-            self.parrot()
-            if self.current_structure is not None:
-                if self.cycle > 1 or self.args.phases is None:
-                    self.findwaters(dummy=True)
-                remove_residues(structure=self.current_structure, names={"HOH", "DUM"})
-
-            if buccaneer := self.buccaneer():
-                self.update_current_from_refmac_result(buccaneer)
-
-            if nucleofind := self.nucleofind():
-                self.update_current_from_refmac_result(nucleofind)
-
-            self.prune(chains_only=True)
-            self.findwaters()
-
-    def run_buccaneer_and_nautilus(self):
+    def run_model_building(self):
         buccaneer = self.buccaneer()
+        if shutil.which("nucleofind"):
+            try:
+                return self.nucleofind(buccaneer)
+            except FileNotFoundError:
+                pass
         nautilus = self.nautilus()
         if buccaneer is None and nautilus is None:
             self.terminate(reason="No residues built")
@@ -204,39 +176,23 @@ class ModelCraftXray(Pipeline):
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
 
-    def nucleofind(self):
-        if not self.args.contents.rnas and not self.args.contents.dnas:
+    def nucleofind(self, refmac):
+        if not (self.args.contents.rnas or self.args.contents.dnas):
             return None
-
-        if not NucleoFind.is_available():
-            # WARN?
-            return self.nautilus()
-
-        nucleofind_result = NucleoFind(
-            fphi=self.current_fphi_best,
-        ).run(self)
-
-        build_result = NucleoFindBuild(
+        prediction = NucleoFindPredict(fphi=refmac.fphi_best).run(self)
+        result = NucleoFindBuild(
             contents=self.args.contents,
-            fsigf=self.args.fmean,
-            phases=self.current_phases,
-            fphi=self.current_fphi_best,
-            freer=self.args.freer,
-            structure=self.current_structure,
-            nucleofind_result=nucleofind_result,
+            fphi=refmac.fphi_best,
+            structure=refmac.structure,
+            prediction=prediction,
         ).run(self)
-
-        # refined_structure = self.nucleic_acid_rsr(
-        #     fsigf=self.args.fmean,
-        #     phases=self.current_phases,
-        #     fphi=self.current_fphi_best,
-        #     freer=self.args.freer,
-        #     structure=build_result.structure,
-        #     nucleofind_result = nucleofind_result
-        # )
-
-        # write_mmcif(self.path("current.cif"), refined_structure)
-        return self.run_refmac(build_result.structure, cycles=10)
+        if (
+            result.structure is None
+            or ModelStats(result.structure, self.monlib).residues == 0
+        ):
+            return None
+        write_mmcif(self.path("current.cif"), result.structure)
+        self.refmac(result.structure, cycles=10, auto_accept=True)
 
     def nautilus(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):
