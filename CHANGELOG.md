@@ -3,8 +3,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
-## [6.0.0] - 2026-01-12
+## [6.0.0] - 2026-02-04
 
+- NucleoFind nucleic acid building - only gets used if NucleoFind is available
 - New validation using Mean B-factor, RSCC, difference density RMS and geometry RMSZ
 - New scripts: modelcraft-sidechains and modelcraft-validation
 - New pruning step based on new validation metric

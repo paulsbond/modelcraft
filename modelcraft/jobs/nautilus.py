@@ -19,6 +19,18 @@ class NautilusResult:
     longest_fragment: int
     seconds: float
 
+    def __init__(self, job: Job):
+        job._check_files_exist("xmlout.xml", "xyzout.cif")
+        xml = ET.parse(job._path("xmlout.xml")).getroot()
+        structure = read_structure(job._path("xyzout.cif"))
+        _deoxyfy(structure)
+        self.structure = structure
+        self.fragments_built = int(xml.find("Final/FragmentsBuilt").text)
+        self.residues_built = int(xml.find("Final/ResiduesBuilt").text)
+        self.residues_sequenced = int(xml.find("Final/ResiduesSequenced").text)
+        self.longest_fragment = int(xml.find("Final/ResiduesLongestFragment").text)
+        self.seconds = job._seconds
+
 
 class Nautilus(Job):
     def __init__(
@@ -66,18 +78,7 @@ class Nautilus(Job):
         self._args += ["-xmlout", "xmlout.xml"]
 
     def _result(self) -> NautilusResult:
-        self._check_files_exist("xmlout.xml", "xyzout.cif")
-        xml = ET.parse(self._path("xmlout.xml")).getroot()
-        structure = read_structure(self._path("xyzout.cif"))
-        _deoxyfy(structure)
-        return NautilusResult(
-            structure=structure,
-            fragments_built=int(xml.find("Final/FragmentsBuilt").text),
-            residues_built=int(xml.find("Final/ResiduesBuilt").text),
-            residues_sequenced=int(xml.find("Final/ResiduesSequenced").text),
-            longest_fragment=int(xml.find("Final/ResiduesLongestFragment").text),
-            seconds=self._seconds,
-        )
+        return NautilusResult(self)
 
 
 def _deoxyfy(structure: gemmi.Structure) -> None:

@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 
 import gemmi
@@ -7,6 +8,7 @@ from . import __version__
 from .jobs.buccaneer import Buccaneer
 from .jobs.emda import EmdaMapMask
 from .jobs.nautilus import Nautilus
+from .jobs.nucleofind import NucleoFindBuild, NucleoFindPredict
 from .jobs.refmac import RefmacMapToMtz
 from .jobs.servalcat import ServalcatFsc, ServalcatNemap, ServalcatRefine, ServalcatTrim
 from .maps import read_map
@@ -30,6 +32,8 @@ class ModelCraftEm(Pipeline):
         self.maps = {}
         self.fmean = None
         self.phases = None
+        self.fphi = None
+        self.nucleofind_prediction = None
 
     def run(self):
         print(f"# ModelCraft {__version__}", flush=True)
@@ -42,13 +46,22 @@ class ModelCraftEm(Pipeline):
         structure = self.args.model
         best_fsc = None
         cycles_without_improvement = 0
+        build_nucleic = self.args.contents.rnas or self.args.contents.dnas
+        if build_nucleic and shutil.which("nucleofind"):
+            try:
+                self.nucleofind_prediction = NucleoFindPredict(self.fphi).run(self)
+            except FileNotFoundError:
+                print("Warning: nucleofind prediction failed", flush=True)
         for cycle in range(1, self.args.cycles + 1):
             print(f"\n## Cycle {cycle}\n", flush=True)
             if self.args.contents.proteins:
                 structure = self.buccaneer(structure)
                 structure = self.servalcat_refine(structure)
-            if self.args.contents.rnas or self.args.contents.dnas:
-                structure = self.nautilus(structure)
+            if build_nucleic:
+                if self.nucleofind_prediction is None:
+                    structure = self.nautilus(structure)
+                else:
+                    structure = self.nucleofind(structure)
                 structure = self.servalcat_refine(structure)
             model_stats = ModelStats(structure)
             fsc = self.servalcat_fsc(structure)
@@ -92,21 +105,21 @@ class ModelCraftEm(Pipeline):
                 density=self.maps["build_map"],
                 resolution=self.args.resolution,
             ).run(self)
-            fphi = refmac.fphi
+            self.fphi = refmac.fphi
         elif self.args.half_maps:
             nemap = ServalcatNemap(
                 halfmap1=self.maps["half_map1"],
                 halfmap2=self.maps["half_map2"],
                 resolution=self.args.resolution,
             ).run(self)
-            fphi = nemap.fphi
+            self.fphi = nemap.fphi
         else:
             refmac = RefmacMapToMtz(
                 density=self.maps["single_map"],
                 resolution=self.args.resolution,
             ).run(self)
-            fphi = refmac.fphi
-        self.fmean, self.phases = convert_to_fsigf_and_phifom(fphi)
+            self.fphi = refmac.fphi
+        self.fmean, self.phases = convert_to_fsigf_and_phifom(self.fphi)
 
     def buccaneer(self, structure: gemmi.Structure) -> gemmi.Structure:
         result = Buccaneer(
@@ -127,6 +140,16 @@ class ModelCraftEm(Pipeline):
             fsigf=self.fmean,
             phases=self.phases,
             structure=structure,
+        ).run(self)
+        return result.structure
+
+    def nucleofind(self, structure: gemmi.Structure) -> gemmi.Structure:
+        result = NucleoFindBuild(
+            contents=self.args.contents,
+            fphi=self.fphi,
+            prediction=self.nucleofind_prediction,
+            structure=structure,
+            em=True,
         ).run(self)
         return result.structure
 
