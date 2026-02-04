@@ -1,11 +1,14 @@
+import shutil
+
 import gemmi
+import pytest
 
 from modelcraft.jobs.freerflag import FreeRFlag
-from modelcraft.jobs.nucleofind import NucleoFind
+from modelcraft.jobs.nucleofind import NucleoFindBuild, NucleoFindPredict
 from modelcraft.jobs.refmac import Refmac
 from modelcraft.pipeline import Pipeline
 from modelcraft.reflections import DataItem
-from modelcraft.scripts.contents import _entry_contents
+from modelcraft.scripts.contents import AsuContents
 from modelcraft.structure import (
     ModelStats,
     contains_residue,
@@ -13,10 +16,10 @@ from modelcraft.structure import (
     remove_residues,
 )
 
-from ...jobs.nucleofind_build import NucleoFindBuild
 from . import in_temp_directory, pdbe_download
 
 
+@pytest.mark.skipif(not shutil.which("nucleofind"), reason="NucleoFind not installed")
 @in_temp_directory
 def test_102d():
     # Prepare input data
@@ -30,39 +33,24 @@ def test_102d():
     fsigf = DataItem(mtz, "FP,SIGFP")
     freer = FreeRFlag(fsigf).run().freer
     refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0).run()
-    contents = _entry_contents("102d")
+    contents = AsuContents.from_pdbe("102d")
     pipeline = Pipeline(keep_jobs=True)
     # Test without an input structure
-    nucleofind_result = NucleoFind(
-        fphi=refmac.fphi_best,
-    ).run(pipeline)
-
+    prediction = NucleoFindPredict(fphi=refmac.fphi_best).run(pipeline)
     build_result = NucleoFindBuild(
         contents=contents,
-        fsigf=fsigf,
-        phases=refmac.abcd,
         fphi=refmac.fphi_best,
-        freer=freer,
-        nucleofind_result=nucleofind_result,
+        prediction=prediction,
     ).run(pipeline)
-
     stats = ModelStats(build_result.structure)
     assert stats.residues > 12
-
     # Test with an input structure
     remove_residues(structure, ["HOH"])
-    nucleofind_result = NucleoFind(
-        fphi=refmac.fphi_best,
-    ).run(pipeline)
-
     build_result = NucleoFindBuild(
         contents=contents,
-        fsigf=fsigf,
-        phases=refmac.abcd,
         fphi=refmac.fphi_best,
-        freer=freer,
+        prediction=prediction,
         structure=structure,
-        nucleofind_result=nucleofind_result,
     ).run(pipeline)
     stats = ModelStats(build_result.structure)
     assert contains_residue(build_result.structure, "DT")
