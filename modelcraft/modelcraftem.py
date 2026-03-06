@@ -1,5 +1,4 @@
 import os
-import shutil
 import time
 
 import gemmi
@@ -47,7 +46,7 @@ class ModelCraftEm(Pipeline):
         best_fsc = None
         cycles_without_improvement = 0
         build_nucleic = self.args.contents.rnas or self.args.contents.dnas
-        if build_nucleic and shutil.which("nucleofind"):
+        if build_nucleic:
             try:
                 self.nucleofind_prediction = NucleoFindPredict(self.fphi).run(self)
                 if self.args.output_nucleofind_maps:

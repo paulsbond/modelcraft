@@ -1,7 +1,4 @@
-import shutil
-
 import gemmi
-import pytest
 
 from modelcraft.jobs.freerflag import FreeRFlag
 from modelcraft.jobs.nucleofind import NucleoFindBuild, NucleoFindPredict
@@ -19,7 +16,6 @@ from modelcraft.structure import (
 from . import in_temp_directory, pdbe_download
 
 
-@pytest.mark.skipif(not shutil.which("nucleofind"), reason="NucleoFind not installed")
 @in_temp_directory
 def test_102d():
     # Prepare input data

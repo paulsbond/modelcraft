@@ -1,5 +1,4 @@
 import os
-import shutil
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -135,11 +134,10 @@ class ModelCraftXray(Pipeline):
 
     def run_model_building(self):
         buccaneer = self.buccaneer()
-        if shutil.which("nucleofind"):
-            try:
-                return self.nucleofind(buccaneer)
-            except FileNotFoundError:
-                pass
+        try:
+            return self.nucleofind(buccaneer)
+        except FileNotFoundError:
+            pass
         nautilus = self.nautilus()
         if buccaneer is None and nautilus is None:
             self.terminate(reason="No residues built")
