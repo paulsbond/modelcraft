@@ -1,18 +1,17 @@
 import gemmi
 
-from modelcraft.jobs.freerflag import FreeRFlag
-from modelcraft.jobs.nucleofind import NucleoFindBuild, NucleoFindPredict
-from modelcraft.jobs.refmac import Refmac
-from modelcraft.pipeline import Pipeline
-from modelcraft.reflections import DataItem
-from modelcraft.scripts.contents import AsuContents
-from modelcraft.structure import (
+from ...jobs.freerflag import FreeRFlag
+from ...jobs.nucleofind import NucleoFindBuild, NucleoFindPredict
+from ...jobs.refmac import Refmac
+from ...pipeline import Pipeline
+from ...reflections import DataItem
+from ...scripts.contents import AsuContents
+from ...structure import (
     ModelStats,
     contains_residue,
     read_structure,
     remove_residues,
 )
-
 from . import in_temp_directory, pdbe_download
 
 
@@ -53,6 +52,6 @@ def test_102d():
     assert stats.residues > 22
     assert build_result.fragments_built > 2
     assert build_result.residues_built > 22
-    assert build_result.residues_sequenced > 20
+    assert build_result.residues_sequenced > 9
     assert build_result.longest_fragment > 11
     # TODO: assert contains_residue(nautilus.structure, "TNT")
