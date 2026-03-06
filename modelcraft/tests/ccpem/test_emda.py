@@ -3,8 +3,8 @@ from pathlib import Path
 
 import gemmi
 
-from modelcraft.jobs.emda import EmdaMapMask
-from modelcraft.maps import read_map
+from ...jobs.emda import EmdaMapMask
+from ...maps import read_map
 
 
 def test_emda():

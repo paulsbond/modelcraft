@@ -2,9 +2,8 @@ import urllib.request
 
 import gemmi
 
-from modelcraft.cell import max_distortion, remove_scale, update_cell
-from modelcraft.structure import read_structure
-
+from ...cell import max_distortion, remove_scale, update_cell
+from ...structure import read_structure
 from . import in_temp_directory
 
 

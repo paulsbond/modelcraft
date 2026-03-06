@@ -1,8 +1,7 @@
 import gemmi
 
-from modelcraft.jobs.servalcat import ServalcatFw
-from modelcraft.reflections import DataItem
-
+from ...jobs.servalcat import ServalcatFw
+from ...reflections import DataItem
 from . import ccp4_path
 
 

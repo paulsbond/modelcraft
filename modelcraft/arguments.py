@@ -129,6 +129,15 @@ _GROUP.add_argument(
         "Currently only affects some internal steps of Buccaneer."
     ),
 )
+_GROUP.add_argument(
+    "--output-nucleofind-maps",
+    action="store_true",
+    help=(
+        "NucleoFind produces maps of predicted phosphate, sugar and base locations. "
+        "These maps can be useful for interactive model building. "
+        "This option saves those maps in the output directory."
+    ),
+)
 
 _SUB_PARSERS = _PARSER.add_subparsers(dest="mode", required=True)
 _FORMATTER = argparse.ArgumentDefaultsHelpFormatter

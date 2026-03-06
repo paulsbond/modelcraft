@@ -1,6 +1,5 @@
-from modelcraft.jobs.buccaneer import Buccaneer, _known_structure_ids
-from modelcraft.structure import ModelStats, read_structure
-
+from ...jobs.buccaneer import Buccaneer, _known_structure_ids
+from ...structure import ModelStats, read_structure
 from . import (
     in_temp_directory,
     insulin_contents,

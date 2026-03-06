@@ -84,6 +84,16 @@ class Nautilus(Job):
 def _deoxyfy(structure: gemmi.Structure) -> None:
     dna_codes = set(DNA_CODES.values())
     for chain in structure[0]:
+        has_t = False
+        for residue in chain:
+            if residue.name == "T":
+                has_t = True
+                break
+        if has_t:
+            for residue in chain:
+                new_name = f"D{residue.name}"
+                if new_name in dna_codes:
+                    residue.name = new_name
         for residue in chain:
             if residue.name in dna_codes and "O2'" in residue:
                 for i, atom in reversed(list(enumerate(residue))):

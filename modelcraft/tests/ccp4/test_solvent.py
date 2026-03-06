@@ -1,8 +1,8 @@
 import gemmi
 import pytest
 
-from modelcraft.contents import AsuContents
-from modelcraft.solvent import solvent_fraction
+from ...contents import AsuContents
+from ...solvent import solvent_fraction
 
 
 def test_1o6a():

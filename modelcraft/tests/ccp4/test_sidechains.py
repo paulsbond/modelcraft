@@ -3,11 +3,10 @@ from tempfile import TemporaryDirectory
 
 import gemmi
 
-from modelcraft.reflections import write_mtz
-from modelcraft.scripts.sidechains import any_missing_side_chains
-from modelcraft.scripts.sidechains import main as fix_side_chains
-from modelcraft.structure import write_mmcif
-
+from ...reflections import write_mtz
+from ...scripts.sidechains import any_missing_side_chains
+from ...scripts.sidechains import main as fix_side_chains
+from ...structure import write_mmcif
 from . import insulin_refmac
 
 

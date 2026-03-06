@@ -1,5 +1,4 @@
 import os
-import shutil
 import time
 
 import gemmi
@@ -47,9 +46,13 @@ class ModelCraftEm(Pipeline):
         best_fsc = None
         cycles_without_improvement = 0
         build_nucleic = self.args.contents.rnas or self.args.contents.dnas
-        if build_nucleic and shutil.which("nucleofind"):
+        if build_nucleic:
             try:
                 self.nucleofind_prediction = NucleoFindPredict(self.fphi).run(self)
+                if self.args.output_nucleofind_maps:
+                    for key in ["phosphate", "sugar", "base"]:
+                        ccp4_map = getattr(self.nucleofind_prediction, key)
+                        ccp4_map.write_ccp4_map(self.path(f"predicted-{key}.map"))
             except FileNotFoundError:
                 print("Warning: nucleofind prediction failed", flush=True)
         for cycle in range(1, self.args.cycles + 1):
