@@ -50,6 +50,10 @@ class ModelCraftEm(Pipeline):
         if build_nucleic and shutil.which("nucleofind"):
             try:
                 self.nucleofind_prediction = NucleoFindPredict(self.fphi).run(self)
+                if self.args.output_nucleofind_maps:
+                    for key in ["phosphate", "sugar", "base"]:
+                        ccp4_map = getattr(self.nucleofind_prediction, key)
+                        ccp4_map.write_ccp4_map(self.path(f"predicted-{key}.map"))
             except FileNotFoundError:
                 print("Warning: nucleofind prediction failed", flush=True)
         for cycle in range(1, self.args.cycles + 1):
