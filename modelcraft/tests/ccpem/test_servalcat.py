@@ -1,12 +1,11 @@
-from modelcraft.jobs.servalcat import (
+from ...jobs.servalcat import (
     ServalcatFsc,
     ServalcatNemap,
     ServalcatRefine,
     ServalcatTrim,
 )
-from modelcraft.maps import read_map
-from modelcraft.structure import read_structure
-
+from ...maps import read_map
+from ...structure import read_structure
 from . import density_path, halfmap1_path, halfmap2_path, mask_path, structure_path
 
 

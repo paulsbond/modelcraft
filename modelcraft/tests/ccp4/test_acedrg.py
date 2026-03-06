@@ -3,7 +3,7 @@ import os
 
 import gemmi
 
-from modelcraft.jobs.acedrg import Acedrg
+from ...jobs.acedrg import Acedrg
 
 
 def test_0pr_smiles():

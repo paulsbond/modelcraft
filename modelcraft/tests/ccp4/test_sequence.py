@@ -1,6 +1,6 @@
 import pytest
 
-from modelcraft.sequence import PolymerType, sequences_in_file
+from ...sequence import PolymerType, sequences_in_file
 
 
 @pytest.mark.parametrize(

@@ -1,7 +1,7 @@
 from pytest import approx
 
-from modelcraft.contents import AsuContents, Polymer, PolymerType
-from modelcraft.monlib import MonLib
+from ...contents import AsuContents, Polymer, PolymerType
+from ...monlib import MonLib
 
 
 def _test_contents(entry: str, expected_json: list, selenomet: bool):

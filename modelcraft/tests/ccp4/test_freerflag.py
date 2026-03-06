@@ -1,7 +1,6 @@
 import gemmi
 
-from modelcraft.jobs.freerflag import FreeRFlag
-
+from ...jobs.freerflag import FreeRFlag
 from . import ccp4_path
 
 

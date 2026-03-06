@@ -1,9 +1,8 @@
 import gemmi
 
-from modelcraft.contents import AsuContents
-from modelcraft.jobs.parrot import Parrot
-from modelcraft.reflections import DataItem
-
+from ...contents import AsuContents
+from ...jobs.parrot import Parrot
+from ...reflections import DataItem
 from . import ccp4_path
 
 

@@ -1,6 +1,5 @@
-from modelcraft.jobs.refmac import RefmacMapToMtz
-from modelcraft.maps import read_map
-
+from ...jobs.refmac import RefmacMapToMtz
+from ...maps import read_map
 from . import density_path
 
 

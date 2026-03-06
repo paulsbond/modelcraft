@@ -6,10 +6,10 @@ import uuid
 
 import gemmi
 
-from modelcraft.contents import AsuContents, Ligand, Polymer, PolymerType
-from modelcraft.jobs.refmac import Refmac
-from modelcraft.reflections import DataItem
-from modelcraft.structure import read_structure
+from ...contents import AsuContents, Ligand, Polymer, PolymerType
+from ...jobs.refmac import Refmac
+from ...reflections import DataItem
+from ...structure import read_structure
 
 
 def ccp4_path(*paths: str) -> str:

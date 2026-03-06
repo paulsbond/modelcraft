@@ -3,14 +3,13 @@ from typing import List
 import gemmi
 import pytest
 
-from modelcraft.reflections import (
+from ...reflections import (
     DataItem,
     column_refs,
     contract_label,
     convert_to_fsigf_and_phifom,
     expand_label,
 )
-
 from . import ccp4_path
 
 
