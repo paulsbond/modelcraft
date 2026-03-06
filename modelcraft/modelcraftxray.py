@@ -179,15 +179,16 @@ class ModelCraftXray(Pipeline):
     def nucleofind(self, refmac):
         if not (self.args.contents.rnas or self.args.contents.dnas):
             return None
-        prediction = NucleoFindPredict(fphi=refmac.fphi_best).run(self)
+        fphi = self.current_fphi_best if refmac is None else refmac.fphi_best
+        prediction = NucleoFindPredict(fphi=fphi).run(self)
         if self.args.output_nucleofind_maps:
             prediction.phosphate.write_ccp4_map(self.path("predicted-phosphate.map"))
             prediction.sugar.write_ccp4_map(self.path("predicted-sugar.map"))
             prediction.base.write_ccp4_map(self.path("predicted-base.map"))
         result = NucleoFindBuild(
             contents=self.args.contents,
-            fphi=refmac.fphi_best,
-            structure=refmac.structure,
+            fphi=fphi,
+            structure=self.current_structure if refmac is None else refmac.structure,
             prediction=prediction,
         ).run(self)
         if (
