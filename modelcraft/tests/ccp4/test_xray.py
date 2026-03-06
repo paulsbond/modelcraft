@@ -1,9 +1,12 @@
 import json
 import os
+import urllib.request
+from pathlib import Path
 
 import gemmi
 import pytest
 
+from modelcraft.contents import AsuContents
 from modelcraft.reflections import write_mtz
 from modelcraft.scripts.modelcraft import main
 from modelcraft.structure import contains_residue, read_structure
@@ -91,3 +94,29 @@ def test_toxd():
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
     assert report["final"]["r_free"] < 0.35
+
+
+@in_temp_directory
+def test_1hr2_nucleofind():
+    url = "https://pdb-redo.eu/db/1hr2/1hr2_final.mtz"
+    urllib.request.urlretrieve(url, "data.mtz")
+    AsuContents.from_pdbe("1hr2").write_json_file("contents.json")
+    args = ["xray"]
+    args += ["--data", "data.mtz"]
+    args += ["--phases", "PHIC_ALL,FOM"]
+    args += ["--contents", "contents.json"]
+    args += ["--cycles", "1"]
+    args += ["--output-nucleofind-maps"]
+    with pytest.raises(SystemExit):
+        main(args)
+    assert Path("modelcraft/predicted-phosphate.map").exists()
+    assert Path("modelcraft/predicted-sugar.map").exists()
+    assert Path("modelcraft/predicted-base.map").exists()
+    report_path = os.path.join("modelcraft", "modelcraft.json")
+    with open(report_path, encoding="utf-8") as report_file:
+        report = json.load(report_file)
+    for job in report["jobs"]:
+        assert job["name"] != "cnautilus"
+    assert report["seconds"]["total"] > 0
+    assert report["termination_reason"] == "Normal"
+    assert report["final"]["r_free"] < 0.37
