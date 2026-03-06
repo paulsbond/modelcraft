@@ -6,11 +6,10 @@ from pathlib import Path
 import gemmi
 import pytest
 
-from modelcraft.contents import AsuContents
-from modelcraft.reflections import write_mtz
-from modelcraft.scripts.modelcraft import main
-from modelcraft.structure import contains_residue, read_structure
-
+from ...contents import AsuContents
+from ...reflections import write_mtz
+from ...scripts.modelcraft import main
+from ...structure import contains_residue, read_structure
 from . import (
     ccp4_path,
     in_temp_directory,
@@ -28,8 +27,7 @@ def test_insulin_from_phases():
     freer = insulin_freer()
     refmac = insulin_refmac()
     write_mtz("data.mtz", [fsigf, freer, refmac.abcd])
-    contents = insulin_contents()
-    contents.write_json_file("contents.json")
+    insulin_contents().write_json_file("contents.json")
     os.mkdir("my_modelcraft_dir")
     args = ["xray"]
     args += ["--data", "data.mtz"]
