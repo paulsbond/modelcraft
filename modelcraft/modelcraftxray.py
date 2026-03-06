@@ -135,18 +135,21 @@ class ModelCraftXray(Pipeline):
     def run_model_building(self):
         buccaneer = self.buccaneer()
         try:
-            return self.nucleofind(buccaneer)
+            nucleic = self.nucleofind(buccaneer)
+            nucleofind = True
         except FileNotFoundError:
-            pass
-        nautilus = self.nautilus()
-        if buccaneer is None and nautilus is None:
+            nucleic = self.nautilus()
+            nucleofind = False
+        if buccaneer is None and nucleic is None:
             self.terminate(reason="No residues built")
-        if buccaneer is None or nautilus is None:
-            self.update_current_from_refmac_result(buccaneer or nautilus)
+        if nucleofind and nucleic is not None:
+            self.update_current_from_refmac_result(nucleic)
+        elif buccaneer is None or nucleic is None:
+            self.update_current_from_refmac_result(buccaneer or nucleic)
         else:
-            combined_structure = combine_results(buccaneer, nautilus, self.monlib)
+            combined_structure = combine_results(buccaneer, nucleic, self.monlib)
             combined = self.run_refmac(combined_structure, cycles=5)
-            best = min((buccaneer, nautilus, combined), key=lambda result: result.rfree)
+            best = min((buccaneer, nucleic, combined), key=lambda result: result.rfree)
             self.update_current_from_refmac_result(best)
 
     def buccaneer(self):
@@ -195,7 +198,7 @@ class ModelCraftXray(Pipeline):
         ):
             return None
         write_mmcif(self.path("current.cif"), result.structure)
-        self.refmac(result.structure, cycles=10, auto_accept=True)
+        return self.run_refmac(result.structure, cycles=10)
 
     def nautilus(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):
