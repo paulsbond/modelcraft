@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org).
 
 - New option to output NucleoFind predicted phosphate, sugar and base maps.
 - Bug fixes to the new X-ray pipeline in v6.0.0
+- Relative imports in testing modules
 
 ## [6.0.0] - 2026-02-04
 
