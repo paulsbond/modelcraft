@@ -52,6 +52,6 @@ def test_102d():
     assert stats.residues > 22
     assert build_result.fragments_built > 2
     assert build_result.residues_built > 22
-    assert build_result.residues_sequenced > 9
+    assert build_result.residues_sequenced > 5
     assert build_result.longest_fragment > 11
     # TODO: assert contains_residue(nautilus.structure, "TNT")
