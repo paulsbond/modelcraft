@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [6.1.1] - 2026-03-20
+
+- Added NucleoFind citation
+- Changed NucleoFind 1o2d test threshold
+
 ## [6.1.0] - 2026-03-06
 
 - New option to output NucleoFind predicted phosphate, sugar and base maps.
