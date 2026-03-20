@@ -53,3 +53,4 @@ modelcraft em --help
 - [Refmac](https://doi.org/10.1107/S2059798318000979)
 - [Servalcat](https://doi.org/10.1107/S2059798321009475)
 - [Sheetbend](https://doi.org/10.1107/S2059798320013170)
+- [NucleoFind](https://doi.org/10.1093/nar/gkae715)
