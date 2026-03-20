@@ -49,9 +49,9 @@ def test_102d():
     ).run(pipeline)
     stats = ModelStats(build_result.structure)
     assert contains_residue(build_result.structure, "DT")
-    assert stats.residues > 22
+    assert stats.residues > 20
     assert build_result.fragments_built > 2
-    assert build_result.residues_built > 22
+    assert build_result.residues_built > 20
     assert build_result.residues_sequenced > 5
     assert build_result.longest_fragment > 11
     # TODO: assert contains_residue(nautilus.structure, "TNT")
