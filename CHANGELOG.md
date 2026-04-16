@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [6.1.2] - 2026-04-16
+
+- Removed NucleoFind 1o2d test number of fragments assertion
+
 ## [6.1.1] - 2026-03-20
 
 - Added NucleoFind citation
