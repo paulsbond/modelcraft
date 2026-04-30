@@ -7,6 +7,7 @@ import gemmi
 import pytest
 
 from ...contents import AsuContents
+from ...monlib import MonLib
 from ...reflections import write_mtz
 from ...scripts.modelcraft import main
 from ...structure import contains_residue, read_structure
@@ -118,3 +119,42 @@ def test_1hr2_nucleofind():
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
     assert report["final"]["r_free"] < 0.37
+
+
+@in_temp_directory
+def test_1cw0_protein_fixed():
+    url = "https://pdb-redo.eu/db/1cw0/1cw0_final.mtz"
+    urllib.request.urlretrieve(url, "data.mtz")
+    url = "https://pdb-redo.eu/db/1cw0/1cw0_final.cif"
+    urllib.request.urlretrieve(url, "model.cif")
+    contents = AsuContents.from_pdbe("1cw0")
+    contents.write_json_file("contents.json")
+    monlib = MonLib(contents.monomer_codes())
+    args = ["xray"]
+    args += ["--data", "data.mtz"]
+    args += ["--contents", "contents.json"]
+    args += ["--model", "model.cif"]
+    args += ["--cycles", "1"]
+    args += ["--fixed", "protein"]
+    with pytest.raises(SystemExit):
+        main(args)
+    report_path = os.path.join("modelcraft", "modelcraft.json")
+    with open(report_path, encoding="utf-8") as report_file:
+        report = json.load(report_file)
+    assert report["seconds"]["total"] > 0
+    assert report["termination_reason"] == "Normal"
+    for job in report["jobs"]:
+        assert job["name"] != "buccaneer"
+    protein_before = _protein_set("model.cif", monlib)
+    protein_after = _protein_set(Path("modelcraft", "modelcraft.cif"), monlib)
+    assert protein_before == protein_after
+    assert report["final"]["r_free"] < 0.37
+
+
+def _protein_set(path, monlib):
+    return set(
+        (chain.name, res.seqid.num, res.name)
+        for chain in gemmi.read_structure(str(path))[0]
+        for res in chain
+        if monlib.is_protein(res.name)
+    )

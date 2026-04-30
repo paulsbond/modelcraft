@@ -138,6 +138,18 @@ _GROUP.add_argument(
         "This option saves those maps in the output directory."
     ),
 )
+_GROUP.add_argument(
+    "--fixed",
+    metavar="X",
+    choices=["nucleotide", "protein"],
+    help=(
+        "If a starting model is provided, "
+        "specify whether to keep protein or all nucleotide residues fixed. "
+        "This can be useful if you have a partial model that you want to complete "
+        "without changing the part that is already correct. "
+        "The fixed residues can still move during refinement."
+    ),
+)
 
 _SUB_PARSERS = _PARSER.add_subparsers(dest="mode", required=True)
 _FORMATTER = argparse.ArgumentDefaultsHelpFormatter

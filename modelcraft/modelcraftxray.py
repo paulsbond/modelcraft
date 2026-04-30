@@ -153,7 +153,8 @@ class ModelCraftXray(Pipeline):
             self.update_current_from_refmac_result(best)
 
     def buccaneer(self):
-        if not self.args.contents.proteins:
+        any_protein = bool(self.args.contents.proteins)
+        if (not any_protein) or self.args.fixed == "protein":
             return None
         result = Buccaneer(
             contents=self.args.contents,
@@ -178,7 +179,8 @@ class ModelCraftXray(Pipeline):
         return self.run_refmac(result.structure, cycles=10)
 
     def nucleofind(self, refmac):
-        if not (self.args.contents.rnas or self.args.contents.dnas):
+        any_nucleic = bool(self.args.contents.rnas or self.args.contents.dnas)
+        if (not any_nucleic) or self.args.fixed == "nucleotide":
             return None
         fphi = self.current_fphi_best if refmac is None else refmac.fphi_best
         prediction = NucleoFindPredict(fphi=fphi).run(self)
@@ -201,7 +203,8 @@ class ModelCraftXray(Pipeline):
         return self.run_refmac(result.structure, cycles=10)
 
     def nautilus(self):
-        if not (self.args.contents.rnas or self.args.contents.dnas):
+        any_nucleic = bool(self.args.contents.rnas or self.args.contents.dnas)
+        if (not any_nucleic) or self.args.fixed == "nucleotide":
             return None
         result = Nautilus(
             contents=self.args.contents,

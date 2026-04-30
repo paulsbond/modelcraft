@@ -45,7 +45,10 @@ class ModelCraftEm(Pipeline):
         structure = self.args.model
         best_fsc = None
         cycles_without_improvement = 0
-        build_nucleic = self.args.contents.rnas or self.args.contents.dnas
+        any_protein = bool(self.args.contents.proteins)
+        any_nucleic = bool(self.args.contents.rnas or self.args.contents.dnas)
+        build_protein = any_protein and self.args.fixed != "protein"
+        build_nucleic = any_nucleic and self.args.fixed != "nucleotide"
         if build_nucleic:
             try:
                 self.nucleofind_prediction = NucleoFindPredict(self.fphi).run(self)
@@ -57,7 +60,7 @@ class ModelCraftEm(Pipeline):
                 print("Warning: nucleofind prediction failed", flush=True)
         for cycle in range(1, self.args.cycles + 1):
             print(f"\n## Cycle {cycle}\n", flush=True)
-            if self.args.contents.proteins:
+            if build_protein:
                 structure = self.buccaneer(structure)
                 structure = self.servalcat_refine(structure)
             if build_nucleic:
