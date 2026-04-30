@@ -70,7 +70,8 @@ class ModelCraftXray(Pipeline):
             if self.cycles_without_improvement == self.args.auto_stop_cycles > 0:
                 break
         if (
-            not self.args.basic
+            self.args.fixed != "protein"
+            and not self.args.basic
             and not self.args.disable_side_chain_fixing
             and any_missing_side_chains(self.output_refmac.structure)
         ):
@@ -275,7 +276,11 @@ class ModelCraftXray(Pipeline):
         write_mtz(self.path("current.mtz"), [self.current_fphi_best], ["F,PHI"])
 
     def prune(self, chains_only=False):
-        if self.args.disable_pruning or not self.args.contents.proteins:
+        if (
+            self.args.fixed == "protein"
+            or self.args.disable_pruning
+            or not self.args.contents.proteins
+        ):
             return
         pruned = prune(
             structure=self.current_structure,
