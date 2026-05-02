@@ -135,7 +135,7 @@ def test_1cw0_protein_fixed():
     args += ["--contents", "contents.json"]
     args += ["--model", "model.cif"]
     args += ["--cycles", "1"]
-    args += ["--fixed", "protein"]
+    args += ["--fixed", "A"]
     with pytest.raises(SystemExit):
         main(args)
     report_path = os.path.join("modelcraft", "modelcraft.json")

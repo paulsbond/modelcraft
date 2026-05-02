@@ -141,10 +141,8 @@ _GROUP.add_argument(
 _GROUP.add_argument(
     "--fixed",
     metavar="X",
-    choices=["nucleotide", "protein"],
     help=(
-        "If a starting model is provided, "
-        "specify whether to keep protein or all nucleotide residues fixed. "
+        "A comma-separated list of chains in the starting model to keep fixed. "
         "This can be useful if you have a partial model that you want to complete "
         "without changing the part that is already correct. "
         "The fixed residues can still move during refinement."
@@ -345,6 +343,13 @@ def parse(arguments: Optional[List[str]] = None) -> argparse.Namespace:
         _parse_data_items(args)
     if args.model is not None:
         args.model = read_structure(args.model)
+    if args.fixed is not None:
+        if args.model is None:
+            _PARSER.error("--fixed can only be used if a starting model is provided")
+        args.fixed = [chain.strip() for chain in args.fixed.split(",")]
+        for chain in args.fixed:
+            if args.model[0].find_chain(chain) is None:
+                _PARSER.error(f"Chain '{chain}' not found in the starting model")
     return args
 
 

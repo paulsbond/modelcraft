@@ -45,10 +45,7 @@ class ModelCraftEm(Pipeline):
         structure = self.args.model
         best_fsc = None
         cycles_without_improvement = 0
-        any_protein = bool(self.args.contents.proteins)
-        any_nucleic = bool(self.args.contents.rnas or self.args.contents.dnas)
-        build_protein = any_protein and self.args.fixed != "protein"
-        build_nucleic = any_nucleic and self.args.fixed != "nucleotide"
+        build_nucleic = self.args.contents.rnas or self.args.contents.dnas
         if build_nucleic:
             try:
                 self.nucleofind_prediction = NucleoFindPredict(self.fphi).run(self)
@@ -60,7 +57,7 @@ class ModelCraftEm(Pipeline):
                 print("Warning: nucleofind prediction failed", flush=True)
         for cycle in range(1, self.args.cycles + 1):
             print(f"\n## Cycle {cycle}\n", flush=True)
-            if build_protein:
+            if self.args.contents.proteins:
                 structure = self.buccaneer(structure)
                 structure = self.servalcat_refine(structure)
             if build_nucleic:
@@ -128,7 +125,7 @@ class ModelCraftEm(Pipeline):
         self.fmean, self.phases = convert_to_fsigf_and_phifom(self.fphi)
 
     def buccaneer(self, structure: gemmi.Structure) -> gemmi.Structure:
-        result = Buccaneer(
+        result = Buccaneer(  # TODO: Fixed chains
             contents=self.args.contents,
             fsigf=self.fmean,
             phases=self.phases,
@@ -141,7 +138,7 @@ class ModelCraftEm(Pipeline):
         return result.structure
 
     def nautilus(self, structure: gemmi.Structure) -> gemmi.Structure:
-        result = Nautilus(
+        result = Nautilus(  # TODO: Fixed chains
             contents=self.args.contents,
             fsigf=self.fmean,
             phases=self.phases,
@@ -150,7 +147,7 @@ class ModelCraftEm(Pipeline):
         return result.structure
 
     def nucleofind(self, structure: gemmi.Structure) -> gemmi.Structure:
-        result = NucleoFindBuild(
+        result = NucleoFindBuild(  # TODO: Fixed chains
             contents=self.args.contents,
             fphi=self.fphi,
             prediction=self.nucleofind_prediction,

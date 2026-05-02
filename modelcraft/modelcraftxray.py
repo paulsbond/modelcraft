@@ -70,15 +70,14 @@ class ModelCraftXray(Pipeline):
             if self.cycles_without_improvement == self.args.auto_stop_cycles > 0:
                 break
         if (
-            self.args.fixed != "protein"
-            and not self.args.basic
+            not self.args.basic
             and not self.args.disable_side_chain_fixing
             and any_missing_side_chains(self.output_refmac.structure)
         ):
             print("\n## Adding missing side chains\n", flush=True)
             self.cycle += 1
             self.update_current_from_refmac_result(self.output_refmac)
-            self.fixsidechains()
+            self.fixsidechains()  # TODO: Fixed chains
             self.process_cycle_output(self.last_refmac)
         print("\n## Best Model:", flush=True)
         self._print_refmac_result(self.output_refmac)
@@ -154,8 +153,7 @@ class ModelCraftXray(Pipeline):
             self.update_current_from_refmac_result(best)
 
     def buccaneer(self):
-        any_protein = bool(self.args.contents.proteins)
-        if (not any_protein) or self.args.fixed == "protein":
+        if not self.args.contents.proteins:
             return None
         result = Buccaneer(
             contents=self.args.contents,
@@ -180,8 +178,7 @@ class ModelCraftXray(Pipeline):
         return self.run_refmac(result.structure, cycles=10)
 
     def nucleofind(self, refmac):
-        any_nucleic = bool(self.args.contents.rnas or self.args.contents.dnas)
-        if (not any_nucleic) or self.args.fixed == "nucleotide":
+        if not (self.args.contents.rnas or self.args.contents.dnas):
             return None
         fphi = self.current_fphi_best if refmac is None else refmac.fphi_best
         prediction = NucleoFindPredict(fphi=fphi).run(self)
@@ -189,7 +186,7 @@ class ModelCraftXray(Pipeline):
             prediction.phosphate.write_ccp4_map(self.path("predicted-phosphate.map"))
             prediction.sugar.write_ccp4_map(self.path("predicted-sugar.map"))
             prediction.base.write_ccp4_map(self.path("predicted-base.map"))
-        result = NucleoFindBuild(
+        result = NucleoFindBuild(  # TODO: Fixed chains
             contents=self.args.contents,
             fphi=fphi,
             structure=self.current_structure if refmac is None else refmac.structure,
@@ -204,10 +201,9 @@ class ModelCraftXray(Pipeline):
         return self.run_refmac(result.structure, cycles=10)
 
     def nautilus(self):
-        any_nucleic = bool(self.args.contents.rnas or self.args.contents.dnas)
-        if (not any_nucleic) or self.args.fixed == "nucleotide":
+        if not (self.args.contents.rnas or self.args.contents.dnas):
             return None
-        result = Nautilus(
+        result = Nautilus(  # TODO: Fixed chains
             contents=self.args.contents,
             fsigf=self.args.fmean,
             phases=self.current_phases,
@@ -276,13 +272,9 @@ class ModelCraftXray(Pipeline):
         write_mtz(self.path("current.mtz"), [self.current_fphi_best], ["F,PHI"])
 
     def prune(self, chains_only=False):
-        if (
-            self.args.fixed == "protein"
-            or self.args.disable_pruning
-            or not self.args.contents.proteins
-        ):
+        if self.args.disable_pruning or not self.args.contents.proteins:
             return
-        pruned = prune(
+        pruned = prune(  # TODO: Fixed chains
             structure=self.current_structure,
             fphi_best=self.current_fphi_best,
             fphi_diff=self.current_fphi_diff,
