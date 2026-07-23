@@ -3,9 +3,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
-## [6.1.2] - 2026-04-16
+## [6.1.2] - 2026-07-23
 
 - Removed NucleoFind 1o2d test number of fragments assertion
+- Increased X-ray 1o2d test R-free threshold to 0.38
 
 ## [6.1.1] - 2026-03-20
 
