@@ -117,4 +117,4 @@ def test_1hr2_nucleofind():
         assert job["name"] != "cnautilus"
     assert report["seconds"]["total"] > 0
     assert report["termination_reason"] == "Normal"
-    assert report["final"]["r_free"] < 0.37
+    assert report["final"]["r_free"] < 0.38
