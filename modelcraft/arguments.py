@@ -68,7 +68,7 @@ _GROUP.add_argument(
     help=(
         "The number of cycles without improvement "
         "before the program stops automatically. "
-        "Improvement is measured by R-free in X-ray mode and FSC in EM mode. "
+        "Improvement is measured by R-work in X-ray mode and FSC in EM mode. "
         "A cycle must improve on the previous best value "
         "to be marked as an improvement. "
         "Setting this value to less than 1 "
@@ -201,7 +201,7 @@ _GROUP.add_argument(
     metavar="X",
     help=(
         "Value of the free-R flag to identify reflections as free. "
-        "It defaults to the lowest flag with <50% of reflections. "
+        "It defaults to the lowest flag with <50%% of reflections. "
         "If the chosen flag is not 0 it will changed to match the CCP4 convention."
     ),
 )
