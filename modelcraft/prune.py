@@ -39,7 +39,7 @@ def prune(
         ):
             print("Deleting chain", chain_name, flush=True)
             del structure[0][chain_name]
-            num_deleted += num_deleted
+            num_deleted += count
             metrics = metrics[metrics["Chain"] != chain_name]
 
     if not residues:
