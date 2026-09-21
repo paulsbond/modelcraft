@@ -34,6 +34,7 @@ class Refmac(Job):
         structure: gemmi.Structure,
         fsigf: DataItem,
         freer: DataItem,
+        *,
         phases: DataItem = None,
         cycles: int = 5,
         twinned: bool = False,

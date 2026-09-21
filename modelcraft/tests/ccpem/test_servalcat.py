@@ -37,7 +37,9 @@ def test_servalcat_halfmap_refine():
     structure = read_structure(structure_path())
     halfmap1 = read_map(halfmap1_path())
     halfmap2 = read_map(halfmap2_path())
-    ServalcatRefine(structure, 3.2, halfmap1, halfmap2, cycles=1).run()
+    ServalcatRefine(
+        structure, 3.2, halfmap1=halfmap1, halfmap2=halfmap2, cycles=1
+    ).run()
 
 
 def test_servalcat_fsc():

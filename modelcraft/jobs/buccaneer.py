@@ -31,6 +31,7 @@ class Buccaneer(Job):
         contents: AsuContents,
         fsigf: DataItem,
         phases: DataItem,
+        *,
         fphi: DataItem = None,
         freer: DataItem = None,
         input_structure: gemmi.Structure = None,

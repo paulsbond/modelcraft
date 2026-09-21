@@ -38,6 +38,7 @@ class Nautilus(Job):
         contents: AsuContents,
         fsigf: DataItem,
         phases: DataItem,
+        *,
         fphi: DataItem = None,
         freer: DataItem = None,
         structure: gemmi.Structure = None,

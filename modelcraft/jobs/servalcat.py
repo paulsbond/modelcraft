@@ -127,6 +127,7 @@ class ServalcatRefine(Job):
         self,
         structure: gemmi.Structure,
         resolution: float,
+        *,
         halfmap1: gemmi.Ccp4Map = None,
         halfmap2: gemmi.Ccp4Map = None,
         density: gemmi.Ccp4Map = None,

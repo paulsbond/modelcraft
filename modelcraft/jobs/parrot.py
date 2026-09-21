@@ -24,6 +24,7 @@ class Parrot(Job):
         fsigf: DataItem,
         freer: DataItem,
         phases: DataItem,
+        *,
         fphi: DataItem = None,
         structure: gemmi.Structure = None,
         monlib: MonLib = None,

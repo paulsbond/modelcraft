@@ -11,6 +11,7 @@ def prune(
     fphi_best: DataItem,
     fphi_diff: DataItem,
     fphi_calc: DataItem,
+    *,
     residues: bool = True,
     chain_threshold: float = -2,
     residue_threshold: float = -5,

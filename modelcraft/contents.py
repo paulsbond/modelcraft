@@ -198,6 +198,7 @@ class Ligand(Component):
 class AsuContents:
     def __init__(
         self,
+        *,
         copies: int = None,
         proteins: list = None,
         rnas: list = None,
