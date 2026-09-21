@@ -9,7 +9,6 @@ from ..reflections import DataItem
 @dataclasses.dataclass
 class FreeRFlagResult:
     freer: DataItem
-    seconds: float
 
 
 class FreeRFlag(Job):
@@ -30,5 +29,4 @@ class FreeRFlag(Job):
         freer = DataItem(mtz, "FreeR_flag")
         return FreeRFlagResult(
             freer=freer,
-            seconds=self._seconds,
         )

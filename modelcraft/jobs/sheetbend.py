@@ -10,7 +10,6 @@ from ..structure import read_structure, write_mmcif
 @dataclasses.dataclass
 class SheetbendResult:
     structure: gemmi.Structure
-    seconds: float
 
 
 class Sheetbend(Job):
@@ -47,5 +46,4 @@ class Sheetbend(Job):
         self._check_files_exist("xyzout.cif")
         return SheetbendResult(
             structure=read_structure(self._path("xyzout.cif")),
-            seconds=self._seconds,
         )

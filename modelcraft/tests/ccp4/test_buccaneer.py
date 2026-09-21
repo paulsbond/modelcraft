@@ -30,7 +30,6 @@ def test_insulin():
     assert buccaneer.residues_sequenced > 0
     assert buccaneer.residues_unique > 0
     assert buccaneer.longest_fragment > 0
-    assert buccaneer.seconds > 0
     stats = ModelStats(buccaneer.structure)
     assert stats.residues > 0
 

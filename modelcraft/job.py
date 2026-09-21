@@ -17,7 +17,6 @@ class Job(abc.ABC):
         self._stdin = []
         self._environ = {}
         self._directory = None
-        self._seconds = None
 
     def run(self, pipeline: Pipeline = None):
         if self._exe_path is None:
@@ -35,12 +34,11 @@ class Job(abc.ABC):
         os.chmod(self._path("script.sh"), 0o755)
         self._run_subprocess()
         result = self._result()
-        self._seconds = time.time() - start_time
         if pipeline is None:
             self._remove_files()
         else:
             pipeline.report_job_finish(result)
-            pipeline.seconds[self._exe_path] += self._seconds
+            pipeline.seconds[self._exe_path] += time.time() - start_time
             if not pipeline.keep_jobs:
                 self._remove_files(keep_logs=pipeline.keep_logs)
         return result

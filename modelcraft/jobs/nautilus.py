@@ -17,7 +17,6 @@ class NautilusResult:
     residues_built: int
     residues_sequenced: int
     longest_fragment: int
-    seconds: float
 
     def __init__(self, job: Job):
         job._check_files_exist("xmlout.xml", "xyzout.cif")
@@ -29,7 +28,6 @@ class NautilusResult:
         self.residues_built = int(xml.find("Final/ResiduesBuilt").text)
         self.residues_sequenced = int(xml.find("Final/ResiduesSequenced").text)
         self.longest_fragment = int(xml.find("Final/ResiduesLongestFragment").text)
-        self.seconds = job._seconds
 
 
 class Nautilus(Job):

@@ -8,7 +8,6 @@ from ..job import Job
 @dataclasses.dataclass
 class AcedrgResult:
     chemcomp: gemmi.ChemComp
-    seconds: float
 
 
 class Acedrg(Job):
@@ -32,5 +31,4 @@ class Acedrg(Job):
         block = gemmi.cif.read(self._path("output.cif"))[-1]
         return AcedrgResult(
             chemcomp=gemmi.make_chemcomp_from_block(block),
-            seconds=self._seconds,
         )

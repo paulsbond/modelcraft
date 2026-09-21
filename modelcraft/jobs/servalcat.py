@@ -14,7 +14,6 @@ class ServalcatFwResult:
     fmean: DataItem
     fanom: DataItem
     imean: DataItem
-    seconds: float
 
 
 class ServalcatFw(Job):
@@ -33,7 +32,6 @@ class ServalcatFw(Job):
             fmean=DataItem(mtz, "F,SIGF"),
             fanom=None,
             imean=None,
-            seconds=self._seconds,
         )
         if self.observations.types == "KMKM":
             result.fanom = DataItem(mtz, "F(+),SIGF(+),F(-),SIGF(-)")
@@ -44,7 +42,6 @@ class ServalcatFw(Job):
 @dataclasses.dataclass
 class ServalcatNemapResult:
     fphi: DataItem
-    seconds: float
 
 
 class ServalcatNemap(Job):
@@ -76,7 +73,6 @@ class ServalcatNemap(Job):
         mtz = gemmi.read_mtz_file(self._path("nemap_maps.mtz"))
         return ServalcatNemapResult(
             fphi=DataItem(mtz, "FWT,PHWT"),
-            seconds=self._seconds,
         )
 
 
@@ -84,7 +80,6 @@ class ServalcatNemap(Job):
 class ServalcatTrimResult:
     mask: gemmi.Ccp4Map
     maps: dict
-    seconds: float
 
 
 class ServalcatTrim(Job):
@@ -112,14 +107,12 @@ class ServalcatTrim(Job):
             maps={
                 name: read_map(self._path(f"{name}_trimmed.mrc")) for name in self.maps
             },
-            seconds=self._seconds,
         )
 
 
 @dataclasses.dataclass
 class ServalcatRefineResult:
     structure: gemmi.Structure
-    seconds: float
 
 
 class ServalcatRefine(Job):
@@ -183,14 +176,12 @@ class ServalcatRefine(Job):
         self._check_files_exist("refined.mmcif")
         return ServalcatRefineResult(
             structure=read_structure(self._path("refined.mmcif")),
-            seconds=self._seconds,
         )
 
 
 @dataclasses.dataclass
 class ServalcatFscResult:
     fsc: float
-    seconds: float
 
 
 class ServalcatFsc(Job):
@@ -231,5 +222,4 @@ class ServalcatFsc(Job):
                     fsc = float(line.strip().split()[-1])
         return ServalcatFscResult(
             fsc=fsc,
-            seconds=self._seconds,
         )

@@ -22,7 +22,6 @@ class BuccaneerResult:
     residues_sequenced: int
     residues_unique: int
     longest_fragment: int
-    seconds: float
 
 
 class Buccaneer(Job):
@@ -124,7 +123,6 @@ class Buccaneer(Job):
             residues_sequenced=int(xml.find("Final/ResiduesSequenced").text),
             residues_unique=int(xml.find("Final/ResiduesUnique").text),
             longest_fragment=int(xml.find("Final/ResiduesLongestFragment").text),
-            seconds=self._seconds,
         )
 
 

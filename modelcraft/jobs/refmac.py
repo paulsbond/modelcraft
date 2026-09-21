@@ -25,7 +25,6 @@ class RefmacResult:
     initial_fsc: float
     data_completeness: float
     resolution_high: float
-    seconds: float
 
 
 class Refmac(Job):
@@ -110,14 +109,12 @@ class Refmac(Job):
             initial_fsc=float(fscs[0].text),
             data_completeness=float(xml.find("Overall_stats/data_completeness").text),
             resolution_high=float(xml.find("Overall_stats/resolution_high").text),
-            seconds=self._seconds,
         )
 
 
 @dataclasses.dataclass
 class RefmacMapToMtzResult:
     fphi: DataItem
-    seconds: float
 
 
 class RefmacMapToMtz(Job):
@@ -151,5 +148,4 @@ class RefmacMapToMtz(Job):
         columns = f"Fout{suffix},Pout0"
         return RefmacMapToMtzResult(
             fphi=DataItem(mtz, columns),
-            seconds=self._seconds,
         )

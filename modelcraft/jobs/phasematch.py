@@ -7,7 +7,6 @@ from ..reflections import DataItem, write_mtz
 @dataclasses.dataclass
 class PhaseMatchResult:
     f_map_correlation: float
-    seconds: float
 
 
 class PhaseMatch(Job):
@@ -44,6 +43,5 @@ class PhaseMatch(Job):
                     stats = dict(zip(keys, values))
                     return PhaseMatchResult(
                         f_map_correlation=float(stats["wFcorr"]),
-                        seconds=self._seconds,
                     )
         raise RuntimeError(f"Could not find overall statistics in {path}")

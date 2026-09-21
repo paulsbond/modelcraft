@@ -14,7 +14,6 @@ class NucleoFindPrediction:
     phosphate: gemmi.Ccp4Map
     sugar: gemmi.Ccp4Map
     base: gemmi.Ccp4Map
-    seconds: float
 
 
 class NucleoFindPredict(Job):
@@ -41,7 +40,6 @@ class NucleoFindPredict(Job):
             phosphate=gemmi.read_ccp4_map(self._path("nucleofind-phosphate.map")),
             sugar=gemmi.read_ccp4_map(self._path("nucleofind-sugar.map")),
             base=gemmi.read_ccp4_map(self._path("nucleofind-base.map")),
-            seconds=self._seconds,
         )
 
 

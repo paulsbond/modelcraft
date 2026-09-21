@@ -9,7 +9,6 @@ from ..maps import read_map
 @dataclasses.dataclass
 class EmdaMapMaskResult:
     mask: gemmi.Ccp4Map
-    seconds: float
 
 
 class EmdaMapMask(Job):
@@ -35,5 +34,4 @@ class EmdaMapMask(Job):
         self._check_files_exist("mapmask.mrc")
         return EmdaMapMaskResult(
             mask=read_map(self._path("mapmask.mrc")),
-            seconds=self._seconds,
         )
