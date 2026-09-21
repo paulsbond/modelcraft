@@ -28,14 +28,14 @@ class Job(abc.ABC):
             self._directory = pipeline.next_job_directory(self._exe_name)
             pipeline.report_job_start(self._exe_name)
         os.makedirs(self._directory, exist_ok=True)
+        start_time = time.time()
         self._setup()
         with open(self._path("script.sh"), "w", encoding="utf-8") as stream:
             stream.write(self._script())
         os.chmod(self._path("script.sh"), 0o755)
-        start_time = time.time()
         self._run_subprocess()
-        self._seconds = time.time() - start_time
         result = self._result()
+        self._seconds = time.time() - start_time
         if pipeline is None:
             self._remove_files()
         else:
