@@ -128,10 +128,10 @@ def main(argument_list=None):
                 num = residue.seqid.num
                 icode = residue.seqid.icode
                 icode = "" if icode == " " else icode
-                mc.refine_residues(imol, chain.name, num, icode, "", "TRIPLE", 1000)
+                mc.refine_residues(imol, chain.name, num, icode, "", "TRIPLE", 100)
                 mc.fill_partial_residue(imol, chain.name, num, icode)
                 mc.auto_fit_rotamer(imol, chain.name, num, icode, "", imap)
-                mc.refine_residues(imol, chain.name, num, icode, "", "TRIPLE", 1000)
+                mc.refine_residues(imol, chain.name, num, icode, "", "TRIPLE", 100)
     mc.write_coordinates(imol, args.output)
     if not backup_existed_before and backup_path.exists():
         rmtree(backup_path, ignore_errors=True)
