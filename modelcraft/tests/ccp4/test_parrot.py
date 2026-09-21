@@ -15,6 +15,6 @@ def test_parrot_after_parrot():
     freer = DataItem(mtz, "FreeR_flag")
     phases = DataItem(mtz, "HLA,HLB,HLC,HLD")
     parrot1 = Parrot(contents, fsigf, freer, phases).run()
-    parrot2 = Parrot(contents, fsigf, freer, parrot1.abcd, parrot1.fphi).run()
+    parrot2 = Parrot(contents, fsigf, freer, parrot1.abcd, fphi=parrot1.fphi).run()
     assert parrot2.abcd.nreflections == freer.nreflections
     assert parrot2.fphi.nreflections == freer.nreflections
