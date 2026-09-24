@@ -65,7 +65,7 @@ def main(argument_list=None):
     resnames = structure[args.model_index].get_all_residue_names()
     monlib = MonLib(resnames, args.libin)
     metrics = validate(
-        structure, fphi_best, fphi_diff, fphi_calc, monlib, args.model_index
+        structure, fphi_best, fphi_diff, fphi_calc, monlib, model_index=args.model_index
     )
     if args.sort:
         metrics.sort_values("Score", ascending=True, inplace=True)
