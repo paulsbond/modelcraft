@@ -7,7 +7,6 @@ from .jobs.buccaneer import Buccaneer
 from .jobs.ctruncate import CTruncate
 from .jobs.emda import EmdaMapMask
 from .jobs.findwaters import FindWaters
-from .jobs.freerflag import FreeRFlag
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
 from .jobs.refmac import Refmac, RefmacMapToMtz
@@ -34,7 +33,6 @@ __all__ = [
     "DataItem",
     "EmdaMapMask",
     "FindWaters",
-    "FreeRFlag",
     "max_cell_distortion",
     "ModelStats",
     "MonLib",

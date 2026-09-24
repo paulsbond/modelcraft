@@ -31,9 +31,6 @@ class MonLib(gemmi.MonLib):
             raise KeyError(f"Monomer {code} not in this monomer library instance")
         return self.monomers[code]
 
-    def atom_ids(self, code: str):
-        return {atom.id for atom in self[code].atoms}
-
     def group(self, code: str):
         return self[code].group if code in self else gemmi.ChemComp.Group.Null
 

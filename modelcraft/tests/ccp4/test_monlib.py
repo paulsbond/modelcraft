@@ -12,22 +12,6 @@ def monlib_fixture():
     return MonLib({"COM", "2GP"}, include_standard=True)
 
 
-def test_hoh_ids(monlib: MonLib):
-    ids = {"O", "H1", "H2"}
-    assert monlib.atom_ids("HOH") == ids
-
-
-def test_gly_ids(monlib: MonLib):
-    ids = {"N", "H", "H2", "H3", "CA", "HA3", "HA2", "C", "O", "OXT"}
-    assert monlib.atom_ids("GLY") == ids
-
-
-def test_com_ids(monlib: MonLib):
-    ids = {"C1", "C2", "S1", "S2", "O1S", "O2S", "O3S"}
-    ids |= {"H11", "H12", "H21", "H22", "HS1", "HOS3"}
-    assert monlib.atom_ids("COM") == ids
-
-
 def test_in_library(monlib: MonLib):
     for code in PROTEIN_CODES.values():
         assert code in monlib

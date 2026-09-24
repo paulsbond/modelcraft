@@ -1,6 +1,5 @@
 import gemmi
 
-from ...jobs.freerflag import FreeRFlag
 from ...jobs.nautilus import Nautilus
 from ...jobs.refmac import Refmac
 from ...pipeline import Pipeline
@@ -26,7 +25,7 @@ def test_102d():
     cif2mtz = gemmi.CifToMtz()
     mtz = cif2mtz.convert_block_to_mtz(rblocks[0])
     fsigf = DataItem(mtz, "FP,SIGFP")
-    freer = FreeRFlag(fsigf).run().freer
+    freer = DataItem(mtz, "FreeR_flag")
     refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0).run()
     contents = AsuContents.from_pdbe("102d")
     pipeline = Pipeline(keep_jobs=True)
