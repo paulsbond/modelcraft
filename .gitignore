@@ -1,5 +1,8 @@
+__pycache__
 .cc_token
+.pytest_cache
+.ruff_cache
+*.egg-info
 *.pyc
-/*.egg-info
-/build/
-/dist/
+/build
+/dist
