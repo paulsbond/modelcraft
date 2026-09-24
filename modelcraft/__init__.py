@@ -3,17 +3,13 @@ __version__ = "6.1.2"
 from .cell import max_distortion as max_cell_distortion
 from .cell import remove_scale, update_cell
 from .contents import AsuContents, PolymerType
-from .jobs.acedrg import Acedrg
 from .jobs.buccaneer import Buccaneer
-from .jobs.comit import Comit
 from .jobs.ctruncate import CTruncate
 from .jobs.emda import EmdaMapMask
 from .jobs.findwaters import FindWaters
 from .jobs.freerflag import FreeRFlag
-from .jobs.molrep import Molrep
 from .jobs.nautilus import Nautilus
 from .jobs.parrot import Parrot
-from .jobs.phasematch import PhaseMatch
 from .jobs.refmac import Refmac, RefmacMapToMtz
 from .jobs.servalcat import ServalcatNemap, ServalcatRefine, ServalcatTrim
 from .jobs.sheetbend import Sheetbend
@@ -31,10 +27,8 @@ from .structure import (
 )
 
 __all__ = [
-    "Acedrg",
     "AsuContents",
     "Buccaneer",
-    "Comit",
     "contains_residue",
     "CTruncate",
     "DataItem",
@@ -43,11 +37,9 @@ __all__ = [
     "FreeRFlag",
     "max_cell_distortion",
     "ModelStats",
-    "Molrep",
     "MonLib",
     "Nautilus",
     "Parrot",
-    "PhaseMatch",
     "Pipeline",
     "PolymerType",
     "read_structure",
