@@ -18,6 +18,7 @@
   },
   "files.insertFinalNewline": true,
   "flake8.enabled": false,
+  "pylint.enabled": false,
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.rulers": [88]
