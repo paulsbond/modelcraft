@@ -201,7 +201,7 @@ _GROUP.add_argument(
     metavar="X",
     help=(
         "Value of the free-R flag to identify reflections as free. "
-        "It defaults to the lowest flag with <50% of reflections. "
+        "It defaults to the lowest flag with <50%% of reflections. "
         "If the chosen flag is not 0 it will changed to match the CCP4 convention."
     ),
 )
