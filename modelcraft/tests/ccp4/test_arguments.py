@@ -46,3 +46,10 @@ def test_freer_fraction_error():
     args += ["--data", "r102dsf.mtz"]
     with pytest.raises(SystemExit):
         parse(args)
+
+
+@pytest.mark.parametrize("mode", ["xray", "em"])
+def test_help(mode):
+    with pytest.raises(SystemExit) as exc_info:
+        parse([mode, "--help"])
+    assert exc_info.value.code == 0
