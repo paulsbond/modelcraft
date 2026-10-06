@@ -17,6 +17,7 @@ def validate(
     fphi_diff: DataItem,
     fphi_calc: DataItem,
     monlib: MonLib,
+    *,
     model_index: int = 0,
 ) -> pd.DataFrame:
     best_map = fphi_best.map(spacing=1.0)
