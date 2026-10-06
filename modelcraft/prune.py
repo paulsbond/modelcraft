@@ -2,7 +2,7 @@ import gemmi
 
 from .monlib import MonLib
 from .reflections import DataItem
-from .structure import remove_isolated_fragments
+from .structure import _are_connected
 from .validation import validate
 
 
@@ -65,6 +65,26 @@ def prune(
 
     print("Removing isolated residues (if any)", flush=True)
     for chain in structure[0]:
-        remove_isolated_fragments(chain, monlib, max_length=1)
+        _remove_isolated_residues(chain, monlib)
 
     return structure
+
+
+def _remove_isolated_residues(chain: gemmi.Chain, monlib: MonLib) -> None:
+    polymer = [
+        index
+        for index, residue in enumerate(chain)
+        if monlib.is_protein(residue.name) or monlib.is_nucleic(residue.name)
+    ]
+
+    def bonded(first, second):
+        return _are_connected(chain[polymer[first]], chain[polymer[second]], monlib)
+
+    isolated = [
+        polymer[position]
+        for position in range(len(polymer))
+        if not (position > 0 and bonded(position - 1, position))
+        and not (position + 1 < len(polymer) and bonded(position, position + 1))
+    ]
+    for index in reversed(isolated):
+        del chain[index]

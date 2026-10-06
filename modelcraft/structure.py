@@ -124,19 +124,3 @@ def _are_connected(
                 if atom1.pos.dist(atom2.pos) < 2.5:
                     return True
     return False
-
-
-def remove_isolated_fragments(chain: gemmi.Chain, monlib: MonLib, max_length: int):
-    to_remove = []
-    fragment = []
-    for i, residue in enumerate(chain):
-        if i > 0 and _are_connected(chain[i - 1], residue, monlib):
-            fragment.append(i)
-        else:
-            if len(fragment) <= max_length:
-                to_remove.extend(fragment)
-            fragment = [i]
-    if len(fragment) <= max_length:
-        to_remove.extend(fragment)
-    for i in reversed(to_remove):
-        del chain[i]
