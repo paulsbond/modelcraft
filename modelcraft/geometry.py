@@ -1,4 +1,5 @@
 import collections
+import math
 
 import gemmi
 import numpy as np
@@ -42,3 +43,18 @@ def _atom_zs(structure: gemmi.Structure, monlib: MonLib, model_index: int) -> di
             z = gemmi.get_distance_from_plane(atom.pos, best_plane) / plane.restr.esd
             atom_zs[atom.serial].append(z)
     return atom_zs
+
+
+def pos4(a, b, c, *, length, angle, torsion):
+    "Point d with |cd| = length, angle bcd = angle, torsion abcd = torsion (radians)."
+    bc = c - b
+    bc /= np.linalg.norm(bc)
+    n = np.cross(b - a, bc)
+    n /= np.linalg.norm(n)
+    m = np.cross(n, bc)
+    d = (
+        -length * math.cos(angle) * bc
+        + length * math.sin(angle) * math.cos(torsion) * m
+        + length * math.sin(angle) * math.sin(torsion) * n
+    )
+    return c + d
