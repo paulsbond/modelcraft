@@ -1,7 +1,7 @@
 import pytest
 
+from modelcraft.mltype import type_probabilities
 from modelcraft.tests.ccp4 import insulin_refmac
-from modelcraft.typeprob import type_probabilities
 
 
 def test_deposited_types_rank_highly():
@@ -20,5 +20,5 @@ def test_deposited_types_rank_highly():
             top3 += residue.name in ranked[:3]
             total += 1
     assert total > 40
-    assert top1 / total > 0.35
+    assert top1 / total > 0.40
     assert top3 / total > 0.65
