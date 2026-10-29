@@ -7,7 +7,6 @@ import gemmi
 
 from . import __version__
 from .cell import max_distortion, remove_scale, update_cell
-from .combine import combine_results
 from .jobs.buccaneer import Buccaneer
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
@@ -134,23 +133,17 @@ class ModelCraftXray(Pipeline):
 
     def run_model_building(self):
         buccaneer = self.buccaneer()
+        if buccaneer is not None:
+            self.update_current_from_refmac_result(buccaneer)
         try:
-            nucleic = self.nucleofind(buccaneer)
-            nucleofind = True
+            nucleic = self.nucleofind()
         except FileNotFoundError:
+            self.prune(chains_only=True)
             nucleic = self.nautilus()
-            nucleofind = False
-        if buccaneer is None and nucleic is None:
-            self.terminate(reason="No residues built")
-        if nucleofind and nucleic is not None:
+        if nucleic is not None:
             self.update_current_from_refmac_result(nucleic)
-        elif buccaneer is None or nucleic is None:
-            self.update_current_from_refmac_result(buccaneer or nucleic)
-        else:
-            combined_structure = combine_results(buccaneer, nucleic, self.monlib)
-            combined = self.run_refmac(combined_structure, cycles=5)
-            best = min((buccaneer, nucleic, combined), key=lambda result: result.rfree)
-            self.update_current_from_refmac_result(best)
+        elif buccaneer is None:
+            self.terminate(reason="No residues built")
 
     def buccaneer(self):
         if not self.args.contents.proteins:
@@ -177,19 +170,18 @@ class ModelCraftXray(Pipeline):
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
 
-    def nucleofind(self, refmac):
+    def nucleofind(self):
         if not (self.args.contents.rnas or self.args.contents.dnas):
             return None
-        fphi = self.current_fphi_best if refmac is None else refmac.fphi_best
-        prediction = NucleoFindPredict(fphi=fphi).run(self)
+        prediction = NucleoFindPredict(fphi=self.current_fphi_best).run(self)
         if self.args.output_nucleofind_maps:
             prediction.phosphate.write_ccp4_map(self.path("predicted-phosphate.map"))
             prediction.sugar.write_ccp4_map(self.path("predicted-sugar.map"))
             prediction.base.write_ccp4_map(self.path("predicted-base.map"))
         result = NucleoFindBuild(
             contents=self.args.contents,
-            fphi=fphi,
-            structure=self.current_structure if refmac is None else refmac.structure,
+            fphi=self.current_fphi_best,
+            structure=self.current_structure,
             prediction=prediction,
         ).run(self)
         if (
