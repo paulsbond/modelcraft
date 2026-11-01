@@ -23,17 +23,28 @@ def _invsim(fom: np.ndarray) -> np.ndarray:
 
 
 def phases_from_hl(hl: np.ndarray, centric: np.ndarray):
-    "Centroid phases (radians) and FOMs from Hendrickson-Lattman coefficients"
-    phi = np.linspace(0, 2 * np.pi, 360, endpoint=False)
-    cos1, sin1, cos2, sin2 = np.cos(phi), np.sin(phi), np.cos(2 * phi), np.sin(2 * phi)
-    exponent = np.outer(hl[:, 0], cos1) + np.outer(hl[:, 1], sin1)
-    exponent += np.outer(hl[:, 2], cos2) + np.outer(hl[:, 3], sin2)
-    exponent -= exponent.max(axis=1, keepdims=True)
-    probability = np.exp(exponent)
-    centroid = probability @ np.exp(1j * phi) / probability.sum(axis=1)
-    fom = np.abs(centroid)
-    fom[centric] = np.tanh(np.hypot(hl[centric, 0], hl[centric, 1]))
-    return np.angle(centroid), np.nan_to_num(fom)
+    """Centroid phases (radians) and FOMs from Hendrickson-Lattman coefficients.
+
+    Unimodal distributions (C = D = 0) are done analytically, others by summing
+    over phases at 1 degree intervals.
+    """
+    k = np.hypot(hl[:, 0], hl[:, 1])
+    phases = np.arctan2(hl[:, 1], hl[:, 0])
+    fom = i1e(k) / i0e(k)
+    bimodal = (hl[:, 2] != 0) | (hl[:, 3] != 0)
+    if bimodal.any():
+        phi = np.linspace(0, 2 * np.pi, 360, endpoint=False)
+        b = hl[bimodal]
+        exponent = np.outer(b[:, 0], np.cos(phi)) + np.outer(b[:, 1], np.sin(phi))
+        exponent += np.outer(b[:, 2], np.cos(2 * phi))
+        exponent += np.outer(b[:, 3], np.sin(2 * phi))
+        exponent -= exponent.max(axis=1, keepdims=True)
+        probability = np.exp(exponent)
+        centroid = probability @ np.exp(1j * phi) / probability.sum(axis=1)
+        phases[bimodal] = np.angle(centroid)
+        fom[bimodal] = np.abs(centroid)
+    fom[centric] = np.tanh(k[centric])
+    return phases, np.nan_to_num(fom)
 
 
 def _arrays(item: DataItem):
