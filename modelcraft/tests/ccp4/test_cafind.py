@@ -2,13 +2,13 @@ import gemmi
 import numpy as np
 
 from modelcraft.cafind import default_num_find, find
-from modelcraft.llk import TYPES, frame, reference_targets
-from modelcraft.tests.ccp4 import insulin_fsigf, insulin_refmac
+from modelcraft.llk import TYPES, frame
+from modelcraft.tests.ccp4 import insulin_refmac, insulin_targets
 
 
 def _targets_and_grid():
     refmac = insulin_refmac()
-    main, sides = reference_targets(insulin_fsigf(), refmac.abcd)
+    main, sides = insulin_targets()
     fphi = refmac.fphi_best
     grid = fphi.transform_f_phi_to_map(fphi.label(0), fphi.label(1), sample_rate=3)
     return refmac.structure, main, sides, grid

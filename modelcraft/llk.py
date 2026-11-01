@@ -141,7 +141,11 @@ class LLKTarget:
         translations = np.asarray(translations).reshape(-1, 3)
         positions = np.einsum("fij,pj->fpi", rotations, xyz) + translations[:, None]
         values = grid.interpolate_position_array(positions.reshape(-1, 3), order=1)
-        return target, weight, values.reshape(len(rotations), -1).astype(np.float64)
+        return (
+            target,
+            weight,
+            values.reshape(len(rotations), len(xyz)).astype(np.float64),
+        )
 
     def llk(self, grid, rotations, translations, fast=False) -> np.ndarray:
         "Weighted mean squared difference for a batch of frames (lower is better)"

@@ -37,7 +37,7 @@ class Found:
         return [self.rotation @ p + self.translation for p in (STD_N, STD_CA, STD_C)]
 
 
-def _place(abc, length, angle, torsion):
+def place(abc, length, angle, torsion):
     "Position d with |cd| = length, angle bcd and torsion abcd (radians)"
     a, b, c = abc
     bc = (c - b) / np.linalg.norm(c - b)
@@ -69,9 +69,9 @@ def _template(pairs, phi, psi, length=3):
     residues = []
     for _ in range(length):
         n, ca, c = residue
-        n = _place((n, ca, c), 1.32, 1.99, psi)
-        ca = _place((ca, c, n), 1.47, 2.15, np.pi)
-        c = _place((c, n, ca), 1.53, 1.92, phi)
+        n = place((n, ca, c), 1.32, 1.99, psi)
+        ca = place((ca, c, n), 1.47, 2.15, np.pi)
+        c = place((c, n, ca), 1.53, 1.92, phi)
         residue = [n, ca, c]
         residues.append(np.array(residue))
     middle = residues[(length - 1) // 2]
@@ -128,33 +128,43 @@ def _asu_points(grid: gemmi.FloatGrid) -> np.ndarray:
     return np.argwhere(mask == 0)
 
 
-def _ssfind(grid: gemmi.FloatGrid, points: np.ndarray, ops: np.ndarray):
+def _ssfind(grid: gemmi.FloatGrid, points: np.ndarray, ops: np.ndarray, chunk=32):
     "Best (score, rotation index) at each point over both templates"
     array = np.array(grid, copy=False)
     shape = np.array(array.shape)
     to_grid = np.array(grid.unit_cell.frac.mat.tolist()) * shape[:, None]
+    templates = [
+        _template(pairs, np.radians(phi), np.radians(psi))
+        for pairs, phi, psi in ((_ALPHA3, -58.0, -47.0), (_BETA3, -120.0, 120.0))
+    ]
+    # Offsets (template, rotation, high/low, point, axis) in grid units
+    offsets = np.rint(
+        np.array([[np.stack(t) @ op.T @ to_grid.T for op in ops] for t in templates])
+    ).astype(int)
+    # Pad the map periodically so each lookup is a single index into a flat array
+    margin = np.abs(offsets).reshape(-1, 3).max(axis=0)
+    padded = np.pad(array, [(m, m) for m in margin], mode="wrap")
+    strides = np.array([padded.shape[1] * padded.shape[2], padded.shape[2], 1])
+    flat = padded.ravel()
+    base = (points + margin) @ strides
+    linear = offsets @ strides
     best_score = np.zeros(len(points))
     best_rot = np.full(len(points), -1)
-    for pairs, phi, psi in ((_ALPHA3, -58.0, -47.0), (_BETA3, -120.0, 120.0)):
-        high, low = _template(pairs, np.radians(phi), np.radians(psi))
+    for t in range(len(templates)):
         score = np.zeros(len(points))
         rot = np.full(len(points), -1)
-        for r, op in enumerate(ops):
-            hi_off = np.rint((high @ op.T) @ to_grid.T).astype(int)
-            lo_off = np.rint((low @ op.T) @ to_grid.T).astype(int)
-            hi = np.full(len(points), np.inf)
-            lo = np.full(len(points), -np.inf)
-            for off in hi_off:
-                idx = (points + off) % shape
-                hi = np.minimum(hi, array[idx[:, 0], idx[:, 1], idx[:, 2]])
-            for off in lo_off:
-                idx = (points + off) % shape
-                lo = np.maximum(lo, array[idx[:, 0], idx[:, 1], idx[:, 2]])
-            better = hi - lo > score
-            score[better] = (hi - lo)[better]
-            rot[better] = r
+        for start in range(0, len(ops), chunk):
+            block = linear[t, start : start + chunk]
+            hi = flat[base[:, None, None] + block[None, :, 0]].min(axis=2)
+            lo = flat[base[:, None, None] + block[None, :, 1]].max(axis=2)
+            gap = (hi - lo).astype(np.float64)
+            r = np.argmax(gap, axis=1)
+            value = gap[np.arange(len(points)), r]
+            better = value > score
+            score[better] = value[better]
+            rot[better] = start + r[better]
         # Buccaneer keeps the beta result unless the alpha score is higher
-        use = (score >= best_score) if pairs is _BETA3 else (score > best_score)
+        use = (score >= best_score) if t == 1 else (score > best_score)
         best_score[use] = score[use]
         best_rot[use] = rot[use]
     return best_score, best_rot
@@ -280,25 +290,21 @@ def default_num_find(grid: gemmi.FloatGrid, max_find=500, per_100_residues=20):
     return min(max_find, per_100_residues * int(volume / 320) // 100)
 
 
-def find(
-    grid: gemmi.FloatGrid,
-    target: LLKTarget,
-    num_find: int = None,
-    structure: gemmi.Structure = None,
-    ops: np.ndarray = None,
-) -> list:
-    """Residues found in the map, best first, as a list of Found.
+@dataclasses.dataclass
+class Candidates:
+    "Best orientation and fast-target z-score at each grid point with a match"
 
-    An existing model, if given, makes positions about 3.5 A from it more likely.
-    """
-    if num_find is None:
-        num_find = default_num_find(grid)
+    rotations: np.ndarray
+    positions: np.ndarray
+    zscores: np.ndarray
+
+
+def search(grid: gemmi.FloatGrid, target: LLKTarget, ops=None) -> Candidates:
+    "SSfind search at grid points above 1 sigma, rescored with the fast target"
     if ops is None:
         ops = rotations(24.0)
     array = np.array(grid, copy=False)
     to_orth = np.array(grid.unit_cell.orth.mat.tolist()) / np.array(array.shape)
-
-    # Search at points above 1 sigma, then rescore with the fast target
     asu = _asu_points(grid)
     values = array[asu[:, 0], asu[:, 1], asu[:, 2]]
     cut = values.mean() + values.std()
@@ -312,10 +318,31 @@ def find(
     sample = asu[::zstep] @ to_orth.T
     identity = np.broadcast_to(np.eye(3), (len(sample), 3, 3))
     zvalues = target.correl(grid, identity, sample, fast=True)
-    zscore = (llk - zvalues.mean()) / zvalues.std()
+    zscores = (llk - zvalues.mean()) / zvalues.std()
+    return Candidates(ops[rot], positions, zscores)
+
+
+def find(
+    grid: gemmi.FloatGrid,
+    target: LLKTarget,
+    num_find: int = None,
+    structure: gemmi.Structure = None,
+    candidates: Candidates = None,
+) -> list:
+    """Residues found in the map, best first, as a list of Found.
+
+    The map should have gemmi's sample_rate=3. An existing model, if given, makes
+    positions about 3.5 A from it more likely. Candidates from an earlier search of
+    the same map can be given to save time.
+    """
+    if num_find is None:
+        num_find = default_num_find(grid)
+    if candidates is None:
+        candidates = search(grid, target)
+    positions = candidates.positions
 
     # Add the prior and keep the best non-clashing matches
-    score = 2.0 * zscore + _prior(structure, positions, 6.0)
+    score = 2.0 * candidates.zscores + _prior(structure, positions, 6.0)
     order = np.argsort(score, kind="stable")[: 20 * num_find]
     clashes = _Clashes(grid.unit_cell, grid.spacegroup, 5.0)
     kept = []
@@ -329,33 +356,10 @@ def find(
     # Refine against the slow target
     results = []
     for i in kept:
-        rotation, translation = refine(grid, target, ops[rot[i]], positions[i])
+        rotation, translation = refine(
+            grid, target, candidates.rotations[i], positions[i]
+        )
         final = float(target.correl(grid, rotation, translation)[0])
         results.append(Found(final, rotation, translation))
     results.sort(key=lambda r: r.score)
     return results
-
-
-def found_structure(results, cell, spacegroup) -> gemmi.Structure:
-    "A structure with one UNK residue (N, CA, C) per result"
-    structure = gemmi.Structure()
-    structure.cell = cell
-    structure.spacegroup_hm = spacegroup.hm
-    model = gemmi.Model("1")
-    chain = gemmi.Chain("A")
-    for i, result in enumerate(results):
-        residue = gemmi.Residue()
-        residue.name = "UNK"
-        residue.seqid = gemmi.SeqId(2 * i + 2, " ")
-        u_iso = np.exp(-10.0 * (result.score - results[0].score))
-        for name, position in zip(("N", "CA", "C"), result.positions()):
-            atom = gemmi.Atom()
-            atom.name = name
-            atom.element = gemmi.Element(name)
-            atom.pos = gemmi.Position(*position)
-            atom.b_iso = 8 * np.pi**2 * u_iso
-            residue.add_atom(atom)
-        chain.add_residue(residue)
-    model.add_chain(chain)
-    structure.add_model(model)
-    return structure
