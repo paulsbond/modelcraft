@@ -1,63 +1,67 @@
-import gemmi
 import numpy as np
 import pytest
 
-from modelcraft.mlgrow import next_residue, prev_residue
+from modelcraft.mlgrow import next_residues, prev_residues
 from modelcraft.tests.ccp4 import insulin_refmac
 
 NAMES = ("N", "CA", "C")
 
 
-def _residue(positions) -> gemmi.Residue:
-    residue = gemmi.Residue()
-    for name, position in zip(NAMES, positions):
-        atom = gemmi.Atom()
-        atom.name = name
-        atom.pos = gemmi.Position(*position)
-        residue.add_atom(atom)
-    return residue
-
-
-def _max_error(placed, target: gemmi.Residue) -> float:
-    return max(
-        np.linalg.norm(p - np.array(target[name][0].pos.tolist()))
-        for p, name in zip(placed, NAMES)
-    )
-
-
-@pytest.mark.parametrize("grow", [next_residue, prev_residue])
-def test_grown_residues_land_on_the_model(grow):
+def _chains():
+    "Insulin's chains as (n, 3, 3) arrays of N, CA and C, and the map"
     refmac = insulin_refmac()
     grid = refmac.fphi_best.map(spacing=0.5)
+    chains = [
+        np.array(
+            [
+                [r.find_atom(a, "*").pos.tolist() for a in NAMES]
+                for r in chain
+                if all(r.find_atom(a, "*") for a in NAMES)
+            ]
+        )
+        for chain in refmac.structure[0]
+    ]
+    return chains, grid
+
+
+def _max_errors(placed, target) -> np.ndarray:
+    return np.linalg.norm(placed - target, axis=-1).max(axis=-1)
+
+
+@pytest.mark.parametrize("grow", [next_residues, prev_residues])
+def test_grown_residues_land_on_the_model(grow):
+    chains, grid = _chains()
     right = total = 0
-    for chain in refmac.structure[0]:
-        residues = [r for r in chain if r.find_atom("CA", "*") is not None]
-        for r1, r2 in zip(residues, residues[1:]):
-            source, target = (r1, r2) if grow is next_residue else (r2, r1)
-            placed, error = grow(grid, source)
-            assert 0 < error < 2
-            right += _max_error(placed, target) < 1
-            total += 1
+    for chain in chains:
+        if grow is prev_residues:
+            chain = chain[::-1]
+        placed, errors = grow(grid, chain[:-1])
+        assert np.all((errors > 0) & (errors < 2))
+        right += np.sum(_max_errors(placed, chain[1:]) < 1)
+        total += len(placed)
     assert total > 40
     assert right / total > 0.75
 
 
-@pytest.mark.parametrize("grow", [next_residue, prev_residue])
+@pytest.mark.parametrize("grow", [next_residues, prev_residues])
 def test_grown_chains_follow_the_model(grow):
-    refmac = insulin_refmac()
-    grid = refmac.fphi_best.map(spacing=0.5)
+    chains, grid = _chains()
     fractions = []
-    for chain in refmac.structure[0]:
-        residues = [r for r in chain if r.find_atom("CA", "*") is not None]
-        if grow is prev_residue:
-            residues.reverse()
-        for i, start in enumerate(residues[:-1]):
-            current, steps = start, 0
-            for target in residues[i + 1 :]:
-                placed, _ = grow(grid, current)
-                if _max_error(placed, target) > 1.5:
+    for chain in chains:
+        if grow is prev_residues:
+            chain = chain[::-1]
+        for i in range(len(chain) - 1):
+            current, steps = chain[i : i + 1], 0
+            for target in chain[i + 1 :]:
+                current, _ = grow(grid, current)
+                if _max_errors(current[0], target) > 1.5:
                     break
-                current = _residue(placed)
                 steps += 1
-            fractions.append(steps / (len(residues) - 1 - i))
+            fractions.append(steps / (len(chain) - 1 - i))
     assert np.mean(fractions) > 0.35
+
+
+def test_no_residues():
+    _, grid = _chains()
+    placed, errors = next_residues(grid, np.zeros((0, 3, 3)))
+    assert placed.shape == (0, 3, 3) and errors.shape == (0,)

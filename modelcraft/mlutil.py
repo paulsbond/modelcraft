@@ -1,34 +1,45 @@
-"Shared pieces of the ML networks in mlgrow and mltype."
+"Shared pieces of the ML networks in mlgrow and mlside."
 
-import gemmi
 import numpy as np
 
 # N, CA and C defining the frame of the ML networks (CA at the origin)
-REFERENCE = [
-    gemmi.Position(+0.8431, +0.0000, -1.2040),
-    gemmi.Position(+0.0000, +0.0000, +0.0000),
-    gemmi.Position(+0.8775, +0.0000, +1.2530),
-]
+REFERENCE = np.array(
+    [
+        [+0.8431, +0.0000, -1.2040],
+        [+0.0000, +0.0000, +0.0000],
+        [+0.8775, +0.0000, +1.2530],
+    ]
+)
 
 
-def reference_transform(ncac):
-    """Rotation and translation (numpy) taking REFERENCE onto N, CA and C.
+def reference_transforms(residues: np.ndarray):
+    """Rotations (b, 3, 3) and translations (b, 3) taking REFERENCE onto residues.
 
-    The superposition is least-squares, with positions as a gemmi.Position list.
+    The superpositions are least-squares onto N, CA and C positions (b, 3, 3).
     """
-    transform = gemmi.superpose_positions(ncac, REFERENCE).transform
-    return np.array(transform.mat.tolist()), np.array(transform.vec.tolist())
+    centre = REFERENCE.mean(axis=0)
+    centres = residues.mean(axis=1)
+    h = np.einsum("pi,bpj->bij", REFERENCE - centre, residues - centres[:, None])
+    u, _, vt = np.linalg.svd(h)
+    d = np.sign(np.linalg.det(np.einsum("bji,bkj->bik", vt, u)))
+    vt[:, 2] *= d[:, None]
+    rotations = np.einsum("bji,bkj->bik", vt, u)
+    return rotations, centres - np.einsum("bij,j->bi", rotations, centre)
 
 
-def sample_probes(grid, ncac, probes) -> np.ndarray:
-    """Standardised density (float32) at probe points defined about REFERENCE.
+def place_reference(residues: np.ndarray) -> np.ndarray:
+    "REFERENCE superposed onto each of the residues (b, 3, 3)"
+    rotations, translations = reference_transforms(residues)
+    return np.matmul(REFERENCE, rotations.transpose(0, 2, 1)) + translations[:, None]
 
-    The probes are moved by reference_transform onto the residue's N, CA and C
-    (gemmi.Position list); values are interpolated linearly.
-    """
-    rotation, translation = reference_transform(ncac)
-    points = probes @ rotation.T + translation
-    values = grid.interpolate_position_array(points).astype(np.float32)
-    if values.std() > 0:
-        values = (values - values.mean()) / values.std()
-    return values
+
+def sample_probes(grid, residues: np.ndarray, probes) -> np.ndarray:
+    """Standardised density (b, probes) float32 at probe points defined about
+    REFERENCE, moved onto each of the residues (b, 3, 3) by reference_transforms;
+    values are interpolated linearly."""
+    rotations, translations = reference_transforms(residues)
+    points = np.matmul(probes, rotations.transpose(0, 2, 1)) + translations[:, None]
+    values = grid.interpolate_position_array(points.reshape(-1, 3))
+    values = values.reshape(len(residues), -1).astype(np.float32)
+    std = values.std(axis=1, keepdims=True)
+    return (values - values.mean(axis=1, keepdims=True)) / np.where(std > 0, std, 1)
