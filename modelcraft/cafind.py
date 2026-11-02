@@ -14,7 +14,7 @@ import gemmi
 import numpy as np
 
 from .llk import LLKTarget
-from .geometry import torsion_position
+from .geometry import superpose, torsion_position
 from .stdres import STD_C, STD_CA, STD_N
 
 # (high, low) density points about a residue for each SSfind template
@@ -39,15 +39,6 @@ class Found:
         return [self.rotation @ p + self.translation for p in (STD_N, STD_CA, STD_C)]
 
 
-def _superpose(source, target):
-    "Rotation and translation taking source (n, 3) onto target (n, 3)"
-    sc, tc = source.mean(0), target.mean(0)
-    u, _, vt = np.linalg.svd((source - sc).T @ (target - tc))
-    d = np.sign(np.linalg.det(vt.T @ u.T))
-    rotation = vt.T @ np.diag([1, 1, d]) @ u.T
-    return rotation, tc - rotation @ sc
-
-
 def _template(pairs, phi, psi, length=3):
     "(high, low) point arrays for a secondary structure template (SSfind::Target)"
     residue = [np.array(p) for p in ((0.83, 0.00, -1.18), (0, 0, 0), (0.87, 0, 1.23))]
@@ -60,7 +51,7 @@ def _template(pairs, phi, psi, length=3):
         residue = [n, ca, c]
         residues.append(np.array(residue))
     middle = residues[(length - 1) // 2]
-    ops = [_superpose(middle, r) for r in residues]
+    ops = [superpose(middle, r) for r in residues]
     high = np.array([r @ np.array(h) + t for h, _ in pairs for r, t in ops])
     low = np.array([r @ np.array(lo) + t for _, lo in pairs for r, t in ops])
     return high, low

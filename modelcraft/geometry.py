@@ -24,3 +24,16 @@ def torsion_position(abc, length, angle, torsion):
         + np.sin(angle) * np.cos(torsion) * m
         + np.sin(angle) * np.sin(torsion) * n
     )
+
+
+def superpose(source, target):
+    """Rotations (..., 3, 3) and translations (..., 3) superposing source points
+    (..., n, 3) onto target points (..., n, 3) by least squares."""
+    source, target = np.asarray(source, dtype=float), np.asarray(target, dtype=float)
+    sc, tc = source.mean(axis=-2), target.mean(axis=-2)
+    h = np.swapaxes(source - sc[..., None, :], -1, -2) @ (target - tc[..., None, :])
+    u, _, vt = np.linalg.svd(h)
+    v, ut = np.swapaxes(vt, -1, -2), np.swapaxes(u, -1, -2)
+    v[..., 2] *= np.sign(np.linalg.det(v @ ut))[..., None]
+    rotation = v @ ut
+    return rotation, tc - (rotation @ sc[..., None])[..., 0]

@@ -6,7 +6,8 @@ from pathlib import Path
 import gemmi
 import numpy as np
 
-from .mlutil import place_reference, reference_transforms, sample_probes
+from .geometry import superpose
+from .mlutil import REFERENCE, place_reference, sample_probes
 
 _DATA = Path(__file__).parent / "data"
 
@@ -32,7 +33,7 @@ def _grow(grid: gemmi.FloatGrid, residues: np.ndarray, direction: str):
     x = sample_probes(grid, residues, probes)
     for w, b in layers:
         x = np.maximum(x @ w + b, 0)
-    rotations, translations = reference_transforms(residues)
+    rotations, translations = superpose(REFERENCE, residues)
     predicted = (x @ fk + fb).astype(np.float64).reshape(-1, 3, 3)
     predicted = (
         np.matmul(predicted, rotations.transpose(0, 2, 1)) + translations[:, None]
