@@ -51,3 +51,6 @@ ignore = [
 
 [tool.setuptools.dynamic]
 version = { attr = "modelcraft.__version__" }
+
+[tool.setuptools.package-data]
+modelcraft = ["data/*"]
