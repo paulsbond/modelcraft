@@ -25,7 +25,7 @@ def validate(
 
     bfac = _bfac(structure[model_index])
     rscc, diff = _rscc_diff(structure, best_map, diff_map, calc_map, model_index)
-    geom = per_residue_geometry_rmsz(structure, monlib, model_index)
+    geom = _geometry_rmsz(structure, monlib, model_index)
 
     data = {
         "Chain": [],
@@ -101,7 +101,7 @@ def _rscc_diff(
     return rscc, diff
 
 
-def per_residue_geometry_rmsz(
+def _geometry_rmsz(
     structure: gemmi.Structure, monlib: MonLib, model_index: int = 0
 ) -> dict:
     atom_zs = _atom_zs(structure, monlib, model_index)
