@@ -16,8 +16,8 @@ from .network import sample_probes
 _DATA = Path(__file__).parent / "data"
 
 LABELS = [
-    "CYS", "GLN", "ILE", "SER", "VAL", "LYS", "TRP", "PRO", "GLY", "THR",
-    "ALA", "PHE", "HIS", "ASN", "LEU", "ARG", "ASP", "GLU", "TYR", "MET",
+    "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE",
+    "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL",
 ]  # fmt: skip
 _SAME_AS = {"MSE": "MET"}
 
