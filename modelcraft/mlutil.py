@@ -2,14 +2,10 @@
 
 import numpy as np
 
-# N, CA and C defining the frame of the ML networks (CA at the origin)
-REFERENCE = np.array(
-    [
-        [+0.8431, +0.0000, -1.2040],
-        [+0.0000, +0.0000, +0.0000],
-        [+0.8775, +0.0000, +1.2530],
-    ]
-)
+from .stdres import STD_C, STD_CA, STD_N
+
+# N, CA and C defining the frame of the ML networks
+REFERENCE = np.array([STD_N, STD_CA, STD_C])
 
 
 def reference_transforms(residues: np.ndarray):

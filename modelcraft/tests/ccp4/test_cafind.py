@@ -2,7 +2,8 @@ import gemmi
 import numpy as np
 
 from modelcraft.cafind import default_num_find, find
-from modelcraft.llk import TYPES, frame
+from modelcraft.llk import TYPES
+from modelcraft.stdres import frame
 from modelcraft.tests.ccp4 import insulin_refmac, insulin_targets
 
 

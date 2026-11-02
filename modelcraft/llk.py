@@ -13,35 +13,13 @@ import numpy as np
 
 from .mapsim import simulate
 from .reflections import DataItem
-
-# N, CA, C and CB in Buccaneer's standard residue frame (Ca_group)
-STD_N = np.array([0.8431, 0.0000, -1.2040])
-STD_CA = np.array([0.0000, 0.0000, 0.0000])
-STD_C = np.array([0.8775, 0.0000, 1.2530])
-STD_CB = np.array([-1.03, -1.11, 0.00])
+from .stdres import STD_CB, frame
 
 # Buccaneer's order of the residue types for the side-chain targets
 TYPES = [
     "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE",
     "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL",
 ]  # fmt: skip
-
-
-def frame(n, ca, c):
-    """Rotation and translation (numpy) taking the standard frame onto a residue.
-
-    The frame is built from the geometry (Ca_group::rtop_from_std_ori): x bisects
-    CA->C and CA->N, y is their cross product and the origin is CA.
-    """
-    n, ca, c = (np.asarray(p, dtype=float) for p in (n, ca, c))
-    c1, c2 = c - ca, n - ca
-    v1 = c1 / np.linalg.norm(c1) + c2 / np.linalg.norm(c2)
-    v1 /= np.linalg.norm(v1)
-    v2 = np.cross(c1, c2)
-    v2 /= np.linalg.norm(v2)
-    v3 = np.cross(v1, v2)
-    v3 /= np.linalg.norm(v3)
-    return np.column_stack([v1, v2, v3]), ca
 
 
 def _cubic(array: np.ndarray, point: np.ndarray) -> float:

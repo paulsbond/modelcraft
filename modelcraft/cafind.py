@@ -13,7 +13,9 @@ import dataclasses
 import gemmi
 import numpy as np
 
-from .llk import STD_C, STD_CA, STD_N, LLKTarget
+from .llk import LLKTarget
+from .geometry import torsion_position
+from .stdres import STD_C, STD_CA, STD_N
 
 # (high, low) density points about a residue for each SSfind template
 _ALPHA3 = [
@@ -37,23 +39,6 @@ class Found:
         return [self.rotation @ p + self.translation for p in (STD_N, STD_CA, STD_C)]
 
 
-def place(abc, length, angle, torsion):
-    "Position d with |cd| = length, angle bcd and torsion abcd (radians)"
-    a, b, c = abc
-    bc = (c - b) / np.linalg.norm(c - b)
-    n = np.cross(b - a, bc)
-    n /= np.linalg.norm(n)
-    m = np.cross(n, bc)
-    d = np.array(
-        [
-            -length * np.cos(angle),
-            length * np.sin(angle) * np.cos(torsion),
-            length * np.sin(angle) * np.sin(torsion),
-        ]
-    )
-    return c + d[0] * bc + d[1] * m + d[2] * n
-
-
 def _superpose(source, target):
     "Rotation and translation taking source (n, 3) onto target (n, 3)"
     sc, tc = source.mean(0), target.mean(0)
@@ -69,9 +54,9 @@ def _template(pairs, phi, psi, length=3):
     residues = []
     for _ in range(length):
         n, ca, c = residue
-        n = place((n, ca, c), 1.32, 1.99, psi)
-        ca = place((ca, c, n), 1.47, 2.15, np.pi)
-        c = place((c, n, ca), 1.53, 1.92, phi)
+        n = torsion_position((n, ca, c), 1.32, 1.99, psi)
+        ca = torsion_position((ca, c, n), 1.47, 2.15, np.pi)
+        c = torsion_position((c, n, ca), 1.53, 1.92, phi)
         residue = [n, ca, c]
         residues.append(np.array(residue))
     middle = residues[(length - 1) // 2]
