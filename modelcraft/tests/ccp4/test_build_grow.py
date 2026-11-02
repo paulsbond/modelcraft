@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
 
-from modelcraft.mlgrow import next_residues, prev_residues
+from modelcraft.build.grow import next_residues, prev_residues
 from modelcraft.tests.ccp4 import insulin_refmac
 
 NAMES = ("N", "CA", "C")
 
 
-def _chains():
+def _chains(reverse=False):
     "Insulin's chains as (n, 3, 3) arrays of N, CA and C, and the map"
     refmac = insulin_refmac()
     grid = refmac.fphi_best.map(spacing=0.5)
@@ -21,7 +21,7 @@ def _chains():
         )
         for chain in refmac.structure[0]
     ]
-    return chains, grid
+    return [c[::-1] for c in chains] if reverse else chains, grid
 
 
 def _max_errors(placed, target) -> np.ndarray:
@@ -30,11 +30,9 @@ def _max_errors(placed, target) -> np.ndarray:
 
 @pytest.mark.parametrize("grow", [next_residues, prev_residues])
 def test_grown_residues_land_on_the_model(grow):
-    chains, grid = _chains()
+    chains, grid = _chains(reverse=grow is prev_residues)
     right = total = 0
     for chain in chains:
-        if grow is prev_residues:
-            chain = chain[::-1]
         placed, errors = grow(grid, chain[:-1])
         assert np.all((errors > 0) & (errors < 2))
         right += np.sum(_max_errors(placed, chain[1:]) < 1)
@@ -45,11 +43,9 @@ def test_grown_residues_land_on_the_model(grow):
 
 @pytest.mark.parametrize("grow", [next_residues, prev_residues])
 def test_grown_chains_follow_the_model(grow):
-    chains, grid = _chains()
+    chains, grid = _chains(reverse=grow is prev_residues)
     fractions = []
     for chain in chains:
-        if grow is prev_residues:
-            chain = chain[::-1]
         for i in range(len(chain) - 1):
             current, steps = chain[i : i + 1], 0
             for target in chain[i + 1 :]:

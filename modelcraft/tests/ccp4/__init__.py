@@ -6,9 +6,9 @@ import uuid
 
 import gemmi
 
+from ...build.seeds.llk import reference_targets
 from ...contents import AsuContents, Ligand, Polymer, PolymerType
 from ...jobs.refmac import Refmac
-from ...llk import reference_targets
 from ...reflections import DataItem
 from ...structure import read_structure
 

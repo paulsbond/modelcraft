@@ -11,7 +11,7 @@ import gemmi
 import numpy as np
 from scipy.special import i0e, i1e
 
-from .reflections import DataItem
+from ...reflections import DataItem
 
 _KAPPA = np.concatenate([[0.0], np.logspace(-4, 4, 2000)])
 _SIM = i1e(_KAPPA) / i0e(_KAPPA)

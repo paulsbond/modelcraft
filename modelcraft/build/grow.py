@@ -6,8 +6,8 @@ from pathlib import Path
 import gemmi
 import numpy as np
 
-from .geometry import superpose
-from .mlutil import REFERENCE, place_reference, sample_probes
+from ..geometry import superpose
+from .network import REFERENCE, place_reference, sample_probes
 
 _DATA = Path(__file__).parent / "data"
 
@@ -15,7 +15,7 @@ _DATA = Path(__file__).parent / "data"
 @functools.cache
 def _network(direction: str):
     "Probes, trunk layers and heads (float32) of one direction; loaded on first use."
-    w = np.load(_DATA / f"mlgrow-{direction}.npz")
+    w = np.load(_DATA / f"grow-{direction}.npz")
 
     def layer(name):
         kernel, bias = w[f"{name}_kernel"], w[f"{name}_bias"]

@@ -1,9 +1,9 @@
-"Shared pieces of the ML networks in mlgrow and mlside."
+"Shared pieces of the grow and side networks."
 
 import numpy as np
 
-from .geometry import superpose
-from .stdres import STD_C, STD_CA, STD_N
+from ..geometry import superpose
+from ..stdres import STD_C, STD_CA, STD_N
 
 # N, CA and C defining the frame of the ML networks
 REFERENCE = np.array([STD_N, STD_CA, STD_C])

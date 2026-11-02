@@ -11,9 +11,9 @@ import os
 import gemmi
 import numpy as np
 
+from ...reflections import DataItem
+from ...stdres import STD_CB, frame
 from .mapsim import simulate
-from .reflections import DataItem
-from .stdres import STD_CB, frame
 
 # Buccaneer's order of the residue types for the side-chain targets
 TYPES = [

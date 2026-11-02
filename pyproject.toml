@@ -53,4 +53,4 @@ ignore = [
 version = { attr = "modelcraft.__version__" }
 
 [tool.setuptools.package-data]
-modelcraft = ["data/*"]
+"modelcraft.build" = ["data/*"]

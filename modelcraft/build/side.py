@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .mlutil import sample_probes
+from .network import sample_probes
 
 _DATA = Path(__file__).parent / "data"
 
@@ -34,7 +34,7 @@ def _classes():
 @functools.cache
 def _network():
     "Probes and layers (float32); loaded on first use."
-    w = np.load(_DATA / "mlside.npz")
+    w = np.load(_DATA / "side.npz")
 
     def layer(name):
         kernel, bias = w[f"{name}_kernel"], w[f"{name}_bias"]
@@ -44,7 +44,7 @@ def _network():
     names = ("dense", "dense_1", "dense_2", "dense_3", "rotamer")
     layers = [layer(name) for name in names]
     if layers[-1][1].shape[0] != _classes()[1].sum():
-        raise ValueError("mlside.npz doesn't match the classes of rotamers.json")
+        raise ValueError("side.npz doesn't match the classes of rotamers.json")
     return probes, layers
 
 

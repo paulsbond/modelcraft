@@ -13,9 +13,9 @@ import dataclasses
 import gemmi
 import numpy as np
 
+from ...geometry import superpose, torsion_position
+from ...stdres import STD_C, STD_CA, STD_N
 from .llk import LLKTarget
-from .geometry import superpose, torsion_position
-from .stdres import STD_C, STD_CA, STD_N
 
 # (high, low) density points about a residue for each SSfind template
 _ALPHA3 = [

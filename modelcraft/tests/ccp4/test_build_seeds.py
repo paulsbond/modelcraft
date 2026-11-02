@@ -1,8 +1,8 @@
 import gemmi
 import numpy as np
 
-from modelcraft.cafind import default_num_find, find
-from modelcraft.llk import TYPES
+from modelcraft.build.seeds.find import default_num_find, find
+from modelcraft.build.seeds.llk import TYPES
 from modelcraft.stdres import frame
 from modelcraft.tests.ccp4 import insulin_refmac, insulin_targets
 
