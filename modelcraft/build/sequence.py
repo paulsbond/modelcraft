@@ -133,7 +133,7 @@ def assign(grid, chains, sequences, **options):
 
 
 def assign_probabilities(
-    probabilities, sequences, *, mix=0.3, min_probability=0.5, **options
+    probabilities, sequences, mix=0.3, min_probability=0.5, **options
 ):
     """As assign, from type probabilities (n, 20) for each chain.
 

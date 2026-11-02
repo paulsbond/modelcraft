@@ -306,7 +306,6 @@ def _residues(chains, probabilities, unknown):
 def build(
     structure: gemmi.Structure,
     grid: gemmi.FloatGrid = None,
-    *,
     probabilities=None,
     unknown="ALA",
 ):
