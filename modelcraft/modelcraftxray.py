@@ -7,6 +7,7 @@ import gemmi
 
 from . import __version__
 from .cell import max_distortion, remove_scale, update_cell
+from .combine import combine_results
 from .jobs.buccaneer import Buccaneer
 from .jobs.ctruncate import CTruncate
 from .jobs.findwaters import FindWaters
@@ -131,13 +132,28 @@ class ModelCraftXray(Pipeline):
 
     def run_model_building(self):
         buccaneer = self.buccaneer()
-        if buccaneer is not None:
-            self.update_current_from_refmac_result(buccaneer)
-        nucleic = self.build_nucleic()
-        if nucleic is not None:
-            self.update_current_from_refmac_result(nucleic)
-        elif buccaneer is None:
+        nucleofind = not self.nucleofind_failed
+        if nucleofind:
+            try:
+                nucleic = self.nucleofind(buccaneer)
+            except FileNotFoundError as error:
+                print(f"NucleoFind produced no prediction: {error}", flush=True)
+                print("Using Nautilus for the rest of the run", flush=True)
+                self.nucleofind_failed = True
+                nucleofind = False
+        if not nucleofind:
+            nucleic = self.nautilus()
+        if buccaneer is None and nucleic is None:
             self.terminate(reason="No residues built")
+        if nucleofind and nucleic is not None:
+            self.update_current_from_refmac_result(nucleic)
+        elif buccaneer is None or nucleic is None:
+            self.update_current_from_refmac_result(buccaneer or nucleic)
+        else:
+            combined_structure = combine_results(buccaneer, nucleic, self.monlib)
+            combined = self.run_refmac(combined_structure, cycles=5)
+            best = min((buccaneer, nucleic, combined), key=lambda result: result.rfree)
+            self.update_current_from_refmac_result(best)
 
     def buccaneer(self):
         if not self.args.contents.proteins:
@@ -164,30 +180,19 @@ class ModelCraftXray(Pipeline):
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
 
-    def build_nucleic(self):
-        "NucleoFind, or Nautilus for the rest of the run once NucleoFind has failed."
+    def nucleofind(self, refmac):
         if not (self.args.contents.rnas or self.args.contents.dnas):
             return None
-        if not self.nucleofind_failed:
-            try:
-                return self.nucleofind()
-            except FileNotFoundError as error:
-                print(f"NucleoFind produced no prediction: {error}", flush=True)
-                print("Using Nautilus for the rest of the run", flush=True)
-                self.nucleofind_failed = True
-        self.prune(chains_only=True)
-        return self.nautilus()
-
-    def nucleofind(self):
-        prediction = NucleoFindPredict(fphi=self.current_fphi_best).run(self)
+        fphi = self.current_fphi_best if refmac is None else refmac.fphi_best
+        prediction = NucleoFindPredict(fphi=fphi).run(self)
         if self.args.output_nucleofind_maps:
             prediction.phosphate.write_ccp4_map(self.path("predicted-phosphate.map"))
             prediction.sugar.write_ccp4_map(self.path("predicted-sugar.map"))
             prediction.base.write_ccp4_map(self.path("predicted-base.map"))
         result = NucleoFindBuild(
             contents=self.args.contents,
-            fphi=self.current_fphi_best,
-            structure=self.current_structure,
+            fphi=fphi,
+            structure=self.current_structure if refmac is None else refmac.structure,
             prediction=prediction,
         ).run(self)
         if (
