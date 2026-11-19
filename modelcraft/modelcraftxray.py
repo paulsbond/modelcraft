@@ -45,6 +45,7 @@ class ModelCraftXray(Pipeline):
         self.last_refmac = None
         self.output_refmac = None
         self.cycles_without_improvement = 0
+        self.nucleofind_failed = False
         resnames = self.args.contents.monomer_codes()
         if self.args.model:
             resnames |= set(self.args.model[0].get_all_residue_names())
@@ -105,10 +106,7 @@ class ModelCraftXray(Pipeline):
                 freer=self.args.freer,
                 structure=self.current_structure,
             ).run(self)
-            result1 = self.run_refmac(sheetbend.structure, cycles=10)
-            result2 = self.run_refmac(self.current_structure, cycles=10)
-            chosen = result1 if result1.rfree < result2.rfree else result2
-            self.update_current_from_refmac_result(chosen)
+            self.refmac(sheetbend.structure, cycles=10, auto_accept=True)
         self.args.model = self.current_structure
         if self.args.phases is not None:
             self.current_phases = self.args.phases
@@ -135,11 +133,7 @@ class ModelCraftXray(Pipeline):
         buccaneer = self.buccaneer()
         if buccaneer is not None:
             self.update_current_from_refmac_result(buccaneer)
-        try:
-            nucleic = self.nucleofind()
-        except FileNotFoundError:
-            self.prune(chains_only=True)
-            nucleic = self.nautilus()
+        nucleic = self.build_nucleic()
         if nucleic is not None:
             self.update_current_from_refmac_result(nucleic)
         elif buccaneer is None:
@@ -170,9 +164,21 @@ class ModelCraftXray(Pipeline):
         write_mmcif(self.path("current.cif"), result.structure)
         return self.run_refmac(result.structure, cycles=10)
 
-    def nucleofind(self):
+    def build_nucleic(self):
+        "NucleoFind, or Nautilus for the rest of the run once NucleoFind has failed."
         if not (self.args.contents.rnas or self.args.contents.dnas):
             return None
+        if not self.nucleofind_failed:
+            try:
+                return self.nucleofind()
+            except FileNotFoundError as error:
+                print(f"NucleoFind produced no prediction: {error}", flush=True)
+                print("Using Nautilus for the rest of the run", flush=True)
+                self.nucleofind_failed = True
+        self.prune(chains_only=True)
+        return self.nautilus()
+
+    def nucleofind(self):
         prediction = NucleoFindPredict(fphi=self.current_fphi_best).run(self)
         if self.args.output_nucleofind_maps:
             prediction.phosphate.write_ccp4_map(self.path("predicted-phosphate.map"))
