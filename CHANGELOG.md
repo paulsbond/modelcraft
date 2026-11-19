@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
 
+## [7.0.0] - Unreleased
+
+- The input model is no longer refined with and without Sheetbend
+- Fewer real-space refinement cycles when fixing side chains
+- Job times include writing inputs and reading results
+- Fixed pruning deleting ligands, ions and waters
+- Fixed the pruning chain deletion budget never accumulating
+- Removed unused jobs
+- Removed the seconds attribute from job results
+- Nautilus is used for the rest of the run if NucleoFind fails
+- Optional arguments in some functions are now keyword only
+
 ## [6.1.2] - 2026-07-23
 
 - Removed NucleoFind 1o2d test number of fragments assertion
