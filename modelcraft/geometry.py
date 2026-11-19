@@ -1,39 +1,44 @@
-"Coordinate geometry on numpy arrays."
+import collections
 
+import gemmi
 import numpy as np
 
-
-def _unit(v):
-    return v / np.linalg.norm(v, axis=-1, keepdims=True)
+from .monlib import MonLib
 
 
-def torsion_position(abc, length, angle, torsion):
-    """Position d with |cd| = length, angle bcd and torsion abcd (radians).
-
-    The positions in abc may be (3,) or batches (..., 3), and the angle and torsion
-    may be arrays broadcasting with them.
-    """
-    a, b, c = (np.asarray(x, dtype=float) for x in abc)
-    bc = _unit(c - b)
-    n = _unit(np.cross(b - a, bc))
-    m = np.cross(n, bc)
-    angle = np.asarray(angle, dtype=float)[..., None]
-    torsion = np.asarray(torsion, dtype=float)[..., None]
-    return c + length * (
-        -np.cos(angle) * bc
-        + np.sin(angle) * np.cos(torsion) * m
-        + np.sin(angle) * np.sin(torsion) * n
-    )
+def per_residue_geometry_rmsz(
+    structure: gemmi.Structure, monlib: MonLib, model_index: int = 0
+) -> dict:
+    atom_zs = _atom_zs(structure, monlib, model_index)
+    rv = {}
+    for chain in structure[model_index]:
+        for residue in chain:
+            zs = np.concatenate([atom_zs.get(atom.serial, []) for atom in residue])
+            rmsz = np.sqrt(np.mean(np.square(zs))) if len(zs) > 0 else np.nan
+            rv[(chain.name, str(residue.seqid))] = rmsz
+    return rv
 
 
-def superpose(source, target):
-    """Rotations (..., 3, 3) and translations (..., 3) superposing source points
-    (..., n, 3) onto target points (..., n, 3) by least squares."""
-    source, target = np.asarray(source, dtype=float), np.asarray(target, dtype=float)
-    sc, tc = source.mean(axis=-2), target.mean(axis=-2)
-    h = np.swapaxes(source - sc[..., None, :], -1, -2) @ (target - tc[..., None, :])
-    u, _, vt = np.linalg.svd(h)
-    v, ut = np.swapaxes(vt, -1, -2), np.swapaxes(u, -1, -2)
-    v[..., 2] *= np.sign(np.linalg.det(v @ ut))[..., None]
-    rotation = v @ ut
-    return rotation, tc - (rotation @ sc[..., None])[..., 0]
+def _atom_zs(structure: gemmi.Structure, monlib: MonLib, model_index: int) -> dict:
+    structure.assign_serial_numbers()
+    topo = gemmi.prepare_topology(structure, monlib, model_index)
+    atom_zs = collections.defaultdict(list)
+    for bond in topo.bonds:
+        z = bond.calculate_z()
+        for atom in bond.atoms:
+            atom_zs[atom.serial].append(z)
+    for angle in topo.angles:
+        z = angle.calculate_z()
+        for atom in angle.atoms:
+            atom_zs[atom.serial].append(z)
+    for torsion in topo.torsions:
+        if torsion.restr.esd > 0:  # Some torsions are only restrained by planes
+            z = torsion.calculate_z()
+            for atom in torsion.atoms:
+                atom_zs[atom.serial].append(z)
+    for plane in topo.planes:
+        best_plane = gemmi.find_best_plane(plane.atoms)
+        for atom in plane.atoms:
+            z = gemmi.get_distance_from_plane(atom.pos, best_plane) / plane.restr.esd
+            atom_zs[atom.serial].append(z)
+    return atom_zs

@@ -6,7 +6,6 @@ import uuid
 
 import gemmi
 
-from ...build.seeds.llk import reference_targets
 from ...contents import AsuContents, Ligand, Polymer, PolymerType
 from ...jobs.refmac import Refmac
 from ...reflections import DataItem
@@ -65,12 +64,6 @@ def insulin_refmac():
     structure = insulin_structure()
     refmac = Refmac(structure=structure, fsigf=fsigf, freer=freer, cycles=0)
     return refmac.run()
-
-
-@functools.lru_cache(maxsize=None)
-def insulin_targets():
-    "Buccaneer's main-chain and side-chain LLK targets for the insulin data"
-    return reference_targets(insulin_fsigf(), insulin_refmac().abcd)
 
 
 @functools.lru_cache(maxsize=None)
